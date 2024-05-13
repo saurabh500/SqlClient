@@ -125,20 +125,50 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
             int totalRead = 0;
             while (lengthToFill > 0)
             {
-                if (PacketDataLeft == 0 || ReadBufferDataLength == ReadBufferOffset)
-                    await PrepareBufferAsync(isAsync: true, cancellationToken);
+                if (ReadBufferOffset > ReadBufferDataLength)
+                {
+                    throw new Exception($" 1 Invalid state with {ReadBufferOffset} offset being more than the data lenght" +
+                        $" {ReadBufferDataLength}");
+                }
+
+                if (PacketDataLeft == 0 || ReadBufferDataLength <= ReadBufferOffset)
+                    await PrepareBufferAsync(isAsync: true, cancellationToken).ConfigureAwait(false);
+
+                if (ReadBufferOffset > ReadBufferDataLength)
+                {
+                    throw new Exception($"2 Invalid state with {ReadBufferOffset} offset being more than the data lenght" +
+                        $" {ReadBufferDataLength}");
+                }
 
                 // We can only read the minimum of what is left in the packet, what is left in the buffer, and what we need to fill
                 // If we have the length available, then we read it, else we will read either the data in packet, or the 
                 // data in buffer, whichever is smaller.
                 // If the data spans multiple packets, then we will go ahead and read those packets.
                 int lengthToCopy = Math.Min(Math.Min(PacketDataLeft, ReadBufferDataLength - ReadBufferOffset), lengthToFill);
-                var copyFrom = new ReadOnlyMemory<byte>(Buffer, ReadBufferOffset, lengthToCopy);
-                copyFrom.CopyTo(buffer.Slice(totalRead, lengthToFill));
-                totalRead += lengthToCopy;
-                lengthToFill -= lengthToCopy;
-                ReadBufferOffset += lengthToCopy;
-                PacketDataLeft -= lengthToCopy;
+                try
+                { 
+                    var copyFrom = new ReadOnlyMemory<byte>(Buffer, ReadBufferOffset, lengthToCopy);
+                    copyFrom.CopyTo(buffer.Slice(totalRead, lengthToFill));
+                    totalRead += lengthToCopy;
+                    lengthToFill -= lengthToCopy;
+                    ReadBufferOffset += lengthToCopy;
+                    PacketDataLeft -= lengthToCopy;
+
+                    if (ReadBufferOffset > ReadBufferDataLength)
+                    {
+                        throw new Exception($"3 Invalid state with {ReadBufferOffset} offset being more than the data lenght" +
+                            $" {ReadBufferDataLength}");
+                    }
+
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Console.WriteLine(ReadBufferOffset + " " + ReadBufferDataLength + " " + PacketDataLeft
+                        + " " + lengthToFill);
+                    Console.WriteLine(lengthToCopy);
+                    throw;
+                }
+                
             }
 
             return totalRead;
@@ -168,6 +198,8 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
                     ReadBufferDataLength = isAsync ?
                         await _UnderlyingStream.ReadAsync(Buffer, ct).ConfigureAwait(false) :
                         _UnderlyingStream.Read(Buffer);
+
+                    ReadBufferOffset = 0;
                 }
                 else if (PacketDataLeft == 0)
                 {

@@ -12,9 +12,15 @@ namespace TestApplication
         
         static async Task Main(string[] args)
         {
-            //await NormalStuff();
-            BenchmarkRunner.Run<Benchmarks>();
+            await NormalStuff();
+            //BenchmarkRunner.Run<Benchmarks>();
         }
+
+        //static void Main(string[] args)
+        //{
+        //    //await NormalStuff();
+        //    BenchmarkRunner.Run<Benchmarks>();
+        //}
 
         //private static string QUERY = "SELECT CAST(@@VERSION AS VARCHAR(MAX)) AS ServerVersion;";
         private static string QUERY = "SELECT * from TextTable;";
@@ -68,18 +74,21 @@ namespace TestApplication
         private static async ValueTask NormalStuff()
         {
             
-            string connectionString = $"Server=tcp:127.0.0.1;" +
+            string connectionString = $"Server=tcp:192.168.1.83;" +
                         $"Min Pool Size=120;Max Pool Size = 200;User Id=sa; pwd={Environment.GetEnvironmentVariable("SQL_PWD")}; " +
                         $"Connection Timeout=30;TrustServerCertificate=True;Timeout=0;Encrypt=False;Database={database};Pooling=False;" +
                         "Application Name=TestAppX"; // pooled
             Console.WriteLine("1 for sync version of X\n" +
                 "2 for async version of X \n" +
+                "3 For Benchmark \n" +
                 $" Press any other key to try the query with  {QUERY} MDS");
             char testX = Console.ReadKey().KeyChar;
             if (testX == '1')
                 SimpleConnectionTestX(connectionString);
             if (testX == '2')
                 await SimpleConnectionTestAsyncX(connectionString).ConfigureAwait(false);
+            if (testX == '3')
+                BenchmarkRunner.Run<Benchmarks>();
             else
                 SimpleConnectionTest(connectionString);
         }
@@ -150,7 +159,7 @@ namespace TestApplication
 
             SqlConnectionX connection = new SqlConnectionX(connectionString);
             await connection.OpenAsync();
-
+            
             using (SqlCommandX command = connection.CreateCommand())
             {
                 command.CommandText = QUERY;
@@ -166,7 +175,7 @@ namespace TestApplication
                         // REad in reverse to cached the data in the reader buffers.
                         for (int i = reader.FieldCount - 1; i >= 0; i--)
                         {
-                            var count = await reader.GetFieldValueAsync<string>(i).ConfigureAwait(false);
+                            var count = await reader.GetFieldValueAsync<string>(i, CancellationToken.None).ConfigureAwait(false);
                             Console.WriteLine( count.Length);
                         }
                     }
