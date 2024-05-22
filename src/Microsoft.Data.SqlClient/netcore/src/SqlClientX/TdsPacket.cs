@@ -203,9 +203,7 @@ namespace simplesqlclient
         public void SetAcknowledgedData(Span<byte> buffer)
         {
             this.AckData = buffer.ToArray();
-            
         }
-
     }
 
     internal class GlobalTransactionsFeature : IServerFeature

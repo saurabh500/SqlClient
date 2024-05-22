@@ -8118,6 +8118,21 @@ namespace Microsoft.Data.SqlClient
             return len; // size of data written
         }
 
+        internal int WriteJsonSupportFeatureRequest(bool write /* if false just calculates the length */)
+        {
+            int len = 6; // 1byte = featureID, 4bytes = featureData length, 1 bytes = Version
+
+            if (write)
+            {
+                // Write Feature ID, length of the version# field and Sensitivity Classification Version#
+                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_JSONSUPPORT);
+                WriteInt(1, _physicalStateObj);
+                _physicalStateObj.WriteByte(1);
+            }
+
+            return len; // size of data written
+        }
+
         internal int WriteGlobalTransactionsFeatureRequest(bool write /* if false just calculates the length */)
         {
             int len = 5; // 1byte = featureID, 4bytes = featureData length
@@ -8158,6 +8173,7 @@ namespace Microsoft.Data.SqlClient
 
             return len;
         }
+
 
         private void WriteLoginData(SqlLogin rec,
                                      TdsEnums.FeatureExtension requestedFeatures,
@@ -8467,6 +8483,11 @@ namespace Microsoft.Data.SqlClient
                 if ((requestedFeatures & TdsEnums.FeatureExtension.SQLDNSCaching) != 0)
                 {
                     length += WriteSQLDNSCachingFeatureRequest(write);
+                }
+
+                if ((requestedFeatures & TdsEnums.FeatureExtension.JSONSupport) != 0)
+                {
+                    length += WriteJsonSupportFeatureRequest(write);
                 }
 
                 length++; // for terminator

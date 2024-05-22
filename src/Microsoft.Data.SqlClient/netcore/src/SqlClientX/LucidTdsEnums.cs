@@ -234,7 +234,7 @@ namespace simplesqlclient
         // 0x06 is for x_eFeatureExtensionId_LoginToken
         // 0x07 is for x_eFeatureExtensionId_ClientSideTelemetry
         public const byte FEATUREEXT_AZURESQLSUPPORT = 0x08;
-        public const byte FEATUREEXT_DATACLASSIFICATION = 0x09;
+        public const byte FEATUREEXT_DATACLASSIFICATION = 0x0D;
         public const byte FEATUREEXT_UTF8SUPPORT = 0x0A;
         public const byte FEATUREEXT_SQLDNSCACHING = 0x0B;
 
