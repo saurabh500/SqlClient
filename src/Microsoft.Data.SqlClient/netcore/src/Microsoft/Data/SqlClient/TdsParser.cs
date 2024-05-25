@@ -4392,19 +4392,13 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal bool TryProcessCollation(TdsParserStateObject stateObj, out SqlCollation collation)
+        internal async ValueTask<SqlCollation> TryProcessCollation(TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            if (!stateObj.TryReadUInt32(out uint info))
-            {
-                collation = null;
-                return false;
-            }
-            if (!stateObj.TryReadByte(out byte sortId))
-            {
-                collation = null;
-                return false;
-            }
-
+            uint info = await stateObj.TryReadUInt32(isAsync, ct).ConfigureAwait(false);
+            byte sortId = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+            SqlCollation collation;
             if (SqlCollation.Equals(_cachedCollation, info, sortId))
             {
                 collation = _cachedCollation;
@@ -4415,7 +4409,7 @@ namespace Microsoft.Data.SqlClient
                 _cachedCollation = collation;
             }
 
-            return true;
+            return collation;
         }
 
         private void WriteCollation(SqlCollation collation, TdsParserStateObject stateObj)
@@ -5635,7 +5629,9 @@ namespace Microsoft.Data.SqlClient
         /// <summary>
         /// This method skips bytes of a single column value from the media. It supports NBCROW and handles all types of values, including PLP and long
         /// </summary>
-        internal bool TrySkipValue(SqlMetaDataPriv md, int columnOrdinal, TdsParserStateObject stateObj)
+        internal async ValueTask TrySkipValue(SqlMetaDataPriv md, int columnOrdinal, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
             if (stateObj.IsNullCompressionBitSet(columnOrdinal))
             {
@@ -5754,7 +5750,7 @@ namespace Microsoft.Data.SqlClient
                         {
                             char[] cc = null;
                             bool buffIsRented = false;
-                            bool result = TryReadPlpUnicodeChars(ref cc, 0, length >> 1, stateObj, out length, supportRentedBuff: true, rentedBuff: ref buffIsRented);
+                            bool result = TryReadPlpUnicodeCharsAsync(ref cc, 0, length >> 1, stateObj, out length, supportRentedBuff: true, rentedBuff: ref buffIsRented);
 
                             if (result)
                             {
@@ -6527,25 +6523,13 @@ namespace Microsoft.Data.SqlClient
                     {
                         Debug.Assert(cbPropsExpected == 7, "SqlVariant: invalid PropBytes for character type!");
 
-                        SqlCollation collation;
-                        if (!TryProcessCollation(stateObj, out collation))
-                        {
-                            return false;
-                        }
-
-                        if (!stateObj.TryReadUInt16(out lenMax))
-                        {
-                            return false;
-                        }
+                        SqlCollation collation = await TryProcessCollation(stateObj, isAsync, ct).ConfigureAwait(false);
                         Debug.Assert(lenMax != TdsEnums.SQL_USHORTVARMAXLEN, "bigvarchar(max) or nvarchar(max) in a sqlvariant");
 
                         // skip over unknown properties
                         if (cbPropsActual > cbPropsExpected)
                         {
-                            if (!stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected))
-                            {
-                                return false;
-                            }
+                            await stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected, isAsync, ct).ConfigureAwait(false);
                         }
 
                         Encoding encoding = Encoding.GetEncoding(GetCodePage(collation, stateObj));
@@ -12292,34 +12276,31 @@ namespace Microsoft.Data.SqlClient
         // Will not start reading into the next chunk if bytes requested is larger than
         // the current chunk length. Do another ReadPlpLength, ReadPlpUnicodeChars in that case.
         // Returns the actual chars read
-        private bool TryReadPlpUnicodeCharsChunk(char[] buff, int offst, int len, TdsParserStateObject stateObj, out int charsRead)
+        private async ValueTask<int> TryReadPlpUnicodeCharsChunk(char[] buff, int offst, int len, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
             Debug.Assert((buff == null && len == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpUnicodeChars()!");
-            Debug.Assert((stateObj._longlen != 0) && (stateObj._longlen != TdsEnums.SQL_PLP_NULL),
+            Debug.Assert((stateObj._streamExecutionState.LongLen != 0) && (stateObj._streamExecutionState.LongLen != TdsEnums.SQL_PLP_NULL),
                         "Out of sync plp read request");
-            if (stateObj._longlenleft == 0)
+            if (stateObj._streamExecutionState.LongLenLeft == 0)
             {
                 Debug.Fail("Out of sync read request");
-                charsRead = 0;
-                return true;
+                return 0;
             }
 
             int charsToRead = len;
 
             // stateObj._longlenleft is in bytes
-            if ((stateObj._longlenleft / 2) < (ulong)len)
+            if ((stateObj._streamExecutionState.LongLenLeft / 2) < (ulong)len)
             {
-                charsToRead = (int)(stateObj._longlenleft >> 1);
+                charsToRead = (int)(stateObj._streamExecutionState.LongLenLeft >> 1);
             }
 
-            if (!stateObj.TryReadCharsAsync(buff, offst, charsToRead, out charsRead))
-            {
-                charsRead = 0;
-                return false;
-            }
-
-            stateObj._longlenleft -= ((ulong)charsRead << 1);
-            return true;
+            var charsRead = await stateObj.TryReadCharsAsync(buff, offst, charsToRead, isAsync, ct).ConfigureAwait(false);
+            
+            stateObj._streamExecutionState.LongLenLeft -= ((ulong)charsRead << 1);
+            return charsRead;
         }
 
         internal int ReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj)
@@ -12327,7 +12308,7 @@ namespace Microsoft.Data.SqlClient
             int charsRead;
             bool rentedBuff = false;
             Debug.Assert(stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TryReadPlpUnicodeChars(ref buff, offst, len, stateObj, out charsRead, supportRentedBuff: false, ref rentedBuff);
+            bool result = TryReadPlpUnicodeCharsAsync(ref buff, offst, len, stateObj, out charsRead, supportRentedBuff: false, ref rentedBuff);
             if (!result)
             {
                 throw SQL.SynchronousCallMayNotPend();
@@ -12339,20 +12320,20 @@ namespace Microsoft.Data.SqlClient
         // requested length is -1 or larger than the actual length of data. First call to this method
         //  should be preceeded by a call to ReadPlpLength or ReadDataLength.
         // Returns the actual chars read.
-        internal bool TryReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj, out int totalCharsRead, bool supportRentedBuff, ref bool rentedBuff)
+        internal bool TryReadPlpUnicodeCharsAsync(ref char[] buff, int offst, int len, TdsParserStateObject stateObj, out int totalCharsRead, bool supportRentedBuff, ref bool rentedBuff)
         {
             int charsRead = 0;
             int charsLeft = 0;
             char[] newbuf;
 
-            if (stateObj._longlen == 0)
+            if (stateObj._streamExecutionState.LongLen == 0)
             {
-                Debug.Assert(stateObj._longlenleft == 0);
+                Debug.Assert(stateObj._streamExecutionState.LongLenLeft == 0);
                 totalCharsRead = 0;
                 return true;       // No data
             }
 
-            Debug.Assert(((ulong)stateObj._longlen != TdsEnums.SQL_PLP_NULL), "Out of sync plp read request");
+            Debug.Assert(((ulong)stateObj._streamExecutionState.LongLen != TdsEnums.SQL_PLP_NULL), "Out of sync plp read request");
 
             Debug.Assert((buff == null && offst == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpUnicodeChars()!");
             charsLeft = len;
@@ -12360,21 +12341,21 @@ namespace Microsoft.Data.SqlClient
             // If total length is known up front, the length isn't specified as unknown 
             // and the caller doesn't pass int.max/2 indicating that it doesn't know the length
             // allocate the whole buffer in one shot instead of realloc'ing and copying over each time
-            if (buff == null && stateObj._longlen != TdsEnums.SQL_PLP_UNKNOWNLEN && len < (int.MaxValue >> 1))
+            if (buff == null && stateObj._streamExecutionState.LongLen != TdsEnums.SQL_PLP_UNKNOWNLEN && len < (int.MaxValue >> 1))
             {
                 if (supportRentedBuff && len < 1073741824) // 1 Gib
                 {
-                    buff = ArrayPool<char>.Shared.Rent((int)Math.Min((int)stateObj._longlen, len));
+                    buff = ArrayPool<char>.Shared.Rent((int)Math.Min((int)stateObj._streamExecutionState.LongLen, len));
                     rentedBuff = true;
                 }
                 else
                 {
-                    buff = new char[(int)Math.Min((int)stateObj._longlen, len)];
+                    buff = new char[(int)Math.Min((int)stateObj._streamExecutionState.LongLen, len)];
                     rentedBuff = false;
                 }
             }
 
-            if (stateObj._longlenleft == 0)
+            if (stateObj._streamExecutionState.LongLenLeft == 0)
             {
                 ulong ignored;
                 if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
@@ -12382,7 +12363,7 @@ namespace Microsoft.Data.SqlClient
                     totalCharsRead = 0;
                     return false;
                 }
-                if (stateObj._longlenleft == 0)
+                if (stateObj._streamExecutionState.LongLenLeft == 0)
                 { // Data read complete
                     totalCharsRead = 0;
                     return true;
@@ -12393,7 +12374,7 @@ namespace Microsoft.Data.SqlClient
 
             while (charsLeft > 0)
             {
-                charsRead = (int)Math.Min((stateObj._longlenleft + 1) >> 1, (ulong)charsLeft);
+                charsRead = (int)Math.Min((stateObj._streamExecutionState.LongLenLeft + 1) >> 1, (ulong)charsLeft);
                 if ((buff == null) || (buff.Length < (offst + charsRead)))
                 {
                     bool returnRentedBufferAfterCopy = rentedBuff;
@@ -12466,7 +12447,7 @@ namespace Microsoft.Data.SqlClient
                     }
                 }
 
-                if (stateObj._longlenleft == 0)   // Data read complete
+                if (stateObj._streamExecutionState.LongLenLeft == 0)   // Data read complete
                     break;
             }
             return true;
@@ -12479,22 +12460,22 @@ namespace Microsoft.Data.SqlClient
             int bytesRead = 0;
             int totalcharsRead = 0;
 
-            if (stateObj._longlen == 0)
+            if (stateObj._streamExecutionState.LongLen == 0)
             {
-                Debug.Assert(stateObj._longlenleft == 0);
+                Debug.Assert(stateObj._streamExecutionState.LongLenLeft == 0);
                 return 0;       // No data
             }
 
-            Debug.Assert(((ulong)stateObj._longlen != TdsEnums.SQL_PLP_NULL),
+            Debug.Assert(((ulong)stateObj._streamExecutionState.LongLen != TdsEnums.SQL_PLP_NULL),
                     "Out of sync plp read request");
 
             Debug.Assert((buff == null && offst == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpAnsiChars()!");
             charsLeft = len;
 
-            if (stateObj._longlenleft == 0)
+            if (stateObj._streamExecutionState.LongLenLeft == 0)
             {
                 stateObj.ReadPlpLength(false);
-                if (stateObj._longlenleft == 0)
+                if (stateObj._streamExecutionState.LongLenLeft == 0)
                 {// Data read complete
                     stateObj._plpdecoder = null;
                     return 0;
@@ -12519,7 +12500,7 @@ namespace Microsoft.Data.SqlClient
 
             while (charsLeft > 0)
             {
-                bytesRead = (int)Math.Min(stateObj._longlenleft, (ulong)charsLeft);
+                bytesRead = (int)Math.Min(stateObj._streamExecutionState.LongLenLeft, (ulong)charsLeft);
                 if ((stateObj._bTmp == null) || (stateObj._bTmp.Length < bytesRead))
                 {
                     // Grow the array
@@ -12532,10 +12513,10 @@ namespace Microsoft.Data.SqlClient
                 charsLeft -= charsRead;
                 offst += charsRead;
                 totalcharsRead += charsRead;
-                if (stateObj._longlenleft == 0)  // Read the next chunk or cleanup state if hit the end
+                if (stateObj._streamExecutionState.LongLenLeft == 0)  // Read the next chunk or cleanup state if hit the end
                     stateObj.ReadPlpLength(false);
 
-                if (stateObj._longlenleft == 0)
+                if (stateObj._streamExecutionState.LongLenLeft == 0)
                 { // Data read complete
                     stateObj._plpdecoder = null;
                     break;
@@ -12545,164 +12526,104 @@ namespace Microsoft.Data.SqlClient
         }
 
         // ensure value is not null and does not have an NBC bit set for it before using this method
-        internal ulong SkipPlpValue(ulong cb, TdsParserStateObject stateObj)
+        internal async ValueTask<ulong> SkipPlpValue(ulong cb, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            ulong skipped;
             Debug.Assert(stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TrySkipPlpValue(cb, stateObj, out skipped);
-            if (!result)
+            try
             {
+                return await TrySkipPlpValue(cb, stateObj, isAsync, ct).ConfigureAwait(false);
+            }
+            catch 
+            { 
                 throw SQL.SynchronousCallMayNotPend();
             }
-            return skipped;
         }
 
-        internal bool TrySkipPlpValue(ulong cb, TdsParserStateObject stateObj, out ulong totalBytesSkipped)
+        internal async ValueTask<ulong> TrySkipPlpValue(ulong cb,
+            TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            // Read and skip cb bytes or until  ReadPlpLength returns 0.
-            int bytesSkipped;
-            totalBytesSkipped = 0;
-
-            if (stateObj._longlenleft == 0)
-            {
-                ulong ignored;
-                if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
-                {
-                    return false;
-                }
-            }
-
-            while ((totalBytesSkipped < cb) &&
-                    (stateObj._longlenleft > 0))
-            {
-                if (stateObj._longlenleft > int.MaxValue)
-                    bytesSkipped = int.MaxValue;
-                else
-                    bytesSkipped = (int)stateObj._longlenleft;
-                bytesSkipped = ((cb - totalBytesSkipped) < (ulong)bytesSkipped) ? (int)(cb - totalBytesSkipped) : bytesSkipped;
-
-                if (!stateObj.TrySkipBytes(bytesSkipped))
-                {
-                    return false;
-                }
-                stateObj._longlenleft -= (ulong)bytesSkipped;
-                totalBytesSkipped += (ulong)bytesSkipped;
-
-                if (stateObj._longlenleft == 0)
-                {
-                    ulong ignored;
-                    if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return await _readStream.SkipPlpValueAsync(cb, stateObj._streamExecutionState, isAsync, ct).ConfigureAwait(false);
         }
 
-        internal ulong PlpBytesLeft(TdsParserStateObject stateObj)
+        internal async ValueTask<ulong> PlpBytesLeft(TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
-                stateObj.ReadPlpLength(false);
+            if ((stateObj._streamExecutionState.LongLen != 0) && (stateObj._streamExecutionState.LongLenLeft == 0))
+                await stateObj.ReadPlpLength(false, isAsync, ct).ConfigureAwait(false);
 
-            return stateObj._longlenleft;
+            return stateObj._streamExecutionState.LongLen;
         }
 
-        internal bool TryPlpBytesLeft(TdsParserStateObject stateObj, out ulong left)
+        internal async ValueTask<ulong> TryPlpBytesLeft(TdsParserStateObject stateObj, bool isAsync,
+            CancellationToken ct)
         {
-            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
+            ulong left;
+            if ((stateObj._streamExecutionState.LongLen != 0) && (stateObj._streamExecutionState.LongLenLeft == 0))
             {
-                if (!stateObj.TryReadPlpLengthAsync(false, out left))
-                {
-                    return false;
-                }
+                left = await stateObj.TryReadPlpLengthAsync(false, isAsync, ct).ConfigureAwait(false);
             }
 
-            left = stateObj._longlenleft;
-            return true;
+            left = stateObj._streamExecutionState.LongLenLeft;
+            return left;
         }
 
         private const ulong _indeterminateSize = 0xffffffffffffffff;        // Represents unknown size
 
         internal ulong PlpBytesTotalLength(TdsParserStateObject stateObj)
         {
-            if (stateObj._longlen == TdsEnums.SQL_PLP_UNKNOWNLEN)
+            if (stateObj._streamExecutionState.LongLen == TdsEnums.SQL_PLP_UNKNOWNLEN)
                 return _indeterminateSize;
-            else if (stateObj._longlen == TdsEnums.SQL_PLP_NULL)
+            else if (stateObj._streamExecutionState.LongLen == TdsEnums.SQL_PLP_NULL)
                 return 0;
 
-            return stateObj._longlen;
+            return stateObj._streamExecutionState.LongLen;
         }
 
-        private bool TryProcessUDTMetaData(SqlMetaDataPriv metaData, TdsParserStateObject stateObj)
+        private async ValueTask TryProcessUDTMetaData(SqlMetaDataPriv metaData, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
 
-            ushort shortLength;
-            byte byteLength;
-
-            if (!stateObj.TryReadUInt16(out shortLength))
-            { // max byte size
-                return false;
-            }
+            ushort shortLength = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
+            byte byteLength = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
             metaData.length = shortLength;
 
-            // database name
-            if (!stateObj.TryReadByte(out byteLength))
-            {
-                return false;
-            }
             if (metaData.udt is null)
             {
                 metaData.udt = new SqlMetaDataUdt();
             }
             if (byteLength != 0)
             {
-                if (!stateObj.TryReadString(byteLength, out metaData.udt.DatabaseName))
-                {
-                    return false;
-                }
+                metaData.udt.DatabaseName = await stateObj.TryReadStringAsync(byteLength, isAsync, ct).ConfigureAwait(false);
             }
 
-            // schema name
-            if (!stateObj.TryReadByte(out byteLength))
-            {
-                return false;
-            }
+            byteLength = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+            
             if (byteLength != 0)
             {
-                if (!stateObj.TryReadString(byteLength, out metaData.udt.SchemaName))
-                {
-                    return false;
-                }
+                metaData.udt.SchemaName = await stateObj.TryReadStringAsync(byteLength, isAsync, ct).ConfigureAwait(false);
             }
 
             // type name
-            if (!stateObj.TryReadByte(out byteLength))
-            {
-                return false;
-            }
+            byteLength = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+
+            
             if (byteLength != 0)
             {
-                if (!stateObj.TryReadString(byteLength, out metaData.udt.TypeName))
-                {
-                    return false;
-                }
+                metaData.udt.TypeName = await stateObj.TryReadStringAsync(byteLength, isAsync, ct).ConfigureAwait(false);
             }
 
-            if (!stateObj.TryReadUInt16(out shortLength))
-            {
-                return false;
-            }
+            shortLength = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
+            
             if (shortLength != 0)
             {
-                if (!stateObj.TryReadString(shortLength, out metaData.udt.AssemblyQualifiedName))
-                {
-                    return false;
-                }
+                metaData.udt.AssemblyQualifiedName = await stateObj.TryReadStringAsync(shortLength, isAsync, ct).ConfigureAwait(false);
             }
-
-            return true;
         }
 
         const string StateTraceFormatString = "\n\t"

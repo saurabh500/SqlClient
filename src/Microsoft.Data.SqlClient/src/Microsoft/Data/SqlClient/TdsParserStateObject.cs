@@ -248,7 +248,7 @@ namespace Microsoft.Data.SqlClient
         // as the error handling may end up calling Dispose.
         private int _readingCount;
 
-        private readonly StreamExecutionState _streamExecutionState;
+        internal readonly StreamExecutionState _streamExecutionState;
 
         // Test hooks
 #if DEBUG
@@ -494,7 +494,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal async ValueTask<Tuple<bool, int>> TryReadCharsAsync(char[] chars,
+        internal async ValueTask<int> TryReadCharsAsync(char[] chars,
             int charsOffset,
             int charsCount,
             bool isAsync,
@@ -538,7 +538,7 @@ namespace Microsoft.Data.SqlClient
                     }
                     else
                     {
-                        return Tuple.Create(false, -1);
+                        return -1;
                     }
                 }
             }
@@ -549,7 +549,7 @@ namespace Microsoft.Data.SqlClient
                     chars[ii] = (char)BinaryPrimitives.ReverseEndianness((ushort)chars[ii]);
                 }
             }
-            return Tuple.Create(true, charsCopied);
+            return charsCopied;
         }
 
         internal bool IsRowTokenReady()

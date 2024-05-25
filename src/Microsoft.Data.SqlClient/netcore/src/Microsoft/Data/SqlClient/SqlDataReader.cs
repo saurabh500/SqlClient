@@ -1494,7 +1494,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetBoolean/*' />
         override public bool GetBoolean(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Boolean;
         }
 
@@ -1523,7 +1523,7 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 // Need to call ReadColumn, since we want to access the internal data structures (i.e. SqlBinary) rather than calling anther Get*() method
-                ReadColumn(i);
+                ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
                 if (_data[i].IsNull)
                 {
@@ -1567,7 +1567,7 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 // Need to call ReadColumn, since we want to access the internal data structures (i.e. SqlBinary) rather than calling anther Get*() method
-                ReadColumn(i);
+                ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
                 byte[] data;
                 if (_data[i].IsNull)
@@ -1589,7 +1589,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetByte/*' />
         override public byte GetByte(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Byte;
         }
 
@@ -1612,7 +1612,7 @@ namespace Microsoft.Data.SqlClient
             {
                 statistics = SqlStatistics.StartTimer(Statistics);
                 SetTimeout(_defaultTimeoutMilliseconds);
-                cbBytes = GetBytesInternal(i, dataIndex, buffer, bufferIndex, length);
+                cbBytes = GetBytesInternal(i, dataIndex, buffer, bufferIndex, length, isAsync: false, ct: CancellationToken.None).AsTask().Result;
                 _lastColumnWithDataChunkRead = i;
             }
             finally
@@ -1623,21 +1623,20 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Used (indirectly) by SqlCommand.CompleteXmlReader
-        virtual internal long GetBytesInternal(int i, long dataIndex, byte[] buffer, int bufferIndex, int length)
+        virtual internal async ValueTask<long> GetBytesInternal(int i, long dataIndex, byte[] buffer, int bufferIndex, int length,
+            bool isAsync,
+            CancellationToken ct)
         {
-            if (_currentTask != null)
-            {
-                throw ADP.AsyncOperationPending();
-            }
 
-            long value;
             Debug.Assert(_stateObj == null || _stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TryGetBytesInternal(i, dataIndex, buffer, bufferIndex, length, out value);
-            if (!result)
+            try
+            {
+                return await TryGetBytesInternal(i, dataIndex, buffer, bufferIndex, length, isAsync, ct).ConfigureAwait(false);
+            }
+            catch
             {
                 throw SQL.SynchronousCallMayNotPend();
             }
-            return value;
         }
 
         private async ValueTask<long> TryGetBytesInternal(
@@ -1666,10 +1665,7 @@ namespace Microsoft.Data.SqlClient
 
                 if (_dataReadState._nextColumnHeaderToRead <= i)
                 {
-                    if (!TryReadColumnHeader(i))
-                    {
-                        return false;
-                    }
+                    await TryReadColumnHeader(i, isAsync, ct).ConfigureAwait(false);
                 }
 
                 // If data is null, ReadColumnHeader sets the data.IsNull bit.
@@ -1681,17 +1677,13 @@ namespace Microsoft.Data.SqlClient
                 // If there are an unknown (-1) number of bytes left for a PLP, read its size
                 if ((-1 == _dataReadState._columnDataBytesRemaining) && (_metaData[i].metaType.IsPlp))
                 {
-                    ulong left;
-                    if (!_parser.TryPlpBytesLeft(_stateObj, out left))
-                    {
-                        return false;
-                    }
+                    ulong left = await _parser.TryPlpBytesLeft(_stateObj, isAsync, ct).ConfigureAwait(false);
                     _dataReadState._columnDataBytesRemaining = (long)left;
                 }
 
                 if (0 == _dataReadState._columnDataBytesRemaining)
                 {
-                    return true; // We've read this column to the end
+                    return remaining; // We've read this column to the end
                 }
 
                 // if no buffer is passed in, return the number total of bytes, or -1
@@ -1700,10 +1692,10 @@ namespace Microsoft.Data.SqlClient
                     if (_metaData[i].metaType.IsPlp)
                     {
                         remaining = (long)_parser.PlpBytesTotalLength(_stateObj);
-                        return true;
+                        return remaining;
                     }
                     remaining = _dataReadState._columnDataBytesRemaining;
-                    return true;
+                    return remaining;
                 }
 
                 if (dataIndex < 0)
@@ -1720,7 +1712,7 @@ namespace Microsoft.Data.SqlClient
                 // if dataIndex is outside of the data range, return 0
                 if ((cb > _dataReadState._columnDataBytesRemaining) && !_metaData[i].metaType.IsPlp)
                 {
-                    return true;
+                    return remaining;
                 }
 
                 // if bad buffer index, throw
@@ -1739,11 +1731,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     if (_metaData[i].metaType.IsPlp)
                     {
-                        ulong skipped;
-                        if (!_parser.TrySkipPlpValue((ulong)cb, _stateObj, out skipped))
-                        {
-                            return false;
-                        }
+                        ulong skipped = await _parser.TrySkipPlpValue((ulong)cb, _stateObj, isAsync, ct).ConfigureAwait(false);
                         _columnDataBytesRead += (long)skipped;
                     }
                     else
@@ -1889,7 +1877,9 @@ namespace Microsoft.Data.SqlClient
         // This is meant to be called from other internal methods once we are at the column to read
         // NOTE: This method must be retriable WITHOUT replaying a snapshot
         // Every time you call this method increment the index and decrease length by the value of bytesRead
-        internal bool TryGetBytesInternalSequential(int i, byte[] buffer, int index, int length, out int bytesRead)
+        internal async ValueTask<int> TryGetBytesInternalSequential(int i, byte[] buffer, int index, int length, 
+            bool isAsync,
+            CancellationToken ct)
         {
             AssertReaderState(requireData: true, permitAsync: true, columnIndex: i, enforceSequentialAccess: true);
             Debug.Assert(_dataReadState._nextColumnHeaderToRead == i + 1 && _dataReadState._nextColumnDataToRead == i, "Non sequential access");
@@ -1898,13 +1888,12 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(length >= 0, "Invalid length");
             Debug.Assert(index + length <= buffer.Length, "Buffer too small");
 
-            bytesRead = 0;
+            int bytesRead = 0;
 
             if ((_dataReadState._columnDataBytesRemaining == 0) || (length == 0))
             {
                 // No data left or nothing requested, return 0
-                bytesRead = 0;
-                return true;
+                return bytesRead;
             }
             else
             {
@@ -1912,31 +1901,31 @@ namespace Microsoft.Data.SqlClient
                 if (_metaData[i].metaType.IsPlp)
                 {
                     // Read in data
-                    bool result = _stateObj.TryReadPlpBytesAsync(ref buffer, index, length, out bytesRead);
-                    _columnDataBytesRead += bytesRead;
-                    if (!result)
-                    {
-                        return false;
-                    }
+                    var result = await _stateObj.TryReadPlpBytesAsync(index, length, isAsync, ct).ConfigureAwait(false);
+                    _columnDataBytesRead += result.Item1;
 
                     // Query for number of bytes left
-                    ulong left;
-                    if (!_parser.TryPlpBytesLeft(_stateObj, out left))
+                    try
+                    { 
+                        ulong left = await _parser.TryPlpBytesLeft(_stateObj, isAsync, ct);
+                        _dataReadState._columnDataBytesRemaining = (long)left;
+                        return bytesRead;
+                    }
+                    catch
                     {
                         _dataReadState._columnDataBytesRemaining = -1;
-                        return false;
+                        throw;
                     }
-                    _dataReadState._columnDataBytesRemaining = (long)left;
-                    return true;
                 }
                 else
                 {
                     // Read data (not exceeding the total amount of data available)
                     int bytesToRead = (int)Math.Min((long)length, _dataReadState._columnDataBytesRemaining);
-                    bool result = _stateObj.TryReadByteArrayAsync(buffer.AsSpan(index), bytesToRead, out bytesRead);
+                    bytesRead = await _stateObj.TryReadByteArrayWithReturnAsync(buffer, bytesToRead, isAsync, ct, index).ConfigureAwait(false);
+
                     _columnDataBytesRead += bytesRead;
                     _dataReadState._columnDataBytesRemaining -= bytesRead;
-                    return result;
+                    return bytesRead;
                 }
             }
         }
@@ -1992,7 +1981,7 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 // Need to call ReadColumn, since we want to access the internal data structures (i.e. SqlString) rather than calling anther Get*() method
-                ReadColumn(i);
+                ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
                 string data;
                 if (_data[i].IsNull)
@@ -2308,7 +2297,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetDateTime/*' />
         override public DateTime GetDateTime(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
             DateTime dt = _data[i].DateTime;
             // This accessor can be called for regular DateTime column. In this case we should not throw
@@ -2330,77 +2319,81 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetDecimal/*' />
         override public decimal GetDecimal(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Decimal;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetDouble/*' />
         override public double GetDouble(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Double;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetFloat/*' />
         override public float GetFloat(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Single;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetGuid/*' />
         override public Guid GetGuid(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Guid;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetInt16/*' />
         override public short GetInt16(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Int16;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetInt32/*' />
         override public int GetInt32(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Int32;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetInt64/*' />
         override public long GetInt64(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].Int64;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlBoolean/*' />
         virtual public SqlBoolean GetSqlBoolean(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlBoolean;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlBinary/*' />
         virtual public SqlBinary GetSqlBinary(int i)
         {
-            ReadColumn(i, setTimeout: true, allowPartiallyReadColumn: true);
+            ReadColumn(i,
+                isAsync: false, 
+                CancellationToken.None, 
+                setTimeout: true, 
+                allowPartiallyReadColumn: true).AsTask().Wait();
             return _data[i].SqlBinary;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlByte/*' />
         virtual public SqlByte GetSqlByte(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlByte;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlBytes/*' />
         virtual public SqlBytes GetSqlBytes(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             SqlBinary data = _data[i].SqlBinary;
             return new SqlBytes(data);
         }
@@ -2408,7 +2401,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlChars/*' />
         virtual public SqlChars GetSqlChars(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             SqlString data;
             // Convert 2008 types to string
             if (_typeSystem <= SqlConnectionString.TypeSystem.SQLServer2005 && _metaData[i].Is2008DateTimeType)
@@ -2425,70 +2418,70 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlDateTime/*' />
         virtual public SqlDateTime GetSqlDateTime(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlDateTime;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlDecimal/*' />
         virtual public SqlDecimal GetSqlDecimal(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlDecimal;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlGuid/*' />
         virtual public SqlGuid GetSqlGuid(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlGuid;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlDouble/*' />
         virtual public SqlDouble GetSqlDouble(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlDouble;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlInt16/*' />
         virtual public SqlInt16 GetSqlInt16(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlInt16;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlInt32/*' />
         virtual public SqlInt32 GetSqlInt32(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlInt32;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlInt64/*' />
         virtual public SqlInt64 GetSqlInt64(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlInt64;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlMoney/*' />
         virtual public SqlMoney GetSqlMoney(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlMoney;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlSingle/*' />
         virtual public SqlSingle GetSqlSingle(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             return _data[i].SqlSingle;
         }
 
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlString/*' />
         virtual public SqlString GetSqlString(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
             if (_typeSystem <= SqlConnectionString.TypeSystem.SQLServer2005 && _metaData[i].Is2008DateTimeType)
             {
@@ -2501,7 +2494,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetSqlXml/*' />
         virtual public SqlXml GetSqlXml(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
             SqlXml sx = null;
 
             if (_typeSystem != SqlConnectionString.TypeSystem.SQLServer2000)
@@ -2554,8 +2547,12 @@ namespace Microsoft.Data.SqlClient
             }
 
             Debug.Assert(_stateObj == null || _stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TryReadColumn(i, setTimeout: false);
-            if (!result)
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
+            try
+            {
+                TryReadColumn(i, setTimeout: false, false, CancellationToken.None).AsTask().Wait();
+            }
+            catch
             {
                 throw SQL.SynchronousCallMayNotPend();
             }
@@ -2647,7 +2644,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetString/*' />
         override public string GetString(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
             // Convert 2008 value to string if type system knob is 2005 or earlier
             if (_typeSystem <= SqlConnectionString.TypeSystem.SQLServer2005 && _metaData[i].Is2008DateTimeType)
@@ -2695,7 +2692,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetTimeSpan/*' />
         virtual public TimeSpan GetTimeSpan(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
             TimeSpan t = _data[i].Time;
 
@@ -2717,7 +2714,7 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlDataReader.xml' path='docs/members[@name="SqlDataReader"]/GetDateTimeOffset/*' />
         virtual public DateTimeOffset GetDateTimeOffset(int i)
         {
-            ReadColumn(i);
+            ReadColumn(i, isAsync: false, CancellationToken.None).AsTask().Wait();
 
             DateTimeOffset dto = _data[i].DateTimeOffset;
 
@@ -3311,7 +3308,7 @@ namespace Microsoft.Data.SqlClient
 
                 SetTimeout(_defaultTimeoutMilliseconds);
 
-                ReadColumnHeader(i);    // header data only
+                ReadColumnHeader(i, isAsync: false, CancellationToken.None).AsTask().Wait();    // header data only
             }
 
             return _data[i].IsNull;
@@ -3702,7 +3699,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void ReadColumn(int i, bool setTimeout = true, bool allowPartiallyReadColumn = false)
+        private async ValueTask ReadColumn(int i, bool isAsync, CancellationToken ct, bool setTimeout = true, bool allowPartiallyReadColumn = false)
         {
             if (_currentTask != null)
             {
@@ -3710,14 +3707,19 @@ namespace Microsoft.Data.SqlClient
             }
 
             Debug.Assert(_stateObj == null || _stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TryReadColumn(i, setTimeout, allowPartiallyReadColumn);
-            if (!result)
+            try
+            {
+                await TryReadColumn(i, setTimeout, isAsync, ct, allowPartiallyReadColumn).ConfigureAwait(false);
+            }
+            catch
             {
                 throw SQL.SynchronousCallMayNotPend();
             }
         }
 
-        private bool TryReadColumn(int i, bool setTimeout, bool allowPartiallyReadColumn = false, bool forStreaming = false)
+        private async ValueTask TryReadColumn(int i, bool setTimeout, bool isAsync, CancellationToken ct, 
+            bool allowPartiallyReadColumn = false, 
+            bool forStreaming = false)
         {
             CheckDataIsReady(columnIndex: i, permitAsync: true, allowPartiallyReadColumn: allowPartiallyReadColumn, methodName: null);
 
@@ -3729,14 +3731,9 @@ namespace Microsoft.Data.SqlClient
                 SetTimeout(_defaultTimeoutMilliseconds);
             }
 
-            if (!TryReadColumnInternal(i, readHeaderOnly: false, forStreaming: forStreaming))
-            {
-                return false;
-            }
+            await TryReadColumnInternalAsync(i, isAsync, ct, readHeaderOnly: false, forStreaming: forStreaming).ConfigureAwait(false);
 
             Debug.Assert(null != _data[i], " data buffer is null?");
-
-            return true;
         }
 
         private async ValueTask TryReadColumnDataAsync(bool isAsync, CancellationToken ct)
@@ -3764,23 +3761,28 @@ namespace Microsoft.Data.SqlClient
             return;
         }
 
-        private void ReadColumnHeader(int i)
+        private async ValueTask ReadColumnHeader(int i, bool isAsync, CancellationToken ct)
         {
             Debug.Assert(_stateObj == null || _stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TryReadColumnHeader(i);
-            if (!result)
+            try
+            {
+                await TryReadColumnHeader(i, isAsync, ct).ConfigureAwait(false);
+            }
+            catch
             {
                 throw SQL.SynchronousCallMayNotPend();
             }
         }
 
-        private bool TryReadColumnHeader(int i)
+        private async ValueTask TryReadColumnHeader(int i,
+            bool isAsync,
+            CancellationToken ct)
         {
             if (!_dataReadState._dataReady)
             {
                 throw SQL.InvalidRead();
             }
-            return TryReadColumnInternal(i, readHeaderOnly: true);
+            await TryReadColumnInternalAsync(i, isAsync, ct, readHeaderOnly: true).ConfigureAwait(false);
         }
 
         internal async ValueTask TryReadColumnInternalAsync(
@@ -3798,7 +3800,7 @@ namespace Microsoft.Data.SqlClient
                 // Read the header, but we need to read the data
                 if ((i == _dataReadState._nextColumnDataToRead) && (!readHeaderOnly))
                 {
-                    return TryReadColumnDataAsync();
+                    await TryReadColumnDataAsync(isAsync, ct).ConfigureAwait(false);
                 }
                 // Else we've already read the data, or we're reading the header only
                 else
@@ -3835,10 +3837,7 @@ namespace Microsoft.Data.SqlClient
             else if (_dataReadState._nextColumnDataToRead < _dataReadState._nextColumnHeaderToRead)
             {
                 // We read the header but not the column for the previous column
-                if (!TryReadColumnDataAsync())
-                {
-                    return false;
-                }
+                await TryReadColumnDataAsync(isAsync, ct).ConfigureAwait(false);
                 Debug.Assert(_dataReadState._nextColumnDataToRead == _dataReadState._nextColumnHeaderToRead);
             }
 
