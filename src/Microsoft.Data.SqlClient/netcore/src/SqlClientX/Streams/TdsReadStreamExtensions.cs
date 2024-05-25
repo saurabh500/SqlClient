@@ -98,6 +98,21 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
             return result;
         }
 
+        internal static async ValueTask<char> ReadChar(this TdsReadStream stream,
+            bool isAsync, CancellationToken ct = default)
+        {
+            int size = 2;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(sizeof(long));
+
+            _ = isAsync ? await stream.ReadAsync(buffer.AsMemory(0, size), ct) :
+                stream.Read(buffer.AsSpan().Slice(0, size));
+
+            var result = (char)((buffer[1] << 8) + buffer[0]);
+            ArrayPool<byte>.Shared.Return(buffer);
+
+            return result;
+        }
+
         internal static async ValueTask<float> ReadSingleAsync(this TdsReadStream stream, bool isAsync, CancellationToken ct)
         {
             int size = 4;

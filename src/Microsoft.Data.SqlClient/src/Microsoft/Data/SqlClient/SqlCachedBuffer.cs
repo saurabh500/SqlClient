@@ -59,7 +59,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     int cb = (plplength > (ulong)MaxChunkSize) ? MaxChunkSize : (int)plplength;
                     byteArr = new byte[cb];
-                    if (!stateObj.TryReadPlpBytes(ref byteArr, 0, cb, out cb))
+                    if (!stateObj.TryReadPlpBytesAsync(ref byteArr, 0, cb, out cb))
                     {
                         return false;
                     }

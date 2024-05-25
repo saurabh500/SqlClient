@@ -1640,9 +1640,16 @@ namespace Microsoft.Data.SqlClient
             return value;
         }
 
-        private bool TryGetBytesInternal(int i, long dataIndex, byte[] buffer, int bufferIndex, int length, out long remaining)
+        private async ValueTask<long> TryGetBytesInternal(
+            int i,
+            long dataIndex,
+            byte[] buffer,
+            int bufferIndex,
+            int length,
+            bool isAsync,
+            CancellationToken ct)
         {
-            remaining = 0;
+            long remaining = 0;
 
             int cbytes = 0;
             AssertReaderState(requireData: true, permitAsync: true, columnIndex: i, enforceSequentialAccess: true);
@@ -1741,10 +1748,7 @@ namespace Microsoft.Data.SqlClient
                     }
                     else
                     {
-                        if (!_stateObj.TrySkipLongBytes(cb))
-                        {
-                            return false;
-                        }
+                        await _stateObj.TrySkipLongBytes(cb, isAsync, ct);
                         _columnDataBytesRead += cb;
                         _dataReadState._columnDataBytesRemaining -= cb;
                     }
@@ -1753,7 +1757,7 @@ namespace Microsoft.Data.SqlClient
                 int bytesRead;
                 bool result = TryGetBytesInternalSequential(i, buffer, bufferIndex, length, out bytesRead);
                 remaining = (int)bytesRead;
-                return result;
+                return remaining;
             }
 
             // random access now!
@@ -1908,7 +1912,7 @@ namespace Microsoft.Data.SqlClient
                 if (_metaData[i].metaType.IsPlp)
                 {
                     // Read in data
-                    bool result = _stateObj.TryReadPlpBytes(ref buffer, index, length, out bytesRead);
+                    bool result = _stateObj.TryReadPlpBytesAsync(ref buffer, index, length, out bytesRead);
                     _columnDataBytesRead += bytesRead;
                     if (!result)
                     {
@@ -1929,7 +1933,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     // Read data (not exceeding the total amount of data available)
                     int bytesToRead = (int)Math.Min((long)length, _dataReadState._columnDataBytesRemaining);
-                    bool result = _stateObj.TryReadByteArray(buffer.AsSpan(index), bytesToRead, out bytesRead);
+                    bool result = _stateObj.TryReadByteArrayAsync(buffer.AsSpan(index), bytesToRead, out bytesRead);
                     _columnDataBytesRead += bytesRead;
                     _dataReadState._columnDataBytesRemaining -= bytesRead;
                     return result;
@@ -3735,7 +3739,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryReadColumnData()
+        private async ValueTask TryReadColumnDataAsync(bool isAsync, CancellationToken ct)
         {
             // If we've already read the value (because it was NULL) we don't
             // bother to read here.
@@ -3743,16 +3747,21 @@ namespace Microsoft.Data.SqlClient
             {
                 _SqlMetaData columnMetaData = _metaData[_dataReadState._nextColumnDataToRead];
 
+                await _parser.TryReadSqlValue(_data[_dataReadState._nextColumnDataToRead], columnMetaData, (int)_dataReadState._columnDataBytesRemaining, _stateObj,
+                    _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
+                    isAsync,
+                    ct,
+                    columnMetaData.column);
                 if (!_parser.TryReadSqlValue(_data[_dataReadState._nextColumnDataToRead], columnMetaData, (int)_dataReadState._columnDataBytesRemaining, _stateObj,
                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
                     columnMetaData.column))
                 { // will read UDTs as VARBINARY.
-                    return false;
+                    return;
                 }
                 _dataReadState._columnDataBytesRemaining = 0;
             }
             _dataReadState._nextColumnDataToRead++;
-            return true;
+            return;
         }
 
         private void ReadColumnHeader(int i)
@@ -3774,7 +3783,12 @@ namespace Microsoft.Data.SqlClient
             return TryReadColumnInternal(i, readHeaderOnly: true);
         }
 
-        internal bool TryReadColumnInternal(int i, bool readHeaderOnly = false, bool forStreaming = false)
+        internal async ValueTask TryReadColumnInternalAsync(
+            int i,
+            bool isAsync,
+            CancellationToken ct,
+            bool readHeaderOnly = false,
+            bool forStreaming = false)
         {
             AssertReaderState(requireData: true, permitAsync: true, columnIndex: i);
 
@@ -3784,7 +3798,7 @@ namespace Microsoft.Data.SqlClient
                 // Read the header, but we need to read the data
                 if ((i == _dataReadState._nextColumnDataToRead) && (!readHeaderOnly))
                 {
-                    return TryReadColumnData();
+                    return TryReadColumnDataAsync();
                 }
                 // Else we've already read the data, or we're reading the header only
                 else
@@ -3796,7 +3810,7 @@ namespace Microsoft.Data.SqlClient
                         (_metaData[i].type == SqlDbType.Timestamp),                                                     // Or SqlClient: IsDBNull always returns false for timestamp datatype
 
                         "Gone past column, be we have no data stored for it");
-                    return true;
+                    return;
                 }
             }
 
@@ -3821,7 +3835,7 @@ namespace Microsoft.Data.SqlClient
             else if (_dataReadState._nextColumnDataToRead < _dataReadState._nextColumnHeaderToRead)
             {
                 // We read the header but not the column for the previous column
-                if (!TryReadColumnData())
+                if (!TryReadColumnDataAsync())
                 {
                     return false;
                 }

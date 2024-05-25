@@ -271,6 +271,11 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
             this.PacketDataLeft++;
             return nextToken;
         }
+
+        internal bool TryReadByteArray(byte[] payload, int length)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal class ScratchPad

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.Data.Common;
 using Microsoft.Data.ProviderBase;
+using Microsoft.Data.SqlClient.SqlClientX.Streams;
 using Microsoft.Identity.Client;
 
 namespace Microsoft.Data.SqlClient
@@ -103,6 +104,9 @@ namespace Microsoft.Data.SqlClient
 
     internal sealed class SqlInternalConnectionTds : SqlInternalConnection, IDisposable
     {
+        private TdsReadStream _readStream = default;
+        private TdsWriteStream _writeStream = default;
+
         // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/retry-after#simple-retry-for-errors-with-http-error-codes-500-600
         internal const int MsalHttpRetryStatusCode = 429;
 
@@ -1536,7 +1540,7 @@ namespace Microsoft.Data.SqlClient
                 if (_parser != null)
                     _parser.Disconnect();
 
-                _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous);
+                _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous, _readStream, _writeStream);
                 Debug.Assert(SniContext.Undefined == Parser._physicalStateObj.SniContext, $"SniContext should be Undefined; actual Value: {Parser._physicalStateObj.SniContext}");
 
                 try
@@ -1754,7 +1758,7 @@ namespace Microsoft.Data.SqlClient
                 if (_parser != null)
                     _parser.Disconnect();
 
-                _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous);
+                _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous, _readStream, _writeStream);
                 Debug.Assert(SniContext.Undefined == Parser._physicalStateObj.SniContext, $"SniContext should be Undefined; actual Value: {Parser._physicalStateObj.SniContext}");
 
                 ServerInfo currentServerInfo;

@@ -21,6 +21,7 @@ using Microsoft.Data.ProviderBase;
 using Microsoft.Data.Sql;
 using Microsoft.Data.SqlClient.DataClassification;
 using Microsoft.Data.SqlClient.Server;
+using Microsoft.Data.SqlClient.SqlClientX.Streams;
 using Microsoft.Data.SqlTypes;
 
 namespace Microsoft.Data.SqlClient
@@ -153,6 +154,7 @@ namespace Microsoft.Data.SqlClient
 
         // XML metadata substitute sequence
         private static readonly byte[] s_xmlMetadataSubstituteSequence = { 0xe7, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        private readonly TdsWriteStream _writeStream;
 
         // size of Guid  (e.g. _clientConnectionId, ActivityId.Id)
         private const int GUID_SIZE = 16;
@@ -194,33 +196,22 @@ namespace Microsoft.Data.SqlClient
         /// </summary>
         internal int DataClassificationVersion { get; set; }
 
+        private readonly TdsReadStream _readStream;
         private SqlCollation _cachedCollation;
 
-        internal TdsParser(bool MARS, bool fAsynchronous)
+        internal TdsParser(bool MARS, bool fAsynchronous, TdsReadStream readStream, TdsWriteStream writeStream)
         {
             _fMARS = MARS; // may change during Connect to pre 2005 servers
 
             _physicalStateObj = TdsParserStateObjectFactory.Singleton.CreateTdsParserStateObject(this);
             DataClassificationVersion = TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED;
+            _readStream = readStream;
+            _writeStream = writeStream;
         }
 
-        internal SqlInternalConnectionTds Connection
-        {
-            get
-            {
-                return _connHandler;
-            }
-        }
-
-        private static bool EnableTruncateSwitch
-        {
-            get
-            {
-                bool value;
-                value = AppContext.TryGetSwitch(enableTruncateSwitch, out value) ? value : false;
-                return value;
-            }
-        }
+        internal SqlInternalConnectionTds Connection => _connHandler;
+        
+        private static bool EnableTruncateSwitch => AppContext.TryGetSwitch(enableTruncateSwitch, out bool value) ? value : false;
 
         internal SqlInternalTransaction CurrentTransaction
         {
@@ -247,13 +238,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal int DefaultLCID
-        {
-            get
-            {
-                return _defaultLCID;
-            }
-        }
+        internal int DefaultLCID => _defaultLCID;
 
         internal EncryptionOptions EncryptionOptions
         {
@@ -269,21 +254,9 @@ namespace Microsoft.Data.SqlClient
 
         internal bool Is2005OrNewer => true;
 
-        internal bool Is2008OrNewer
-        {
-            get
-            {
-                return _is2008;
-            }
-        }
+        internal bool Is2008OrNewer => _is2008;
 
-        internal bool MARSOn
-        {
-            get
-            {
-                return _fMARS;
-            }
-        }
+        internal bool MARSOn => _fMARS;
 
         internal SqlInternalTransaction PendingTransaction
         {
@@ -1347,10 +1320,15 @@ namespace Microsoft.Data.SqlClient
             breakConnection &= (TdsParserState.Closed != _state);
             if (breakConnection)
             {
-                if ((_state == TdsParserState.OpenNotLoggedIn) && (_connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT)))
+                if ((_state == TdsParserState.OpenNotLoggedIn) 
+                    && (_connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) 
+                    && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) 
+                    || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT)))
                 {
-                    // For Multisubnet Failover we slice the timeout to make reconnecting faster (with the assumption that the server will not failover instantaneously)
-                    // However, when timeout occurs we need to not doom the internal connection and also to mark the TdsParser as closed such that the login will be will retried
+                    // For Multisubnet Failover we slice the timeout to make reconnecting faster
+                    // (with the assumption that the server will not failover instantaneously)
+                    // However, when timeout occurs we need to not doom the internal connection and
+                    // also to mark the TdsParser as closed such that the login will be will retried
                     breakConnection = false;
                     Disconnect();
                 }
@@ -2114,7 +2092,7 @@ namespace Microsoft.Data.SqlClient
                 }
 
                 int tokenLength;
-                if (!TryGetTokenLength(token, stateObj, out tokenLength))
+                if (!TryGetTokenLengthAsync(token, stateObj, out tokenLength))
                 {
                     return false;
                 }
@@ -2480,14 +2458,14 @@ namespace Microsoft.Data.SqlClient
 
                             if (token == TdsEnums.SQLNBCROW)
                             {
-                                if (!stateObj.TryStartNewRow(isNullCompressed: true, nullBitmapColumnsCount: stateObj._cleanupMetaData.Length))
+                                if (!stateObj.TryStartNewRowAsync(isNullCompressed: true, nullBitmapColumnsCount: stateObj._cleanupMetaData.Length))
                                 {
                                     return false;
                                 }
                             }
                             else
                             {
-                                if (!stateObj.TryStartNewRow(isNullCompressed: false))
+                                if (!stateObj.TryStartNewRowAsync(isNullCompressed: false))
                                 {
                                     return false;
                                 }
@@ -2520,7 +2498,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     case TdsEnums.SQLRETURNSTATUS:
                         int status;
-                        if (!stateObj.TryReadInt32(out status))
+                        if (!stateObj.TryReadInt32Async(out status))
                         {
                             return false;
                         }
@@ -2616,7 +2594,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     case TdsEnums.SQLALTROW:
                         {
-                            if (!stateObj.TryStartNewRow(isNullCompressed: false))
+                            if (!stateObj.TryStartNewRowAsync(isNullCompressed: false))
                             { // altrows are not currently null compressed
                                 return false;
                             }
@@ -2882,7 +2860,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (env._newLength > 0)
                         {
-                            if (!stateObj.TryReadInt64(out env._newLongValue))
+                            if (!stateObj.TryReadInt64Async(out env._newLongValue))
                             {
                                 return false;
                             }
@@ -2902,7 +2880,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (env._oldLength > 0)
                         {
-                            if (!stateObj.TryReadInt64(out env._oldLongValue))
+                            if (!stateObj.TryReadInt64Async(out env._oldLongValue))
                             {
                                 return false;
                             }
@@ -2927,7 +2905,7 @@ namespace Microsoft.Data.SqlClient
                         break;
 
                     case TdsEnums.ENV_PROMOTETRANSACTION:
-                        if (!stateObj.TryReadInt32(out env._newLength))
+                        if (!stateObj.TryReadInt32Async(out env._newLength))
                         { // new value has 4 byte length
                             return false;
                         }
@@ -3104,7 +3082,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             long longCount;
-            if (!stateObj.TryReadInt64(out longCount))
+            if (!stateObj.TryReadInt64Async(out longCount))
             {
                 return false;
             }
@@ -3515,7 +3493,7 @@ namespace Microsoft.Data.SqlClient
             int sensitivityRank = (int)SensitivityRank.NOT_DEFINED;
             if (DataClassificationVersion > TdsEnums.DATA_CLASSIFICATION_VERSION_WITHOUT_RANK_SUPPORT)
             {
-                if (!stateObj.TryReadInt32(out sensitivityRank) || !Enum.IsDefined(typeof(SensitivityRank), sensitivityRank))
+                if (!stateObj.TryReadInt32Async(out sensitivityRank) || !Enum.IsDefined(typeof(SensitivityRank), sensitivityRank))
                 {
                     return false;
                 }
@@ -3571,7 +3549,7 @@ namespace Microsoft.Data.SqlClient
                     int sensitivityRankProperty = (int)SensitivityRank.NOT_DEFINED;
                     if (DataClassificationVersion > TdsEnums.DATA_CLASSIFICATION_VERSION_WITHOUT_RANK_SUPPORT)
                     {
-                        if (!stateObj.TryReadInt32(out sensitivityRankProperty) || !Enum.IsDefined(typeof(SensitivityRank), sensitivityRankProperty))
+                        if (!stateObj.TryReadInt32Async(out sensitivityRankProperty) || !Enum.IsDefined(typeof(SensitivityRank), sensitivityRankProperty))
                         {
                             return false;
                         }
@@ -3641,7 +3619,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    if (!stateObj.TryReadInt32(out stateLen))
+                    if (!stateObj.TryReadInt32Async(out stateLen))
                     {
                         return false;
                     }
@@ -3869,7 +3847,7 @@ namespace Microsoft.Data.SqlClient
                 // read the rest of the token
                 byte[] tokenData = new byte[tokenLen];
                 int totalRead = 0;
-                bool successfulRead = stateObj.TryReadByteArray(tokenData, tokenLen, out totalRead);
+                bool successfulRead = stateObj.TryReadByteArrayAsync(tokenData, tokenLen, out totalRead);
                 if (SqlClientEventSource.Log.IsAdvancedTraceOn())
                 {
                     SqlClientEventSource.Log.AdvancedTraceEvent("<sc.TdsParser.TryProcessFedAuthInfo|ADV> Read rest of FEDAUTHINFO token stream: {0}", BitConverter.ToString(tokenData, 0, totalRead));
@@ -3979,7 +3957,7 @@ namespace Microsoft.Data.SqlClient
 
             error = null;
 
-            if (!stateObj.TryReadInt32(out number))
+            if (!stateObj.TryReadInt32Async(out number))
             {
                 return false;
             }
@@ -4037,7 +4015,7 @@ namespace Microsoft.Data.SqlClient
 
             int line;
 
-            if (!stateObj.TryReadInt32(out line))
+            if (!stateObj.TryReadInt32Async(out line))
             {
                 return false;
             }
@@ -4133,7 +4111,7 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                if (!TryGetTokenLength(tdsType, stateObj, out tdsLen))
+                if (!TryGetTokenLengthAsync(tdsType, stateObj, out tdsLen))
                 {
                     return false;
                 }
@@ -4692,21 +4670,21 @@ namespace Microsoft.Data.SqlClient
 
             // Read the DB ID
             int dbId;
-            if (!stateObj.TryReadInt32(out dbId))
+            if (!stateObj.TryReadInt32Async(out dbId))
             {
                 return false;
             }
 
             // Read the keyID
             int keyId;
-            if (!stateObj.TryReadInt32(out keyId))
+            if (!stateObj.TryReadInt32Async(out keyId))
             {
                 return false;
             }
 
             // Read the key version
             int keyVersion;
-            if (!stateObj.TryReadInt32(out keyVersion))
+            if (!stateObj.TryReadInt32Async(out keyVersion))
             {
                 return false;
             }
@@ -4894,7 +4872,7 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                if (!TryGetTokenLength(tdsType, stateObj, out col.length))
+                if (!TryGetTokenLengthAsync(tdsType, stateObj, out col.length))
                 {
                     return false;
                 }
@@ -5437,7 +5415,7 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert((token == TdsEnums.SQLALTROW), "");
 
             // Start a fresh row - disable NBC since Alt Rows are never compressed
-            if (!stateObj.TryStartNewRow(isNullCompressed: false))
+            if (!stateObj.TryStartNewRowAsync(isNullCompressed: false))
             {
                 id = 0;
                 return false;
@@ -5690,7 +5668,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     int length;
-                    if (!TryGetTokenLength(md.tdsType, stateObj, out length))
+                    if (!TryGetTokenLengthAsync(md.tdsType, stateObj, out length))
                     {
                         return false;
                     }
@@ -5703,7 +5681,7 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 int length;
-                if (!TryGetTokenLength(md.tdsType, stateObj, out length))
+                if (!TryGetTokenLengthAsync(md.tdsType, stateObj, out length))
                 {
                     return false;
                 }
@@ -6107,12 +6085,14 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal bool TryReadSqlValue(SqlBuffer value,
+        internal async ValueTask TryReadSqlValueAsync(SqlBuffer value,
             SqlMetaDataPriv md,
             int length, 
             TdsParserStateObject stateObj,
             SqlCommandColumnEncryptionSetting columnEncryptionOverride,
             string columnName,
+            bool isAsync,
+            CancellationToken ct,
             SqlCommand command = null)
         {
             bool isPlp = md.metaType.IsPlp;
@@ -6131,7 +6111,7 @@ namespace Microsoft.Data.SqlClient
             {
                 case TdsEnums.SQLDECIMALN:
                 case TdsEnums.SQLNUMERICN:
-                    if (!TryReadSqlDecimal(value, length, md.precision, md.scale, stateObj))
+                    if (!TryReadSqlDecimalAsync(value, length, md.precision, md.scale, stateObj))
                     {
                         return false;
                     }
@@ -6151,7 +6131,7 @@ namespace Microsoft.Data.SqlClient
                         // If we are given -1 for length, then we read the entire value,
                         // otherwise only the requested amount, usually first chunk.
                         int ignored;
-                        if (!stateObj.TryReadPlpBytes(ref b, 0, length, out ignored))
+                        if (!stateObj.TryReadPlpBytesAsync(ref b, 0, length, out ignored))
                         {
                             return false;
                         }
@@ -6292,18 +6272,16 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal bool TryReadSqlValueInternal(SqlBuffer value, byte tdsType, int length, TdsParserStateObject stateObj)
+        internal async ValueTask TryReadSqlValueInternal(SqlBuffer value, byte tdsType, int length, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
             switch (tdsType)
             {
                 case TdsEnums.SQLBIT:
                 case TdsEnums.SQLBITN:
                     Debug.Assert(length == 1, "invalid length for SqlBoolean type!");
-                    byte byteValue;
-                    if (!stateObj.TryReadByte(out byteValue))
-                    {
-                        return false;
-                    }
+                    byte byteValue = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
                     value.Boolean = (byteValue != 0);
                     break;
 
@@ -6327,40 +6305,25 @@ namespace Microsoft.Data.SqlClient
 
                 case TdsEnums.SQLINT1:
                     Debug.Assert(length == 1, "invalid length for SqlByte type!");
-                    if (!stateObj.TryReadByte(out byteValue))
-                    {
-                        return false;
-                    }
+                    byteValue = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
                     value.Byte = byteValue;
                     break;
 
                 case TdsEnums.SQLINT2:
                     Debug.Assert(length == 2, "invalid length for SqlInt16 type!");
-                    short shortValue;
-                    if (!stateObj.TryReadInt16(out shortValue))
-                    {
-                        return false;
-                    }
+                    short shortValue = await stateObj.TryReadInt16Async(isAsync, ct).ConfigureAwait(false);
                     value.Int16 = shortValue;
                     break;
 
                 case TdsEnums.SQLINT4:
                     Debug.Assert(length == 4, "invalid length for SqlInt32 type!");
-                    int intValue;
-                    if (!stateObj.TryReadInt32(out intValue))
-                    {
-                        return false;
-                    }
+                    int intValue = await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
                     value.Int32 = intValue;
                     break;
 
                 case TdsEnums.SQLINT8:
                     Debug.Assert(length == 8, "invalid length for SqlInt64 type!");
-                    long longValue;
-                    if (!stateObj.TryReadInt64(out longValue))
-                    {
-                        return false;
-                    }
+                    long longValue = await stateObj.TryReadInt64Async(isAsync, ct).ConfigureAwait(false);
                     value.Int64 = longValue;
                     break;
 
@@ -6376,21 +6339,13 @@ namespace Microsoft.Data.SqlClient
 
                 case TdsEnums.SQLFLT4:
                     Debug.Assert(length == 4, "invalid length for SqlSingle type!");
-                    float singleValue;
-                    if (!stateObj.TryReadSingle(out singleValue))
-                    {
-                        return false;
-                    }
+                    float singleValue = await stateObj.TryReadSingleAsync(isAsync, ct).ConfigureAwait(false);
                     value.Single = singleValue;
                     break;
 
                 case TdsEnums.SQLFLT8:
                     Debug.Assert(length == 8, "invalid length for SqlDouble type!");
-                    double doubleValue;
-                    if (!stateObj.TryReadDouble(out doubleValue))
-                    {
-                        return false;
-                    }
+                    double doubleValue = await stateObj.TryReadDoubleAsync(isAsync, ct).ConfigureAwait(false);
                     value.Double = doubleValue;
                     break;
 
@@ -6406,18 +6361,10 @@ namespace Microsoft.Data.SqlClient
 
                 case TdsEnums.SQLMONEY:
                     {
-                        int mid;
-                        uint lo;
-
-                        if (!stateObj.TryReadInt32(out mid))
-                        {
-                            return false;
-                        }
-                        if (!stateObj.TryReadUInt32(out lo))
-                        {
-                            return false;
-                        }
-
+                        int mid = await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
+                        
+                        uint lo = await stateObj.TryReadUInt32(isAsync, ct).ConfigureAwait(false);
+                        
                         long l = (((long)mid) << 0x20) + ((long)lo);
 
                         value.SetToMoney(l);
@@ -6425,10 +6372,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLMONEY4:
-                    if (!stateObj.TryReadInt32(out intValue))
-                    {
-                        return false;
-                    }
+                    intValue = await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
                     value.SetToMoney(intValue);
                     break;
 
@@ -6443,40 +6387,22 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLDATETIM4:
-                    ushort daypartShort, timepartShort;
-                    if (!stateObj.TryReadUInt16(out daypartShort))
-                    {
-                        return false;
-                    }
-                    if (!stateObj.TryReadUInt16(out timepartShort))
-                    {
-                        return false;
-                    }
+                    ushort daypartShort = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
+                    ushort timepartShort = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
                     value.SetToDateTime(daypartShort, timepartShort * SqlDateTime.SQLTicksPerMinute);
                     break;
 
                 case TdsEnums.SQLDATETIME:
-                    int daypart;
-                    uint timepart;
-                    if (!stateObj.TryReadInt32(out daypart))
-                    {
-                        return false;
-                    }
-                    if (!stateObj.TryReadUInt32(out timepart))
-                    {
-                        return false;
-                    }
+                    int daypart = await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
+                    uint timepart = await stateObj.TryReadUInt32(isAsync, ct).ConfigureAwait(false);
                     value.SetToDateTime(daypart, (int)timepart);
                     break;
 
                 case TdsEnums.SQLUNIQUEID:
                     {
                         Debug.Assert(length == 16, "invalid length for SqlGuid type!");
-                        Span<byte> b = stackalloc byte[16];
-                        if (!stateObj.TryReadByteArray(b, length))
-                        {
-                            return false;
-                        }
+                        byte[] b = new byte[16];
+                        await stateObj.TryReadByteArrayAsync(b, length, isAsync, ct).ConfigureAwait(false);
                         value.Guid = ConstructGuid(b);
                         break;
                     }
@@ -6490,10 +6416,8 @@ namespace Microsoft.Data.SqlClient
                         // Note: Better not come here with plp data!!
                         Debug.Assert(length <= TdsEnums.MAXSIZE);
                         byte[] b = new byte[length];
-                        if (!stateObj.TryReadByteArray(b, length))
-                        {
-                            return false;
-                        }
+                        await stateObj.TryReadByteArrayAsync(b, length, isAsync, ct).ConfigureAwait(false);
+                        
 #if NET7_0_OR_GREATER
                         value.SqlBinary = SqlBinary.WrapBytes(b);
 #else
@@ -6504,18 +6428,13 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLVARIANT:
-                    if (!TryReadSqlVariant(value, length, stateObj))
-                    {
-                        return false;
-                    }
+                    await TryReadSqlVariant(value, length, stateObj, isAsync, ct).ConfigureAwait(false);
                     break;
 
                 default:
                     Debug.Fail("Unknown SqlType!" + tdsType.ToString(CultureInfo.InvariantCulture));
                     break;
-            } // switch
-
-            return true;
+            }
         }
 
         //
@@ -6529,22 +6448,17 @@ namespace Microsoft.Data.SqlClient
         //      BYTE[] Properties
         //      BYTE[] DataVal
         // }
-        internal bool TryReadSqlVariant(SqlBuffer value, int lenTotal, TdsParserStateObject stateObj)
+        internal async ValueTask TryReadSqlVariant(SqlBuffer value, int lenTotal, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
             // get the SQLVariant type
-            byte type;
-            if (!stateObj.TryReadByte(out type))
-            {
-                return false;
-            }
+            byte type = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
             ushort lenMax = 0; // maximum lenData of value inside variant
 
             // read cbPropBytes
-            byte cbPropsActual;
-            if (!stateObj.TryReadByte(out cbPropsActual))
-            {
-                return false;
-            }
+            byte cbPropsActual = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+            
             MetaType mt = MetaType.GetSqlDataType(type, 0 /*no user datatype*/, 0 /* no lenData, non-nullable type */);
             byte cbPropsExpected = mt.PropBytes;
 
@@ -6571,10 +6485,7 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLDATETIME:
                 case TdsEnums.SQLDATETIM4:
                 case TdsEnums.SQLUNIQUEID:
-                    if (!TryReadSqlValueInternal(value, type, lenData, stateObj))
-                    {
-                        return false;
-                    }
+                    await TryReadSqlValueInternal(value, type, lenData, stateObj, isAsync, ct).ConfigureAwait(false);
                     break;
 
                 case TdsEnums.SQLDECIMALN:
@@ -6582,30 +6493,15 @@ namespace Microsoft.Data.SqlClient
                     {
                         Debug.Assert(cbPropsExpected == 2, "SqlVariant: invalid PropBytes for decimal/numeric type!");
 
-                        byte precision;
-                        if (!stateObj.TryReadByte(out precision))
-                        {
-                            return false;
-                        }
-                        byte scale;
-                        if (!stateObj.TryReadByte(out scale))
-                        {
-                            return false;
-                        }
-
+                        byte precision = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+                        byte scale = await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
+                        
                         // skip over unknown properties
                         if (cbPropsActual > cbPropsExpected)
                         {
-                            if (!stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected))
-                            {
-                                return false;
-                            }
+                            await stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected, isAsync, ct);
                         }
-
-                        if (!TryReadSqlDecimal(value, TdsEnums.MAX_NUMERIC_LEN, precision, scale, stateObj))
-                        {
-                            return false;
-                        }
+                        await TryReadSqlDecimalAsync(value, TdsEnums.MAX_NUMERIC_LEN, precision, scale, stateObj, isAsync, ct).ConfigureAwait(false);
                         break;
                     }
 
@@ -6613,20 +6509,13 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLBIGVARBINARY:
                     //Debug.Assert(TdsEnums.VARNULL == lenData, "SqlVariant: data length for Binary indicates null?");
                     Debug.Assert(cbPropsExpected == 2, "SqlVariant: invalid PropBytes for binary type!");
-
-                    if (!stateObj.TryReadUInt16(out lenMax))
-                    {
-                        return false;
-                    }
+                    lenMax = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
                     Debug.Assert(lenMax != TdsEnums.SQL_USHORTVARMAXLEN, "bigvarbinary(max) in a sqlvariant");
 
                     // skip over unknown properties
                     if (cbPropsActual > cbPropsExpected)
                     {
-                        if (!stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected))
-                        {
-                            return false;
-                        }
+                        await stateObj.TrySkipBytes(cbPropsActual - cbPropsExpected, isAsync, ct).ConfigureAwait(false);
                     }
 
                     goto case TdsEnums.SQLBIT;
@@ -7265,32 +7154,25 @@ namespace Microsoft.Data.SqlClient
             stateObj.WriteByte((byte)((offset >> 8) & 0xff));
         }
 
-        private bool TryReadSqlDecimal(SqlBuffer value, int length, byte precision, byte scale, TdsParserStateObject stateObj)
+        private async ValueTask TryReadSqlDecimalAsync(SqlBuffer value, int length, byte precision, byte scale, TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            byte byteValue;
-            if (!stateObj.TryReadByte(out byteValue))
-            {
-                return false;
-            }
+            byte byteValue = await stateObj.TryReadByte(isAsync, ct);
             bool fPositive = (1 == byteValue);
-
             length = checked((int)length - 1);
-
-            int[] bits;
-            if (!TryReadDecimalBits(length, stateObj, out bits))
-            {
-                return false;
-            }
-
+            int[] bits = await TryReadDecimalBitsAsync(length, stateObj, isAsync, ct).ConfigureAwait(false);
             value.SetToDecimal(precision, scale, fPositive, bits);
-            return true;
         }
 
         // @devnote: length should be size of decimal without the sign
         // @devnote: sign should have already been read off the wire
-        private bool TryReadDecimalBits(int length, TdsParserStateObject stateObj, out int[] bits)
+        private async ValueTask<int[]> TryReadDecimalBitsAsync(int length, 
+            TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
-            bits = stateObj._decimalBits; // used alloc'd array if we have one already
+            int[] bits = stateObj._decimalBits; // used alloc'd array if we have one already
             int i;
 
             if (null == bits)
@@ -7313,13 +7195,10 @@ namespace Microsoft.Data.SqlClient
             for (i = 0; i < decLength; i++)
             {
                 // up to 16 bytes of data following the sign byte
-                if (!stateObj.TryReadInt32(out bits[i]))
-                {
-                    return false;
-                }
+                bits[i] = await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
             }
 
-            return true;
+            return bits;
         }
 
         internal static SqlDecimal AdjustSqlDecimalScale(SqlDecimal d, int newScale)
@@ -7697,7 +7576,10 @@ namespace Microsoft.Data.SqlClient
         // Returns the data stream length of the data identified by tds type or SqlMetaData returns
         // Returns either the total size or the size of the first chunk for partially length prefixed types.
         //
-        internal bool TryGetDataLength(SqlMetaDataPriv colmeta, TdsParserStateObject stateObj, out ulong length)
+        internal async ValueTask<ulong> TryGetDataLengthAsync(SqlMetaDataPriv colmeta,
+            TdsParserStateObject stateObj, 
+            bool isAsync,
+            CancellationToken ct)
         {
             // Handle 2005 specific tokens
             if (colmeta.metaType.IsPlp)
@@ -7709,18 +7591,11 @@ namespace Microsoft.Data.SqlClient
                              // Large UDTs is WinFS-only
                              colmeta.tdsType == TdsEnums.SQLUDT,
                              "GetDataLength:Invalid streaming datatype");
-                return stateObj.TryReadPlpLength(true, out length);
+                return await stateObj.TryReadPlpLengthAsync(true, isAsync, ct).ConfigureAwait(false);
             }
             else
             {
-                int intLength;
-                if (!TryGetTokenLength(colmeta.tdsType, stateObj, out intLength))
-                {
-                    length = 0;
-                    return false;
-                }
-                length = (ulong)intLength;
-                return true;
+                return (ulong)await TryGetTokenLengthAsync(colmeta.tdsType, stateObj, isAsync, ct);
             }
         }
 
@@ -7730,90 +7605,63 @@ namespace Microsoft.Data.SqlClient
         // DOES NOT handle plp data streams correctly!!!
         // Plp data streams length information should be obtained from GetDataLength
         //
-        internal bool TryGetTokenLength(byte token, TdsParserStateObject stateObj, out int tokenLength)
+        internal async ValueTask<int> TryGetTokenLengthAsync(byte token,
+            TdsParserStateObject stateObj,
+            bool isAsync,
+            CancellationToken ct)
         {
             Debug.Assert(token != 0, "0 length token!");
 
             switch (token)
             { // rules about SQLLenMask no longer apply to new tokens (as of 7.4)
                 case TdsEnums.SQLFEATUREEXTACK:
-                    tokenLength = -1;
-                    return true;
+                    return -1;
                 case TdsEnums.SQLSESSIONSTATE:
-                    return stateObj.TryReadInt32(out tokenLength);
+                    return await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
                 case TdsEnums.SQLFEDAUTHINFO:
-                    return stateObj.TryReadInt32(out tokenLength);
+                    return await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
             }
 
             {
                 if (token == TdsEnums.SQLUDT)
                 { // special case for UDTs
-                    tokenLength = -1; // Should we return -1 or not call GetTokenLength for UDTs?
-                    return true;
+                    return -1;
                 }
                 else if (token == TdsEnums.SQLRETURNVALUE)
                 {
-                    tokenLength = -1; // In 2005, the RETURNVALUE token stream no longer has length
-                    return true;
+                    return -1;
                 }
                 else if (token == TdsEnums.SQLXMLTYPE)
                 {
-                    ushort value;
-                    if (!stateObj.TryReadUInt16(out value))
-                    {
-                        tokenLength = 0;
-                        return false;
-                    }
-                    tokenLength = (int)value;
-                    Debug.Assert(tokenLength == TdsEnums.SQL_USHORTVARMAXLEN, "Invalid token stream for xml datatype");
-                    return true;
+                    ushort value = await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
+                    Debug.Assert(value == TdsEnums.SQL_USHORTVARMAXLEN, "Invalid token stream for xml datatype");
+                    return value;
                 }
             }
 
             switch (token & TdsEnums.SQLLenMask)
             {
                 case TdsEnums.SQLFixedLen:
-                    tokenLength = ((0x01 << ((token & 0x0c) >> 2))) & 0xff;
-                    return true;
+                    return ((0x01 << ((token & 0x0c) >> 2))) & 0xff;
                 case TdsEnums.SQLZeroLen:
-                    tokenLength = 0;
-                    return true;
+                    return 0;
                 case TdsEnums.SQLVarLen:
                 case TdsEnums.SQLVarCnt:
                     if (0 != (token & 0x80))
                     {
-                        ushort value;
-                        if (!stateObj.TryReadUInt16(out value))
-                        {
-                            tokenLength = 0;
-                            return false;
-                        }
-                        tokenLength = value;
-                        return true;
+                        return await stateObj.TryReadUInt16(isAsync, ct).ConfigureAwait(false);
                     }
                     else if (0 == (token & 0x0c))
                     {
-                        if (!stateObj.TryReadInt32(out tokenLength))
-                        {
-                            return false;
-                        }
-                        return true;
+                        return await stateObj.TryReadInt32Async(isAsync, ct).ConfigureAwait(false);
                     }
                     else
                     {
-                        byte value;
-                        if (!stateObj.TryReadByte(out value))
-                        {
-                            tokenLength = 0;
-                            return false;
-                        }
-                        tokenLength = value;
-                        return true;
+                        return await stateObj.TryReadByte(isAsync, ct).ConfigureAwait(false);
                     }
                 default:
                     Debug.Fail("Unknown token length!");
-                    tokenLength = 0;
-                    return true;
+                    return 0;
             }
         }
 
@@ -12464,7 +12312,7 @@ namespace Microsoft.Data.SqlClient
                 charsToRead = (int)(stateObj._longlenleft >> 1);
             }
 
-            if (!stateObj.TryReadChars(buff, offst, charsToRead, out charsRead))
+            if (!stateObj.TryReadCharsAsync(buff, offst, charsToRead, out charsRead))
             {
                 charsRead = 0;
                 return false;
@@ -12529,7 +12377,7 @@ namespace Microsoft.Data.SqlClient
             if (stateObj._longlenleft == 0)
             {
                 ulong ignored;
-                if (!stateObj.TryReadPlpLength(false, out ignored))
+                if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
                 {
                     totalCharsRead = 0;
                     return false;
@@ -12591,7 +12439,7 @@ namespace Microsoft.Data.SqlClient
                     }
                     stateObj._longlenleft--;
                     ulong ignored;
-                    if (!stateObj.TryReadPlpLength(false, out ignored))
+                    if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
                     {
                         return false;
                     }
@@ -12612,7 +12460,7 @@ namespace Microsoft.Data.SqlClient
                 if (stateObj._longlenleft == 0)
                 { // Read the next chunk or cleanup state if hit the end
                     ulong ignored;
-                    if (!stateObj.TryReadPlpLength(false, out ignored))
+                    if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
                     {
                         return false;
                     }
@@ -12678,7 +12526,7 @@ namespace Microsoft.Data.SqlClient
                     stateObj._bTmp = new byte[bytesRead];
                 }
 
-                bytesRead = stateObj.ReadPlpBytesChunk(stateObj._bTmp, 0, bytesRead);
+                bytesRead = stateObj.ReadPlpBytesChunkAsync(stateObj._bTmp, 0, bytesRead);
 
                 charsRead = stateObj._plpdecoder.GetChars(stateObj._bTmp, 0, bytesRead, buff, offst);
                 charsLeft -= charsRead;
@@ -12718,7 +12566,7 @@ namespace Microsoft.Data.SqlClient
             if (stateObj._longlenleft == 0)
             {
                 ulong ignored;
-                if (!stateObj.TryReadPlpLength(false, out ignored))
+                if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
                 {
                     return false;
                 }
@@ -12743,7 +12591,7 @@ namespace Microsoft.Data.SqlClient
                 if (stateObj._longlenleft == 0)
                 {
                     ulong ignored;
-                    if (!stateObj.TryReadPlpLength(false, out ignored))
+                    if (!stateObj.TryReadPlpLengthAsync(false, out ignored))
                     {
                         return false;
                     }
@@ -12765,7 +12613,7 @@ namespace Microsoft.Data.SqlClient
         {
             if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
             {
-                if (!stateObj.TryReadPlpLength(false, out left))
+                if (!stateObj.TryReadPlpLengthAsync(false, out left))
                 {
                     return false;
                 }
