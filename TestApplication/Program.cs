@@ -30,7 +30,7 @@ namespace TestApplication
             string connectionString = $"Server=tcp:127.0.0.1;" +
                         $"Min Pool Size=120;Max Pool Size = 200;User Id=sa; pwd={Environment.GetEnvironmentVariable("SQL_PWD")}; " +
                         "Connection Timeout=30;TrustServerCertificate=True;Timeout=0;Encrypt=False;Database=testdatabase;Pooling=False;" +
-                        "Application Name=TestAppX"; // pooled
+                        "Application Name=TestAppX;MultipleActiveResultSet=true"; // pooled
             using var conn = new SqlConnection(connectionString);
             conn.Open();
 
@@ -74,10 +74,10 @@ namespace TestApplication
         private static async ValueTask NormalStuff()
         {
             
-            string connectionString = $"Server=tcp:192.168.1.83;" +
-                        $"Min Pool Size=120;Max Pool Size = 200;User Id=sa; pwd={Environment.GetEnvironmentVariable("SQL_PWD")}; " +
+            string connectionString = $"Server=tcp:192.168.1.83,1444;" +
+                        $"Min Pool Size=0;Max Pool Size = 200;User Id=sa; pwd={Environment.GetEnvironmentVariable("SQL_PWD")}; " +
                         $"Connection Timeout=30;TrustServerCertificate=True;Timeout=0;Encrypt=False;Database={database};Pooling=True;" +
-                        "Application Name=TestAppX"; // pooled
+                        "Application Name=TestAppX; MultipleActiveResultSets=True"; // pooled
             Console.WriteLine("1 for sync version of X\n" +
                 "2 for async version of X \n" +
                 "3 For Benchmark \n" +
@@ -103,6 +103,7 @@ namespace TestApplication
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = QUERY;
+                command.CommandTimeout = 0;
                 Console.WriteLine("Executing command");
 
                 using (SqlDataReader reader = command.ExecuteReader())

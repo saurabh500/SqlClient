@@ -31,7 +31,7 @@ namespace Microsoft.Data.SqlClient.SNI
         private uint _sendHighwater = 4;
         private int _asyncReceives = 0;
         private uint _receiveHighwater = 4;
-        private uint _receiveHighwaterLastAck = 4;
+        private uint _lastAcknowledgedReceiveHighwater = 4;
         private uint _sequenceNumber;
         private SNIError _connectionError;
 
@@ -126,7 +126,7 @@ namespace Microsoft.Data.SqlClient.SNI
             _currentHeader.length = (uint)SNISMUXHeader.HEADER_LENGTH + (uint)length;
             _currentHeader.sequenceNumber = ((flags == SNISMUXFlags.SMUX_FIN) || (flags == SNISMUXFlags.SMUX_ACK)) ? _sequenceNumber - 1 : _sequenceNumber++;
             _currentHeader.highwater = _receiveHighwater;
-            _receiveHighwaterLastAck = _currentHeader.highwater;
+            _lastAcknowledgedReceiveHighwater = _currentHeader.highwater;
         }
 
         /// <summary>
@@ -296,14 +296,14 @@ namespace Microsoft.Data.SqlClient.SNI
 
                     if (_connectionError != null)
                     {
-                        SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.ERR, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}, _connectionError {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _receiveHighwaterLastAck, args5: _connectionError);
+                        SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.ERR, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}, _connectionError {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _lastAcknowledgedReceiveHighwater, args5: _connectionError);
                         return SNICommon.ReportSNIError(_connectionError);
                     }
 
                     if (queueCount == 0)
                     {
                         _asyncReceives++;
-                        SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, queueCount 0, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _receiveHighwaterLastAck);
+                        SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, queueCount 0, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _lastAcknowledgedReceiveHighwater);
 
                         return TdsEnums.SNI_SUCCESS_IO_PENDING;
                     }
@@ -324,7 +324,7 @@ namespace Microsoft.Data.SqlClient.SNI
                     _receiveHighwater++;
                 }
 
-                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}, queueCount {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _receiveHighwaterLastAck, args5: _receivedPacketQueue?.Count);
+                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}, queueCount {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _lastAcknowledgedReceiveHighwater, args5: _receivedPacketQueue?.Count);
                 SendAckIfNecessary();
                 return TdsEnums.SNI_SUCCESS;
             }
@@ -435,7 +435,7 @@ namespace Microsoft.Data.SqlClient.SNI
                 {
                     _receiveHighwater++;
                 }
-                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _receiveHighwaterLastAck);
+                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _lastAcknowledgedReceiveHighwater);
                 SendAckIfNecessary();
             }
         }
@@ -451,13 +451,13 @@ namespace Microsoft.Data.SqlClient.SNI
             lock (this)
             {
                 receiveHighwater = _receiveHighwater;
-                receiveHighwaterLastAck = _receiveHighwaterLastAck;
+                receiveHighwaterLastAck = _lastAcknowledgedReceiveHighwater;
             }
 
             if (receiveHighwater - receiveHighwaterLastAck > ACK_THRESHOLD)
             {
                 SendControlPacket(SNISMUXFlags.SMUX_ACK);
-                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4} Sending acknowledgment ACK_THRESHOLD {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _receiveHighwaterLastAck, args5: ACK_THRESHOLD);
+                SqlClientEventSource.Log.TrySNITraceEvent(nameof(SNIMarsHandle), EventType.INFO, "MARS Session Id {0}, _asyncReceives {1}, _receiveHighwater {2}, _sendHighwater {3}, _receiveHighwaterLastAck {4} Sending acknowledgment ACK_THRESHOLD {5}", args0: ConnectionId, args1: _asyncReceives, args2: _receiveHighwater, args3: _sendHighwater, args4: _lastAcknowledgedReceiveHighwater, args5: ACK_THRESHOLD);
             }
         }
 

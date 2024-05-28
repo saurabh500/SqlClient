@@ -11,6 +11,7 @@ namespace simplesqlclient
         {
         }
 
+        public Boolean IsMarsEnabled { get; internal set; } = false;
         public SqlCollation Collation { get; internal set; }
 
         public int DefaultCodePage { get; internal set; }

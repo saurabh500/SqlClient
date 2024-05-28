@@ -10,18 +10,21 @@ namespace Microsoft.Data.SqlClient.SqlClientX.TDS.Objects.Packets
 {
     internal class TdsPreLoginHandler : OutgoingPacketHandler
     {
-        private TdsWriteStream _writeStream;
-        private TdsReadStream _readStream;
+        private readonly TdsWriteStream _writeStream;
+        private readonly TdsReadStream _readStream;
+
+        private readonly bool _marsEnabled;
 
         internal LucidTdsEnums.FeatureExtension RequestedFeatures { get; private set; }
 
         protected override byte PacketHeaderType => TdsEnums.MT_PRELOGIN;
 
-        public TdsPreLoginHandler(TdsWriteStream writeStream, TdsReadStream readStream) 
+        public TdsPreLoginHandler(TdsWriteStream writeStream, TdsReadStream readStream, bool isMarsRequested) 
         {
             _writeStream = writeStream;
             _readStream = readStream;
             _writeStream.PacketHeaderType = PacketHeaderType;
+            _marsEnabled = isMarsRequested;
         }
         
         public async ValueTask Send(
@@ -107,7 +110,7 @@ namespace Microsoft.Data.SqlClient.SqlClientX.TDS.Objects.Packets
                         break;
 
                     case (int)PreLoginOptions.MARS:
-                        payload[payLoadIndex++] = (byte)(0); // Turn off MARS
+                        payload[payLoadIndex++] = (byte)(_marsEnabled ? 1 : 0);
                         offset += 1;
                         optionDataSize += 1;
                         break;

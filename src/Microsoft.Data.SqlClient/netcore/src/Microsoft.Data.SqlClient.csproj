@@ -954,7 +954,11 @@
     <Compile Include="SqlClientX\ParsingBehavior.cs" />
     <Compile Include="SqlClientX\Program.cs" />
     <Compile Include="SqlClientX\DevAPIs\SqlConnectionX.cs" />
+    <Compile Include="SqlClientX\ProtocolHandlers\Connectivity\LoginHandler.cs" />
+    <Compile Include="SqlClientX\ProtocolHandlers\Connectivity\PreloginHandler.cs" />
+    <Compile Include="SqlClientX\ProtocolHandlers\TdsHandler.cs" />
     <Compile Include="SqlClientX\ProtocolMetadata.cs" />
+    <Compile Include="SqlClientX\Streams\MarsStream.cs" />
     <Compile Include="SqlClientX\TDS.Objects\NullBitMapInfo.cs" />
     <Compile Include="SqlClientX\TDS.Objects\Packets\IncomingPacketHandler.cs" />
     <Compile Include="SqlClientX\TDS.Objects\Packets\SqlValuesHandler.cs" />

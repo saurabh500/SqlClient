@@ -39,6 +39,7 @@ namespace simplesqlclient
         private ConnectionSettings _connectionSettings;
         private readonly ProtocolMetadata _protocolMetadata;
         private readonly StreamExecutionState _streamExecutionState;
+        private readonly bool _marsRequested;
         private ParserFlags _flags;
         private readonly AuthenticationOptions _authOptions;
         private readonly string _database;
@@ -66,6 +67,7 @@ namespace simplesqlclient
             _connectionSettings = connectionSettings;
             _protocolMetadata = new ProtocolMetadata();
             _streamExecutionState = new StreamExecutionState();
+            _marsRequested = connectionSettings.MarsEnabled;
         }
 
         public async ValueTask TcpConnect(bool isAsync, CancellationToken ct)
@@ -84,7 +86,7 @@ namespace simplesqlclient
 
             _readStream = new TdsReadStream(_tcpStream);
 
-            _preloginHandler = new TdsPreLoginHandler(_writeStream, _readStream);
+            _preloginHandler = new TdsPreLoginHandler(_writeStream, _readStream, _marsRequested);
 
             _sqlValuesProcessor = new SqlValuesProcessor(_readStream);
         }
@@ -100,7 +102,8 @@ namespace simplesqlclient
         internal async ValueTask SendAndConsumePrelogin(bool isAsync, CancellationToken ct)
         {
             await _preloginHandler.Send(isAsync, ct).ConfigureAwait(false);
-            await _preloginHandler.Consume(false, CancellationToken.None).ConfigureAwait(false);
+            PreLoginResponse preloginResponse = await _preloginHandler.Consume(false, CancellationToken.None).ConfigureAwait(false);
+            _protocolMetadata.IsMarsEnabled = preloginResponse.IsMarsEnabled;
         }
 
         internal void EnableSsl()
@@ -1207,6 +1210,8 @@ namespace simplesqlclient
 
             await loginHandler.Send(packet, isAsync, ct).ConfigureAwait(false);
 
+            // TODO : Move to connection string based option.
+            //
             DisableSsl();
         }
 
@@ -1256,6 +1261,16 @@ namespace simplesqlclient
                 ct, 
                 TdsTokens.SQLROW, 
                 resetPacket: false).ConfigureAwait(false);
+        }
+
+        internal async ValueTask EstablishMarsIfNeeded(bool isAsync, CancellationToken cancellationToken)
+        {
+            if (this._protocolMetadata.IsMarsEnabled)
+            {
+                MarsStream marsStream = new MarsStream(_tcpStream);
+                ushort sessionId = 0;
+                await marsStream.Initialize(sessionId, isAsync, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

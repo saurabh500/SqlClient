@@ -41,6 +41,7 @@ namespace Microsoft.Data.SqlClient.SqlClientX
             settings.UseSSPI = false;
             settings.PacketSize = 4096;
             settings.ApplicationName = builder.ApplicationName;
+            settings.MarsEnabled = builder.MultipleActiveResultSets;
             this.physicalConnection = new SqlPhysicalConnection(details.ServerName,
                 details.Port == -1 ? 1433 : details.Port,
                 AuthenticationOptions.Create(builder.UserID, builder.Password),
@@ -174,6 +175,9 @@ namespace Microsoft.Data.SqlClient.SqlClientX
                 ParsingBehavior.RunTillPacketEnd,
                 isAsync: false,
                 ct: cancellationToken).ConfigureAwait(false);
+
+            await physicalConnection.EstablishMarsIfNeeded(isAsync: true, cancellationToken).ConfigureAwait(false);
+            ;
         }
 
         /// <summary>

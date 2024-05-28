@@ -8,5 +8,6 @@
         public bool UseSSPI { get; internal set; }
         public bool ReadOnlyIntent { get; internal set; }
         public int PacketSize { get; internal set;}
+        public bool MarsEnabled { get; internal set; }
     }
 }
