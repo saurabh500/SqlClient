@@ -958,6 +958,8 @@
     <Compile Include="SqlClientX\ProtocolHandlers\Connectivity\PreloginHandler.cs" />
     <Compile Include="SqlClientX\ProtocolHandlers\TdsHandler.cs" />
     <Compile Include="SqlClientX\ProtocolMetadata.cs" />
+    <Compile Include="SqlClientX\Streams\MarsDemuxStream.cs" />
+    <Compile Include="SqlClientX\Streams\MarsMuxStream.cs" />
     <Compile Include="SqlClientX\Streams\MarsStream.cs" />
     <Compile Include="SqlClientX\TDS.Objects\NullBitMapInfo.cs" />
     <Compile Include="SqlClientX\TDS.Objects\Packets\IncomingPacketHandler.cs" />
