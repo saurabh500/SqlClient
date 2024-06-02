@@ -10,7 +10,10 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
     {
         private readonly Stream _underLyingStream;
         private ushort _sessionId;
-        //private bool _isInitialized;
+        private uint _sequenceNumber;
+        private int _tdsPacketSize;
+        private byte[] _smpBuffer;
+        public const byte SMPacketIdentifier = 0x53;
 
         public override bool CanRead => throw new NotImplementedException();
 
@@ -24,13 +27,18 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
 
         private byte[] _header = new byte[SNISMUXHeader.HEADER_LENGTH];
 
-        public MarsStream(Stream stream)
+        public MarsStream(Stream stream, MarsSequencer sequencer, int tdsPacketSize)
         {
+            this._sessionId = sequencer.NextSessionId;
             this._underLyingStream = stream;
+            this._sequenceNumber = 0;
+            this._tdsPacketSize = tdsPacketSize;
+
+            this._smpBuffer = new byte[this._tdsPacketSize + SNISMUXHeader.HEADER_LENGTH];
         }
 
-        public async ValueTask Initialize(ushort sessionId, 
-            bool isAsync, 
+        public async ValueTask Initialize(ushort sessionId,
+            bool isAsync,
             CancellationToken ct)
         {
             _sessionId = sessionId;
@@ -38,34 +46,34 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
             ConstructControlPacket(SNISMUXFlags.SMUX_SYN);
             if (!isAsync)
             {
-                Write(_header.AsSpan());
+                Write(Span<byte>.Empty);
             }
             else
             {
-                await WriteAsync(_header.AsMemory(), ct).ConfigureAwait(false);
+                await WriteAsync(Memory<byte>.Empty, ct).ConfigureAwait(false);
             }
         }
 
-        private void ConstructControlPacket(SNISMUXFlags flags)
+        private void ConstructControlPacket(SNISMUXFlags flags, int length=0)
         {
-            ushort sessionId = 0;
-            _header[0] = 83;
+            ushort sessionId = _sessionId;
+            _header[0] = SMPacketIdentifier;
             _header[1] = (byte)flags;
             _header[2] = (byte)(sessionId & 0xff); // BitConverter.GetBytes(_currentHeader.sessionId).CopyTo(headerBytes, 2);
             _header[3] = (byte)((sessionId >> 8) & 0xff);
-            uint length = 0;
+
             _header[4] = (byte)(length & 0xff); // BitConverter.GetBytes(_currentHeader.length).CopyTo(headerBytes, 4);
             _header[5] = (byte)((length >> 8) & 0xff);
             _header[6] = (byte)((length >> 16) & 0xff);
             _header[7] = (byte)((length >> 24) & 0xff);
 
-            uint sequenceNumber = 0;
+            uint sequenceNumber = _sequenceNumber;
             _header[8] = (byte)(sequenceNumber & 0xff); // BitConverter.GetBytes(_currentHeader.sequenceNumber).CopyTo(headerBytes, 8);
             _header[9] = (byte)((sequenceNumber >> 8) & 0xff);
             _header[10] = (byte)((sequenceNumber >> 16) & 0xff);
             _header[11] = (byte)((sequenceNumber >> 24) & 0xff);
 
-            uint highwater= 4;
+            uint highwater = 4;
             // access the highest element first to cause the largest range check in the jit, then fill in the rest of the value and carry on as normal
             _header[15] = (byte)((highwater >> 24) & 0xff);
             _header[12] = (byte)(highwater & 0xff); // BitConverter.GetBytes(_currentHeader.highwater).CopyTo(headerBytes, 12);
@@ -95,14 +103,40 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            // Set the header with the data header.
+            SetupDataPacket(count);
+
+            // Copy the header to the buffer.
+            _header.AsSpan().CopyTo(_smpBuffer.AsSpan()[..16]);
+
+            // Copy the data being sent to the output buffer.
+            buffer.AsSpan().CopyTo(_smpBuffer.AsSpan()[16..]);
+
             _underLyingStream.Write(buffer, offset, count);
         }
+
+        private void SetupDataPacket(int dataLength)
+        {
+            int bufferLength = GetSendBufferSize(dataLength);
+            ConstructControlPacket(SNISMUXFlags.SMUX_DATA, bufferLength);
+        }
+
+        private static int GetSendBufferSize(int dataLength) =>  dataLength + SNISMUXHeader.HEADER_LENGTH;
 
         public override ValueTask WriteAsync(
             ReadOnlyMemory<byte> buffer,
             CancellationToken cancellationToken = default)
         {
-            return _underLyingStream.WriteAsync(buffer, cancellationToken);
+            // Set the header with the data header.
+            SetupDataPacket(buffer.Length);
+
+            // Copy the header to the buffer.
+            _header.AsSpan().CopyTo(_smpBuffer.AsSpan()[..16]);
+
+            // Copy the data being sent to the output buffer.
+            buffer.CopyTo(_smpBuffer.AsMemory()[16..]);
+
+            return _underLyingStream.WriteAsync(_smpBuffer, cancellationToken);
         }
     }
 }

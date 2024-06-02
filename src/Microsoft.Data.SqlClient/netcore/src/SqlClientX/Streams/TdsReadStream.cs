@@ -249,7 +249,8 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            this.Buffer = new byte[value];
+            ResetPacket();
         }
 
         public override void Write(byte[] buffer, int offset, int count)

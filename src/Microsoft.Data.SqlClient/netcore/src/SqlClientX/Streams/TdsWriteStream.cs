@@ -164,7 +164,8 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            this._WriteBuffer = new byte[value];
+            this.WriteBufferOffset = TdsEnums.HEADER_LEN;
         }
 
         public override void Write(byte[] buffer, int offset, int count)

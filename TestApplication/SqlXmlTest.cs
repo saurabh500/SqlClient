@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient.SqlClientX;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,6 +41,17 @@ namespace TestApplication
             {
                 _output.WriteLine(reader.GetSqlXml(0).Value);
             }
+        }
+
+        [Fact]
+        public async void TestConnection()
+        {
+            string connectionString = $"Server=tcp:192.168.1.83,1444;" +
+                        $"Min Pool Size=0;Max Pool Size = 200;User Id=sa; pwd=HappyPass1234; " +
+                        $"Connection Timeout=30;TrustServerCertificate=True;Timeout=0;Encrypt=False;Database=master;Pooling=True;" +
+                        "Application Name=TestAppX; MultipleActiveResultSets=True"; // pooled
+            SqlConnectionX connection = new SqlConnectionX(connectionString);
+            await connection.OpenAsync();
         }
     }
 }

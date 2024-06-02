@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient.SqlClientX.Streams;
 
 namespace simplesqlclient
 {
@@ -25,7 +26,8 @@ namespace simplesqlclient
         public IServerFeature DataClassificationFeature { get; internal set; }
         public HashSet<byte> FeatureIdList { get; internal set; } = new HashSet<byte>();
         public SQLDNSCachingFeature SQLDNSCachingFeature { get; private set; }
-        
+        public MarsSequencer MarsSequencer { get; internal set; }
+        public int NegotiatedPacketSize { get; internal set; }
 
         public bool IsFeatureSupported ( byte featureId ) => FeatureIdList.Contains(featureId);
 

@@ -39,7 +39,7 @@ namespace Microsoft.Data.SqlClient.SqlClientX
             settings.WorkstationId = "string-anton";
             settings.ReadOnlyIntent = false;
             settings.UseSSPI = false;
-            settings.PacketSize = 4096;
+            settings.PacketSize = builder.PacketSize;
             settings.ApplicationName = builder.ApplicationName;
             settings.MarsEnabled = builder.MultipleActiveResultSets;
             this.physicalConnection = new SqlPhysicalConnection(details.ServerName,
@@ -128,6 +128,7 @@ namespace Microsoft.Data.SqlClient.SqlClientX
                 ParsingBehavior.RunTillPacketEnd,
                 isAsync : false,
                 ct: CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            
         }
 
         /// <summary>
@@ -175,9 +176,9 @@ namespace Microsoft.Data.SqlClient.SqlClientX
                 ParsingBehavior.RunTillPacketEnd,
                 isAsync: false,
                 ct: cancellationToken).ConfigureAwait(false);
+            
+            await physicalConnection.PostLoginStepAsync(isAsync: true, cancellationToken).ConfigureAwait(false);
 
-            await physicalConnection.EstablishMarsIfNeeded(isAsync: true, cancellationToken).ConfigureAwait(false);
-            ;
         }
 
         /// <summary>

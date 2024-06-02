@@ -172,12 +172,17 @@ namespace simplesqlclient
                                 break;
                             case LucidTdsEnums.ENV_PACKETSIZE:
                                 envChange = await ReadTwoStrings(isAsync, ct).ConfigureAwait(false);
-                                // Read 
+                                
+                                if (!int.TryParse(envChange._newValue, out int negotiatedPacketSize))
+                                {
+                                    throw new Exception($"{envChange._newValue} packet size is not an int32");
+                                }
+                                _protocolMetadata.NegotiatedPacketSize = negotiatedPacketSize;
                                 break;
                             case LucidTdsEnums.ENV_COLLATION:
                                 int newLen = await _readStream.ReadByteAsync(isAsync, ct).ConfigureAwait(false);
                                 if (newLen == 5)
-                                { 
+                                {
                                     _ = await _readStream.ReadInt32Async(isAsync, ct).ConfigureAwait(false);
                                     _ = await _readStream.ReadByteAsync(isAsync, ct).ConfigureAwait(false);
                                 }
@@ -1213,6 +1218,7 @@ namespace simplesqlclient
             // TODO : Move to connection string based option.
             //
             DisableSsl();
+
         }
 
         public async ValueTask SendQuery(string query, bool isAsync, CancellationToken ct)
@@ -1263,14 +1269,22 @@ namespace simplesqlclient
                 resetPacket: false).ConfigureAwait(false);
         }
 
-        internal async ValueTask EstablishMarsIfNeeded(bool isAsync, CancellationToken cancellationToken)
+        private async ValueTask EstablishMarsIfNeeded(bool isAsync, CancellationToken cancellationToken)
         {
-            if (this._protocolMetadata.IsMarsEnabled)
+            if (_protocolMetadata.IsMarsEnabled)
             {
-                MarsStream marsStream = new MarsStream(_tcpStream);
+                _protocolMetadata.MarsSequencer = new MarsSequencer();
+                MarsStream marsStream = new MarsStream(_tcpStream, _protocolMetadata.MarsSequencer, _protocolMetadata.NegotiatedPacketSize);
                 ushort sessionId = 0;
                 await marsStream.Initialize(sessionId, isAsync, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        internal async ValueTask PostLoginStepAsync(bool isAsync, CancellationToken ct)
+        {
+            this._readStream.SetLength(_protocolMetadata.NegotiatedPacketSize);
+            this._writeStream.SetLength(_protocolMetadata.NegotiatedPacketSize);
+            await EstablishMarsIfNeeded(isAsync, ct);
         }
     }
 }

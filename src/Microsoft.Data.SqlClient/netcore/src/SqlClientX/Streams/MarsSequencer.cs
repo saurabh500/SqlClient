@@ -21,11 +21,13 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Streams
         public int NextSequenceNumber => Interlocked.Increment(ref this._sequenceNumber);
 
         public ushort NextSessionId
+        {
+            get
             {
-            get {
-                ushort sessionId = _sessionId;
+                ushort sessionId = (ushort)_sessionId;
                 Interlocked.Increment(ref _sessionId);
                 return sessionId;
             }
         }
+    }
 }
