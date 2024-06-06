@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient.SNI;
+using Microsoft.Data.SqlClient.SqlClientX.Streams;
 
 namespace Microsoft.Data.SqlClient.SqlClientX.Handlers
 {
@@ -46,6 +48,9 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Handlers
 
         public SqlConnectionStringBuilder ConnectionStringBuilder { get; internal set; }
         public DataSource DataSource { get; internal set; }
+        public Stream TransportStream { get; internal set; }
+        public TdsReadStream TdsReadStream { get; internal set; }
+        public TdsWriteStream TdsWriteStream { get; internal set; }
 
         public ConnectionRequest(string connectionString)
         {

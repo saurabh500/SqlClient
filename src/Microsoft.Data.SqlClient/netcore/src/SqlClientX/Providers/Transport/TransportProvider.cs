@@ -13,7 +13,7 @@ namespace Microsoft.Data.SqlClient.SqlClientX.Providers.Transport
     {
         private DataSource.Protocol _protocol;
 
-        public TransportProvider(DataSource.Protocol protocol, int timeout)
+        public TransportProvider(DataSource.Protocol protocol)
         {
             this._protocol = protocol;
         }
