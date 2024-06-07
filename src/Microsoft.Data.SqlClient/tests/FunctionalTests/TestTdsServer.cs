@@ -7,13 +7,31 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Microsoft.SqlServer.TDS.EndPoint;
 using Microsoft.SqlServer.TDS.Servers;
+using Newtonsoft.Json.Serialization;
 
 namespace Microsoft.Data.SqlClient.Tests
 {
-    internal class TestTdsServer : GenericTDSServer, IDisposable
+    internal class TestTdsServerParameters
     {
         private const int DefaultConnectionTimeout = 5;
 
+        internal bool EnabledFedAuth { get; set; }
+        internal bool EnableLog { get; set; }
+        internal int ConnectionTimeout { get; set; }
+
+        internal bool ExcludeEncryption { get; set; }
+
+        public TestTdsServerParameters()
+        {
+            ConnectionTimeout = DefaultConnectionTimeout;
+            EnabledFedAuth = false;
+            EnableLog = false;
+            ExcludeEncryption = false;
+        }
+    }
+
+    internal class TestTdsServer : GenericTDSServer, IDisposable
+    {
         private TDSServerEndPoint _endpoint = null;
 
         private SqlConnectionStringBuilder _connectionStringBuilder;
@@ -25,18 +43,18 @@ namespace Microsoft.Data.SqlClient.Tests
             Engine = engine;
         }
 
-        public static TestTdsServer StartServerWithQueryEngine(QueryEngine engine, bool enableFedAuth = false, bool enableLog = false, int connectionTimeout = DefaultConnectionTimeout, bool excludeEncryption = false, [CallerMemberName] string methodName = "")
+        public static TestTdsServer StartServerWithQueryEngine(QueryEngine engine, TestTdsServerParameters parameters, [CallerMemberName] string methodName = "")
         {
             TDSServerArguments args = new TDSServerArguments()
             {
-                Log = enableLog ? Console.Out : null,
+                Log = parameters.EnableLog ? Console.Out : null,
             };
 
-            if (enableFedAuth)
+            if (parameters.EnabledFedAuth)
             {
                 args.FedAuthRequiredPreLoginOption = SqlServer.TDS.PreLogin.TdsPreLoginFedAuthRequiredOption.FedAuthRequired;
             }
-            if (excludeEncryption)
+            if (parameters.ExcludeEncryption)
             {
                 args.Encryption = SqlServer.TDS.PreLogin.TDSPreLoginTokenEncryptionType.None;
             }
@@ -49,17 +67,16 @@ namespace Microsoft.Data.SqlClient.Tests
             server._endpoint.Start();
 
             int port = server._endpoint.ServerEndPoint.Port;
-            server._connectionStringBuilder = excludeEncryption
-                // Allow encryption to be set when encryption is to be excluded from pre-login response.
-                ? new SqlConnectionStringBuilder() { DataSource = "localhost," + port, ConnectTimeout = connectionTimeout, Encrypt = SqlConnectionEncryptOption.Mandatory }
-                : new SqlConnectionStringBuilder() { DataSource = "localhost," + port, ConnectTimeout = connectionTimeout, Encrypt = SqlConnectionEncryptOption.Optional };
+            // Allow encryption to be set when encryption is to be excluded from pre-login response.
+            SqlConnectionEncryptOption encryptionOption = parameters.ExcludeEncryption ? SqlConnectionEncryptOption.Mandatory : SqlConnectionEncryptOption.Optional;
+            server._connectionStringBuilder = new SqlConnectionStringBuilder() { DataSource = "localhost," + port, ConnectTimeout = parameters.ConnectionTimeout, Encrypt = encryptionOption };
             server.ConnectionString = server._connectionStringBuilder.ConnectionString;
             return server;
         }
 
-        public static TestTdsServer StartTestServer(bool enableFedAuth = false, bool enableLog = false, int connectionTimeout = DefaultConnectionTimeout, bool excludeEncryption = false, [CallerMemberName] string methodName = "")
+        public static TestTdsServer StartTestServer(TestTdsServerParameters parameters, [CallerMemberName] string methodName = "")
         {
-            return StartServerWithQueryEngine(null, enableFedAuth, enableLog, connectionTimeout, excludeEncryption, methodName);
+            return StartServerWithQueryEngine(null, parameters, methodName);
         }
 
         public void Dispose() => _endpoint?.Stop();

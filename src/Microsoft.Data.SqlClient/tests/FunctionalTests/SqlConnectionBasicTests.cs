@@ -23,7 +23,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public void ConnectionTest()
         {
-            using TestTdsServer server = TestTdsServer.StartTestServer();
+            using TestTdsServer server = TestTdsServer.StartTestServer(new TestTdsServerParameters());
             using SqlConnection connection = new SqlConnection(server.ConnectionString);
             connection.Open();
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [PlatformSpecific(TestPlatforms.Windows)]
         public void IntegratedAuthConnectionTest()
         {
-            using TestTdsServer server = TestTdsServer.StartTestServer();
+            using TestTdsServer server = TestTdsServer.StartTestServer(new TestTdsServerParameters());
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(server.ConnectionString);
             builder.IntegratedSecurity = true;
             using SqlConnection connection = new SqlConnection(builder.ConnectionString);
@@ -47,7 +47,12 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public async Task PreLoginEncryptionExcludedTest()
         {
-            using TestTdsServer server = TestTdsServer.StartTestServer(false, false, 5, excludeEncryption: true);
+            TestTdsServerParameters parameters = new TestTdsServerParameters()
+            {
+                ConnectionTimeout = 5,
+                ExcludeEncryption = true
+            };
+            using TestTdsServer server = TestTdsServer.StartTestServer(parameters);
             SqlConnectionStringBuilder builder = new(server.ConnectionString)
             {
                 IntegratedSecurity = true
@@ -306,7 +311,11 @@ namespace Microsoft.Data.SqlClient.Tests
         public void ConnectionTimeoutTest(int timeout)
         {
             // Start a server with connection timeout from the inline data.
-            using TestTdsServer server = TestTdsServer.StartTestServer(false, false, timeout);
+            TestTdsServerParameters parameters = new TestTdsServerParameters()
+            {
+                ConnectionTimeout = timeout
+            };
+            using TestTdsServer server = TestTdsServer.StartTestServer(parameters);
             using SqlConnection connection = new SqlConnection(server.ConnectionString);
 
             // Dispose the server to force connection timeout 
@@ -345,7 +354,11 @@ namespace Microsoft.Data.SqlClient.Tests
         public async void ConnectionTimeoutTestAsync(int timeout)
         {
             // Start a server with connection timeout from the inline data.
-            using TestTdsServer server = TestTdsServer.StartTestServer(false, false, timeout);
+            TestTdsServerParameters parameters = new TestTdsServerParameters()
+            {
+                ConnectionTimeout = timeout
+            };
+            using TestTdsServer server = TestTdsServer.StartTestServer(parameters);
             using SqlConnection connection = new SqlConnection(server.ConnectionString);
 
             // Dispose the server to force connection timeout 
@@ -381,7 +394,11 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             Assert.Throws<ArgumentException>(() =>
             {
-                using TestTdsServer server = TestTdsServer.StartTestServer(false, false, -5);
+                TestTdsServerParameters parameters = new TestTdsServerParameters()
+                {
+                    ConnectionTimeout = -5
+                };
+                using TestTdsServer server = TestTdsServer.StartTestServer(parameters);
             });
 
         }
@@ -397,7 +414,7 @@ namespace Microsoft.Data.SqlClient.Tests
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("th-TH");
                 Thread.CurrentThread.CurrentUICulture = new CultureInfo("th-TH");
 
-                using TestTdsServer server = TestTdsServer.StartTestServer();
+                using TestTdsServer server = TestTdsServer.StartTestServer(new TestTdsServerParameters());
                 using SqlConnection connection = new SqlConnection(server.ConnectionString);
                 connection.Open();
                 Assert.Equal(ConnectionState.Open, connection.State);
