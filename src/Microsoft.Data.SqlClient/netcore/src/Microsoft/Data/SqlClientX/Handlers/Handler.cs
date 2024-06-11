@@ -49,7 +49,7 @@ namespace Microsoft.Data.SqlClientX.Handlers
         public SqlConnectionStringBuilder ConnectionStringBuilder { get; internal set; }
         public DataSource DataSource { get; internal set; }
         public Stream TransportStream { get; internal set; }
-        public TdsStream TdsReadStream { get; internal set; }
+        public TdsStream TdsStream { get; internal set; }
 
         public ConnectionRequest(string connectionString)
         {
