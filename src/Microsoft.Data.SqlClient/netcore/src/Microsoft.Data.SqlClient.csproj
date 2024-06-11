@@ -950,11 +950,14 @@
     <Compile Include="SqlClientX\Constants.cs" />
     <Compile Include="SqlClientX\DevAPIs\SqlCommandX.cs" />
     <Compile Include="SqlClientX\DevAPIs\SqlDataReaderX.cs" />
+    <Compile Include="SqlClientX\Handlers\ConnectionHandler\DataSourceHandler.cs" />
+    <Compile Include="SqlClientX\Handlers\IHandler.cs" />
     <Compile Include="SqlClientX\ParserFlags.cs" />
     <Compile Include="SqlClientX\ParsingBehavior.cs" />
     <Compile Include="SqlClientX\Program.cs" />
     <Compile Include="SqlClientX\DevAPIs\SqlConnectionX.cs" />
     <Compile Include="SqlClientX\ProtocolMetadata.cs" />
+    <Compile Include="SqlClientX\Providers\Transport\TransportProvider.cs" />
     <Compile Include="SqlClientX\TDS.Objects\NullBitMapInfo.cs" />
     <Compile Include="SqlClientX\TDS.Objects\Packets\IncomingPacketHandler.cs" />
     <Compile Include="SqlClientX\TDS.Objects\Packets\SqlValuesHandler.cs" />
@@ -1013,9 +1016,6 @@
     <PackageReference Include="Microsoft.Identity.Client" Version="$(MicrosoftIdentityClientVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="$(MicrosoftIdentityModelProtocolsOpenIdConnectVersion)" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="$(MicrosoftIdentityModelJsonWebTokensVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SqlClientX\Handlers\" />
   </ItemGroup>
   <Import Project="$(ToolsDir)targets\GenerateThisAssemblyCs.targets" />
   <Import Project="$(ToolsDir)targets\ResolveContract.targets" Condition="'$(OSGroup)' == 'AnyOS'" />
