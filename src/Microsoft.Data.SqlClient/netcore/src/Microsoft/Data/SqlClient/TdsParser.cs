@@ -10924,6 +10924,10 @@ namespace Microsoft.Data.SqlClient
                 {
                     tokenLength = 8;
                 }
+                else if (token == TdsEnums.SQLJSON)
+                {
+                    tokenLength = 8;
+                }
             }
 
             if (tokenLength == 0)
