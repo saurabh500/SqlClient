@@ -6609,9 +6609,9 @@ namespace Microsoft.Data.SqlClient
                 // only dirty if prepared
                 var activeConnection = _activeConnection;
                 return (IsPrepared &&
-                    (_dirty ||
-                    ((_parameters != null) && (_parameters.IsDirty)) ||
-                    ((activeConnection != null) && ((activeConnection.CloseCount != _preparedConnectionCloseCount) || (activeConnection.ReconnectCount != _preparedConnectionReconnectCount)))));
+                    (_dirty || (_parameters?.IsDirty ?? false) ||
+                    ((activeConnection?.CloseCount ?? -1) != _preparedConnectionCloseCount) || 
+                    ((activeConnection?.ReconnectCount ?? -1) != _preparedConnectionReconnectCount)));
             }
             set
             {

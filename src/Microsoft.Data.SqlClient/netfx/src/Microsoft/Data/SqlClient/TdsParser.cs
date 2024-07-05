@@ -2079,7 +2079,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a 16 bit short and writes it.
         //
-        internal byte[] SerializeShort(int v, TdsParserStateObject stateObj)
+        internal static byte[] SerializeShort(int v, TdsParserStateObject stateObj)
         {
             if (null == stateObj._bShortBytes)
             {
@@ -2097,7 +2097,7 @@ namespace Microsoft.Data.SqlClient
             return bytes;
         }
 
-        internal void WriteShort(int v, TdsParserStateObject stateObj)
+        internal static void WriteShort(int v, TdsParserStateObject stateObj)
         {
             ReliabilitySection.Assert("unreliable call to WriteShort");  // you need to setup for a thread abort somewhere before you call this method
 
@@ -2116,7 +2116,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal void WriteUnsignedShort(ushort us, TdsParserStateObject stateObj)
+        internal static void WriteUnsignedShort(ushort us, TdsParserStateObject stateObj)
         {
             WriteShort((short)us, stateObj);
         }
@@ -2124,12 +2124,12 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a long and writes out an unsigned int
         //
-        internal byte[] SerializeUnsignedInt(uint i, TdsParserStateObject stateObj)
+        internal static byte[] SerializeUnsignedInt(uint i, TdsParserStateObject stateObj)
         {
             return SerializeInt((int)i, stateObj);
         }
 
-        internal void WriteUnsignedInt(uint i, TdsParserStateObject stateObj)
+        internal static void WriteUnsignedInt(uint i, TdsParserStateObject stateObj)
         {
             WriteInt((int)i, stateObj);
         }
@@ -2137,7 +2137,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes an int and writes it as an int.
         //
-        internal byte[] SerializeInt(int v, TdsParserStateObject stateObj)
+        internal static byte[] SerializeInt(int v, TdsParserStateObject stateObj)
         {
             if (null == stateObj._bIntBytes)
             {
@@ -2157,7 +2157,7 @@ namespace Microsoft.Data.SqlClient
             return bytes;
         }
 
-        internal void WriteInt(int v, TdsParserStateObject stateObj)
+        internal static void WriteInt(int v, TdsParserStateObject stateObj)
         {
             ReliabilitySection.Assert("unreliable call to WriteInt");  // you need to setup for a thread abort somewhere before you call this method
 
@@ -2184,7 +2184,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a float and writes it as a 32 bit float.
         //
-        internal byte[] SerializeFloat(float v)
+        internal static byte[] SerializeFloat(float v)
         {
             if (Single.IsInfinity(v) || Single.IsNaN(v))
             {
@@ -2204,7 +2204,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a long and writes it as a long.
         //
-        internal byte[] SerializeLong(long v, TdsParserStateObject stateObj)
+        internal static byte[] SerializeLong(long v, TdsParserStateObject stateObj)
         {
             int current = 0;
             if (null == stateObj._bLongBytes)
@@ -2258,7 +2258,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a long and writes part of it
         //
-        internal byte[] SerializePartialLong(long v, int length)
+        internal static byte[] SerializePartialLong(long v, int length)
         {
             Debug.Assert(length <= 8, "Length specified is longer than the size of a long");
             Debug.Assert(length >= 0, "Length should not be negative");
@@ -2310,7 +2310,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a double and writes it as a 64 bit double.
         //
-        internal byte[] SerializeDouble(double v)
+        internal static byte[] SerializeDouble(double v)
         {
             if (Double.IsInfinity(v) || Double.IsNaN(v))
             {
@@ -7844,7 +7844,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private byte[] SerializeCurrency(Decimal value, int length, TdsParserStateObject stateObj)
+        private static byte[] SerializeCurrency(Decimal value, int length, TdsParserStateObject stateObj)
         {
             SqlMoney m = new SqlMoney(value);
             int[] bits = Decimal.GetBits(m.Value);
@@ -7916,7 +7916,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private byte[] SerializeDate(DateTime value)
+        private static byte[] SerializeDate(DateTime value)
         {
             long days = value.Subtract(DateTime.MinValue).Days;
             return SerializePartialLong(days, 3);
@@ -7928,7 +7928,7 @@ namespace Microsoft.Data.SqlClient
             WritePartialLong(days, 3, stateObj);
         }
 
-        private byte[] SerializeTime(TimeSpan value, byte scale, int length)
+        private static byte[] SerializeTime(TimeSpan value, byte scale, int length)
         {
             if (0 > value.Ticks || value.Ticks >= TimeSpan.TicksPerDay)
             {
@@ -7954,7 +7954,7 @@ namespace Microsoft.Data.SqlClient
             WritePartialLong(time, length, stateObj);
         }
 
-        private byte[] SerializeDateTime2(DateTime value, byte scale, int length)
+        private static byte[] SerializeDateTime2(DateTime value, byte scale, int length)
         {
             long time = value.TimeOfDay.Ticks / TdsEnums.TICKS_FROM_SCALE[scale]; // DateTime.TimeOfDay always returns a valid TimeSpan for Time
 
@@ -7983,7 +7983,7 @@ namespace Microsoft.Data.SqlClient
             WriteDate(value, stateObj);
         }
 
-        private byte[] SerializeDateTimeOffset(DateTimeOffset value, byte scale, int length)
+        private static byte[] SerializeDateTimeOffset(DateTimeOffset value, byte scale, int length)
         {
             byte[] bytesPart;
             int current = 0;
@@ -8143,7 +8143,7 @@ namespace Microsoft.Data.SqlClient
             WriteUnsignedInt(data4, stateObj);
         }
 
-        private byte[] SerializeDecimal(decimal value, TdsParserStateObject stateObj)
+        private static byte[] SerializeDecimal(decimal value, TdsParserStateObject stateObj)
         {
             int[] decimalBits = Decimal.GetBits(value);
             if (null == stateObj._bDecimalBytes)
@@ -8230,7 +8230,7 @@ namespace Microsoft.Data.SqlClient
             WriteInt(0, stateObj);
         }
 
-        private void WriteIdentifier(string s, TdsParserStateObject stateObj)
+        private static void WriteIdentifier(string s, TdsParserStateObject stateObj)
         {
             if (null != s)
             {
@@ -8243,7 +8243,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteIdentifierWithShortLength(string s, TdsParserStateObject stateObj)
+        private static void WriteIdentifierWithShortLength(string s, TdsParserStateObject stateObj)
         {
             if (null != s)
             {
@@ -8256,7 +8256,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private Task WriteString(string s, TdsParserStateObject stateObj, bool canAccumulate = true)
+        private static Task WriteString(string s, TdsParserStateObject stateObj, bool canAccumulate = true)
         {
             return WriteString(s, s.Length, 0, stateObj, canAccumulate);
         }
@@ -8293,7 +8293,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal byte[] SerializeString(string s, int length, int offset)
+        internal static byte[] SerializeString(string s, int length, int offset)
         {
             int cBytes = ADP.CharSize * length;
             byte[] bytes = new byte[cBytes];
@@ -8302,7 +8302,7 @@ namespace Microsoft.Data.SqlClient
             return bytes;
         }
 
-        internal Task WriteString(string s, int length, int offset, TdsParserStateObject stateObj, bool canAccumulate = true)
+        internal static Task WriteString(string s, int length, int offset, TdsParserStateObject stateObj, bool canAccumulate = true)
         {
             int cBytes = ADP.CharSize * length;
 
@@ -8341,7 +8341,7 @@ namespace Microsoft.Data.SqlClient
             return WriteEncodingChar(s, s.Length, 0, encoding, stateObj, canAccumulate);
         }
 
-        private byte[] SerializeEncodingChar(string s, int numChars, int offset, Encoding encoding)
+        private static byte[] SerializeEncodingChar(string s, int numChars, int offset, Encoding encoding, Encoding defaultEncoding)
         {
 #if NETFRAMEWORK
             char[] charData;
@@ -8350,7 +8350,7 @@ namespace Microsoft.Data.SqlClient
             // if hitting 7.0 server, encoding will be null in metadata for columns or return values since
             // 7.0 has no support for multiple code pages in data - single code page support only
             if (encoding == null)
-                encoding = _defaultEncoding;
+                encoding = defaultEncoding;
 
             charData = s.ToCharArray(offset, numChars);
 
@@ -9991,13 +9991,13 @@ namespace Microsoft.Data.SqlClient
                                     {
                                         if (isSqlVal)
                                         {
-                                            serializedValue = SerializeUnencryptedSqlValue(value, mt, actualSize, param.Offset, param.NormalizationRuleVersion, stateObj);
+                                            serializedValue = SerializeUnencryptedSqlValue(value, mt, actualSize, param.Offset, param.NormalizationRuleVersion, stateObj, _defaultEncoding);
                                         }
                                         else
                                         {
                                             // for codePageEncoded types, WriteValue simply expects the number of characters
                                             // For plp types, we also need the encoded byte size
-                                            serializedValue = SerializeUnencryptedValue(value, mt, param.GetActualScale(), actualSize, param.Offset, isDataFeed, param.NormalizationRuleVersion, stateObj);
+                                            serializedValue = SerializeUnencryptedValue(value, mt, param.GetActualScale(), actualSize, param.Offset, isDataFeed, param.NormalizationRuleVersion, stateObj, _defaultEncoding);
                                         }
 
                                         Debug.Assert(serializedValue != null, "serializedValue should not be null in TdsExecuteRPC.");
@@ -10586,7 +10586,7 @@ namespace Microsoft.Data.SqlClient
         /// Will check the parameter name for the required @ prefix and then write the correct prefixed
         /// form and correct character length to the output buffer
         /// </summary>
-        private void WriteParameterName(string rawParameterName, TdsParserStateObject stateObj, bool isAnonymous)
+        private static void WriteParameterName(string rawParameterName, TdsParserStateObject stateObj, bool isAnonymous)
         {
             // paramLen
             // paramName
@@ -10713,12 +10713,12 @@ namespace Microsoft.Data.SqlClient
             // Write everything out
             WriteParameterName(metaData.Name, stateObj, isAnonymous);
             stateObj.WriteByte(status);
-            WriteSmiTypeInfo(metaData, stateObj);
+            WriteSmiTypeInfo(metaData, stateObj, _defaultCollation);
         }
 
         // Write a TypeInfo stream
         // Devnote: we remap the legacy types (text, ntext, and image) to SQLBIGVARCHAR,  SQLNVARCHAR, and SQLBIGVARBINARY
-        private void WriteSmiTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteSmiTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj, SqlCollation defaultCollation)
         {
             switch (metaData.SqlDbType)
             {
@@ -10737,8 +10737,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Char:
                     stateObj.WriteByte(TdsEnums.SQLBIGCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength)), stateObj);
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.DateTime:
                     stateObj.WriteByte(TdsEnums.SQLDATETIMN);
@@ -10769,14 +10769,14 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.NChar:
                     stateObj.WriteByte(TdsEnums.SQLNCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength * 2)), stateObj);
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.NText:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.NVarChar:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
@@ -10788,8 +10788,8 @@ namespace Microsoft.Data.SqlClient
                     {
                         WriteUnsignedShort(checked((ushort)(metaData.MaxLength * 2)), stateObj);
                     }
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Real:
                     stateObj.WriteByte(TdsEnums.SQLFLTN);
@@ -10814,8 +10814,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Text:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Timestamp:
                     stateObj.WriteByte(TdsEnums.SQLBIGBINARY);
@@ -10832,8 +10832,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.VarChar:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)metaData.MaxLength), stateObj);
-                    WriteUnsignedInt(_defaultCollation._info, stateObj); // TODO: Use metadata's collation??
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    WriteUnsignedInt(defaultCollation._info, stateObj); // TODO: Use metadata's collation??
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Variant:
                     stateObj.WriteByte(TdsEnums.SQLVARIANT);
@@ -10864,7 +10864,7 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Structured:
                     if (metaData.IsMultiValued)
                     {
-                        WriteTvpTypeInfo(metaData, stateObj);
+                        WriteTvpTypeInfo(metaData, stateObj, defaultCollation);
                     }
                     else
                     {
@@ -10892,7 +10892,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteTvpTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteTvpTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj, SqlCollation defaultCollation)
         {
             Debug.Assert(SqlDbType.Structured == metaData.SqlDbType && metaData.IsMultiValued,
                         "Invalid metadata for TVPs. Type=" + metaData.SqlDbType);
@@ -10918,7 +10918,7 @@ namespace Microsoft.Data.SqlClient
                 SmiDefaultFieldsProperty defaults = (SmiDefaultFieldsProperty)metaData.ExtendedProperties[SmiPropertySelector.DefaultFields];
                 for (int i = 0; i < metaData.FieldMetaData.Count; i++)
                 {
-                    WriteTvpColumnMetaData(metaData.FieldMetaData[i], defaults[i], stateObj);
+                    WriteTvpColumnMetaData(metaData.FieldMetaData[i], defaults[i], stateObj, defaultCollation);
                 }
 
                 // optional OrderUnique metadata
@@ -10931,7 +10931,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Write a single TvpColumnMetaData stream to the server
-        private void WriteTvpColumnMetaData(SmiExtendedMetaData md, bool isDefault, TdsParserStateObject stateObj)
+        private static void WriteTvpColumnMetaData(SmiExtendedMetaData md, bool isDefault, TdsParserStateObject stateObj, SqlCollation defaultCollation)
         {
             // User Type
             if (SqlDbType.Timestamp == md.SqlDbType)
@@ -10952,7 +10952,7 @@ namespace Microsoft.Data.SqlClient
             WriteUnsignedShort(status, stateObj);
 
             // Type info
-            WriteSmiTypeInfo(md, stateObj);
+            WriteSmiTypeInfo(md, stateObj, defaultCollation);
 
             // Column name
             // per spec, "ColName is never sent to server or client for TVP, it is required within a TVP to be zero length."
@@ -10973,7 +10973,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteTvpOrderUnique(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteTvpOrderUnique(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
         {
             // TVP_ORDER_UNIQUE token (uniqueness and sort order)
 
@@ -11402,7 +11402,8 @@ namespace Microsoft.Data.SqlClient
                                             actualLengthInBytes,
                                             offset: 0,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
-                                            stateObj: stateObj);
+                                            stateObj: stateObj,
+                                            _defaultEncoding);
             }
             else
             {
@@ -11413,7 +11414,8 @@ namespace Microsoft.Data.SqlClient
                                             offset: 0,
                                             isDataFeed: isDataFeed,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
-                                            stateObj: stateObj);
+                                            stateObj: stateObj,
+                                            _defaultEncoding);
             }
 
             Debug.Assert(serializedValue != null, "serializedValue should not be null in TdsExecuteRPC.");
@@ -12231,7 +12233,7 @@ namespace Microsoft.Data.SqlClient
 
                 if (count > 0)
                 {
-                    _parser.WriteInt(count, _stateObj); // write length of chunk
+                    TdsParser.WriteInt(count, _stateObj); // write length of chunk
                     _stateObj.WriteByteArray(buffer, count, offset);
                 }
             }
@@ -12259,7 +12261,7 @@ namespace Microsoft.Data.SqlClient
                         Task task = null;
                         if (count > 0)
                         {
-                            _parser.WriteInt(count, _stateObj); // write length of chunk
+                            TdsParser.WriteInt(count, _stateObj); // write length of chunk
                             task = _stateObj.WriteByteArray(buffer, count, offset, canAccumulate: false);
                         }
                         if (task == null)
@@ -12652,7 +12654,7 @@ namespace Microsoft.Data.SqlClient
                     else
                     {
                         Debug.Assert(type.FixedLength == 8, "Invalid length for SqlDouble type!");
-                        WriteDouble((Double)value, stateObj);
+                        WriteDouble((double)value, stateObj);
                     }
 
                     break;
@@ -12900,7 +12902,7 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(stateObj != null, @"stateObj cannot be null");
 
             // Write the TypeInfo.
-            WriteSmiTypeInfo(columnEncryptionParameterInfo.ParameterMetadata, stateObj);
+            WriteSmiTypeInfo(columnEncryptionParameterInfo.ParameterMetadata, stateObj, _defaultCollation);
 
             // Write the serialized array in columnEncryptionParameterInfo.
             stateObj.WriteByteArray(columnEncryptionParameterInfo.SerializedWireFormat,
@@ -12910,7 +12912,15 @@ namespace Microsoft.Data.SqlClient
 
         // For MAX types, this method can only write everything in one big chunk. If multiple
         // chunk writes needed, please use WritePlpBytes/WritePlpChars
-        private byte[] SerializeUnencryptedValue(object value, MetaType type, byte scale, int actualLength, int offset, bool isDataFeed, byte normalizationVersion, TdsParserStateObject stateObj)
+        private static byte[] SerializeUnencryptedValue(object value,
+            MetaType type,
+            byte scale,
+            int actualLength,
+            int offset,
+            bool isDataFeed,
+            byte normalizationVersion,
+            TdsParserStateObject stateObj,
+            Encoding defaultEncoding)
         {
             Debug.Assert((null != value) && (DBNull.Value != value), "unexpected missing or empty object");
 
@@ -12989,7 +12999,7 @@ namespace Microsoft.Data.SqlClient
                         }
                         else
                         {
-                            return SerializeEncodingChar((string)value, actualLength, offset, _defaultEncoding);
+                            return SerializeEncodingChar((string)value, actualLength, offset, defaultEncoding, defaultEncoding);
                         }
                     }
                 case TdsEnums.SQLNCHAR:
@@ -13101,7 +13111,9 @@ namespace Microsoft.Data.SqlClient
 
         // For MAX types, this method can only write everything in one big chunk. If multiple
         // chunk writes needed, please use WritePlpBytes/WritePlpChars
-        private byte[] SerializeUnencryptedSqlValue(object value, MetaType type, int actualLength, int offset, byte normalizationVersion, TdsParserStateObject stateObj)
+        private byte[] SerializeUnencryptedSqlValue(object value, MetaType type, int actualLength, int offset,
+            byte normalizationVersion, TdsParserStateObject stateObj,
+            Encoding defaultEncoding)
         {
             Debug.Assert(((type.NullableType == TdsEnums.SQLXMLTYPE) ||
                    (value is INullable && !((INullable)value).IsNull)),
@@ -13180,12 +13192,12 @@ namespace Microsoft.Data.SqlClient
                     if (value is System.Data.SqlTypes.SqlChars)
                     {
                         String sch = new String(((System.Data.SqlTypes.SqlChars)value).Value);
-                        return SerializeEncodingChar(sch, actualLength, offset, _defaultEncoding);
+                        return SerializeEncodingChar(sch, actualLength, offset, defaultEncoding, defaultEncoding);
                     }
                     else
                     {
                         Debug.Assert(value is SqlString);
-                        return SerializeEncodingChar(((SqlString)value).Value, actualLength, offset, _defaultEncoding);
+                        return SerializeEncodingChar(((SqlString)value).Value, actualLength, offset, defaultEncoding, defaultEncoding);
                     }
 
 

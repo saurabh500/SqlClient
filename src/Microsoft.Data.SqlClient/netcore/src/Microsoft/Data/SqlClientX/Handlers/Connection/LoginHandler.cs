@@ -154,6 +154,7 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
             TdsStream tdsStream = context.ConnectionContext.TdsStream;
 
             // Create a chain of handlers for login.
+            
         }
 
         private async ValueTask SendLogin(LoginHandlerContext context, bool isAsync, CancellationToken ct)
