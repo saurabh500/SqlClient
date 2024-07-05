@@ -2257,7 +2257,7 @@ namespace Microsoft.Data.SqlClient
 
             if (isUnicode)
             {
-                cch = (long)_parser.ReadPlpUnicodeChars(ref buffer, bufferIndex, length, _stateObj);
+                cch = (long)TdsParser.ReadPlpUnicodeChars(ref buffer, bufferIndex, length, _stateObj);
                 _columnDataBytesRead += (cch << 1);
             }
             else

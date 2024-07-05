@@ -1301,13 +1301,31 @@ namespace Microsoft.Data.SqlClient
 
 
         /// <summary>
+        /// Determines if a column value should be encrypted when using BulkCopy (based on connectionstring setting).
+        /// </summary>
+        /// <returns></returns>
+        internal static bool ShouldEncryptValuesForBulkCopy(SqlInternalConnectionTds connectionHandler)
+        {
+            if (null != connectionHandler &&
+                null != connectionHandler.ConnectionOptions &&
+                SqlConnectionColumnEncryptionSetting.Enabled == connectionHandler.ConnectionOptions.ColumnEncryptionSetting)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
+        /// <summary>
         /// Encrypts a column value (for SqlBulkCopy)
         /// </summary>
         /// <returns></returns>
-        internal static object EncryptColumnValue(object value, SqlMetaDataPriv metadata, string column, TdsParserStateObject stateObj, bool isDataFeed, bool isSqlType, TdsParser parser)
+        internal static object EncryptColumnValue(object value, SqlMetaDataPriv metadata, string column, TdsParserStateObject stateObj, bool isDataFeed, bool isSqlType, TdsParser parser,
+            SqlInternalConnectionTds _connHandler)
         {
             Debug.Assert(parser.IsColumnEncryptionSupported, "Server doesn't support encryption, yet we received encryption metadata");
-            Debug.Assert(parser.ShouldEncryptValuesForBulkCopy(), "Encryption attempted when not requested");
+            Debug.Assert(ShouldEncryptValuesForBulkCopy(_connHandler), "Encryption attempted when not requested");
 
             if (isDataFeed)
             { // can't encrypt a stream column

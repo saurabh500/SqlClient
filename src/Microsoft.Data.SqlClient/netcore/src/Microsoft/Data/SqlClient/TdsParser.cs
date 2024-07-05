@@ -5283,7 +5283,7 @@ namespace Microsoft.Data.SqlClient
                 TdsParserExtensions.WriteInt(totalHeaderLength, stateObj);
                 // Write mars header length
                 TdsParserExtensions.WriteInt(marsHeaderSize, stateObj);
-                WriteMarsHeaderData(stateObj, _currentTransaction);
+                WriteMarsHeaderData(stateObj, _currentTransaction, _retainedTransactionId);
 
                 TdsParserExtensions.WriteShort((short)request, stateObj); // write TransactionManager Request type
 
@@ -5528,7 +5528,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 stateObj.SniContext = SniContext.Snix_Execute;
 
-                WriteRPCBatchHeaders(stateObj, notificationRequest);
+                WriteRPCBatchHeaders(stateObj, notificationRequest, CurrentTransaction, _retainedTransactionId, _is2005);
 
                 stateObj._outputMessageType = TdsEnums.MT_SQL;
 
@@ -5658,7 +5658,7 @@ namespace Microsoft.Data.SqlClient
 
                         stateObj.SniContext = SniContext.Snix_Execute;
 
-                        WriteRPCBatchHeaders(stateObj, notificationRequest);
+                        WriteRPCBatchHeaders(stateObj, notificationRequest, CurrentTransaction, _retainedTransactionId, _is2005);
 
                         stateObj._outputMessageType = TdsEnums.MT_RPC;
                     }
@@ -6874,11 +6874,11 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal Task WriteBulkCopyDone(TdsParserStateObject stateObj)
+        internal static Task WriteBulkCopyDone(TdsParserStateObject stateObj, TdsParserState parserState)
         {
             // Write DONE packet
             //
-            if (!(State == TdsParserState.OpenNotLoggedIn || State == TdsParserState.OpenLoggedIn))
+            if (!(parserState == TdsParserState.OpenNotLoggedIn || parserState == TdsParserState.OpenLoggedIn))
             {
                 throw ADP.ClosedConnectionError();
             }
@@ -6897,9 +6897,11 @@ namespace Microsoft.Data.SqlClient
         /// decrypt the CEK and keep it ready for encryption.
         /// </summary>
         /// <returns></returns>
-        internal void LoadColumnEncryptionKeys(_SqlMetaDataSet metadataCollection, SqlConnection connection, SqlCommand command = null)
+        internal static void LoadColumnEncryptionKeys(_SqlMetaDataSet metadataCollection, SqlConnection connection, bool IsColumnEncryptionSupported,
+            SqlInternalConnectionTds connectionHandler,
+            SqlCommand command = null)
         {
-            if (IsColumnEncryptionSupported && ShouldEncryptValuesForBulkCopy())
+            if (IsColumnEncryptionSupported && TdsParserExtensions.ShouldEncryptValuesForBulkCopy(connectionHandler))
             {
                 for (int col = 0; col < metadataCollection.Length; col++)
                 {
@@ -6957,7 +6959,7 @@ namespace Microsoft.Data.SqlClient
             //     was enabled and server supports it!
             // OR if encryption was disabled in connection options
             if (metadataCollection.cekTable == null ||
-                !ShouldEncryptValuesForBulkCopy())
+                !TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_connHandler))
             {
                 TdsParserExtensions.WriteShort(0x00, stateObj);
                 return;
@@ -7019,7 +7021,7 @@ namespace Microsoft.Data.SqlClient
         {
             if (!IsColumnEncryptionSupported || // TCE Feature supported
                 !md.isEncrypted || // Column is not encrypted
-                !ShouldEncryptValuesForBulkCopy())
+                !TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_connHandler))
             { // TCE disabled on connection string
                 return;
             }
@@ -7079,7 +7081,7 @@ namespace Microsoft.Data.SqlClient
                     // Write the next byte of flags
                     if (IsColumnEncryptionSupported)
                     { // TCE Supported
-                        if (ShouldEncryptValuesForBulkCopy())
+                        if (TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_connHandler))
                         { // TCE enabled on connection options
                             flags |= (UInt16)(md.isEncrypted ? (UInt16)(TdsEnums.IsEncrypted << 8) : (UInt16)0);
                         }
@@ -7137,24 +7139,28 @@ namespace Microsoft.Data.SqlClient
             } // end for loop
         }
 
-        /// <summary>
-        /// Determines if a column value should be encrypted when using BulkCopy (based on connectionstring setting).
-        /// </summary>
-        /// <returns></returns>
-        internal bool ShouldEncryptValuesForBulkCopy()
+        internal Task WriteBulkCopyValue(object value,
+            SqlMetaDataPriv metadata,
+            TdsParserStateObject stateObj,
+            bool isSqlType,
+            bool isDataFeed,
+            bool isNull)
         {
-            if (null != _connHandler &&
-                null != _connHandler.ConnectionOptions &&
-                SqlConnectionColumnEncryptionSetting.Enabled == _connHandler.ConnectionOptions.ColumnEncryptionSetting)
-            {
-                return true;
-            }
-
-            return false;
+            return WriteBulkCopyValue(value, metadata, stateObj, isSqlType, isDataFeed, isNull,
+                    State,
+                    _asyncWrite,
+                    this);
         }
 
-
-        internal Task WriteBulkCopyValue(object value, SqlMetaDataPriv metadata, TdsParserStateObject stateObj, bool isSqlType, bool isDataFeed, bool isNull)
+        internal Task WriteBulkCopyValue(object value,
+            SqlMetaDataPriv metadata,
+            TdsParserStateObject stateObj,
+            bool isSqlType,
+            bool isDataFeed,
+            bool isNull,
+            TdsParserState State,
+            bool _asyncWrite,
+            TdsParser parser)
         {
             Debug.Assert(!isSqlType || value is INullable, "isSqlType is true, but value can not be type cast to an INullable");
             Debug.Assert(!isDataFeed ^ value is DataFeed, "Incorrect value for isDataFeed");
@@ -7229,7 +7235,7 @@ namespace Microsoft.Data.SqlClient
                         case TdsEnums.SQLTEXT:
                             if (null == _defaultEncoding)
                             {
-                                ThrowUnsupportedCollationEncountered(null); // stateObject only when reading
+                                parser.ThrowUnsupportedCollationEncountered(null); // stateObject only when reading
                             }
 
                             string stringValue = null;
@@ -7349,7 +7355,8 @@ namespace Microsoft.Data.SqlClient
         }
 
         // This is in its own method to avoid always allocating the lambda in WriteBulkCopyValue
-        private Task WriteBulkCopyValueSetupContinuation(Task internalWriteTask, Encoding saveEncoding, SqlCollation saveCollation, int saveCodePage, int saveLCID)
+        private Task WriteBulkCopyValueSetupContinuation(Task internalWriteTask,
+            Encoding saveEncoding, SqlCollation saveCollation, int saveCodePage, int saveLCID)
         {
             return internalWriteTask.ContinueWith<Task>(t =>
             {
@@ -7362,7 +7369,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Write mars header data, not including the mars header length
-        private void WriteMarsHeaderData(TdsParserStateObject stateObj, SqlInternalTransaction transaction)
+        private static void WriteMarsHeaderData(TdsParserStateObject stateObj, SqlInternalTransaction transaction, long _retainedTransactionId)
         {
             // Function to send over additional payload header data for 2005 and beyond only.
 
@@ -7387,7 +7394,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private int GetNotificationHeaderSize(SqlNotificationRequest notificationRequest)
+        private static int GetNotificationHeaderSize(SqlNotificationRequest notificationRequest)
         {
             if (null != notificationRequest)
             {
@@ -7439,7 +7446,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Write query notificaiton header data, not including the notificaiton header length
-        private void WriteQueryNotificationHeaderData(SqlNotificationRequest notificationRequest, TdsParserStateObject stateObj)
+        private static void WriteQueryNotificationHeaderData(SqlNotificationRequest notificationRequest, TdsParserStateObject stateObj, bool _is2005)
         {
             Debug.Assert(_is2005, "WriteQueryNotificationHeaderData called on a non-2005 server");
 
@@ -7470,9 +7477,9 @@ namespace Microsoft.Data.SqlClient
                 TdsParserExtensions.WriteInt(timeout, stateObj);
         }
 
-        private void WriteTraceHeaderData(TdsParserStateObject stateObj)
+        private static void WriteTraceHeaderData(TdsParserStateObject stateObj, bool IncludeTraceHeader)
         {
-            Debug.Assert(this.IncludeTraceHeader, "WriteTraceHeaderData can only be called on a 2012 or higher version server and bid trace with the control bit are on");
+            Debug.Assert(IncludeTraceHeader, "WriteTraceHeaderData can only be called on a 2012 or higher version server and bid trace with the control bit are on");
 
             // We may need to update the trace header length if trace header is changed in the future
 
@@ -7486,7 +7493,8 @@ namespace Microsoft.Data.SqlClient
             SqlClientEventSource.Log.TryTraceEvent("<sc.TdsParser.WriteTraceHeaderData|INFO> ActivityID {0}", actId);
         }
 
-        private void WriteRPCBatchHeaders(TdsParserStateObject stateObj, SqlNotificationRequest notificationRequest)
+        private static void WriteRPCBatchHeaders(TdsParserStateObject stateObj, SqlNotificationRequest notificationRequest, SqlInternalTransaction CurrentTransaction,
+            long retainedTransactionId, bool is2005)
         {
             /* Header:
                TotalLength  - DWORD  - including all headers and lengths, including itself
@@ -7510,14 +7518,14 @@ namespace Microsoft.Data.SqlClient
             // Write Mars header length
             TdsParserExtensions.WriteInt(marsHeaderSize, stateObj);
             // Write Mars header data
-            WriteMarsHeaderData(stateObj, CurrentTransaction);
+            WriteMarsHeaderData(stateObj, CurrentTransaction, retainedTransactionId);
 
             if (0 != notificationHeaderSize)
             {
                 // Write Notification header length
                 TdsParserExtensions.WriteInt(notificationHeaderSize, stateObj);
                 // Write notificaiton header data
-                WriteQueryNotificationHeaderData(notificationRequest, stateObj);
+                WriteQueryNotificationHeaderData(notificationRequest, stateObj, is2005);
             }
         }
 
@@ -7525,7 +7533,7 @@ namespace Microsoft.Data.SqlClient
         //
         // Reverse function of GetTokenLength
         //
-        private void WriteTokenLength(byte token, int length, TdsParserStateObject stateObj)
+        private static void WriteTokenLength(byte token, int length, TdsParserStateObject stateObj)
         {
             int tokenLength = 0;
 
@@ -8611,7 +8619,7 @@ namespace Microsoft.Data.SqlClient
         // we always send over nullable types for parameters so we always write the varlen fields
         //
 
-        internal void WriteParameterVarLen(MetaType type, int size, bool isNull, TdsParserStateObject stateObj, bool unknownLength = false)
+        internal static void WriteParameterVarLen(MetaType type, int size, bool isNull, TdsParserStateObject stateObj, bool unknownLength = false)
         {
             if (type.IsLong)
             { // text/image/SQLVariant have a 4 byte length, plp datatypes have 8 byte lengths
@@ -8681,7 +8689,7 @@ namespace Microsoft.Data.SqlClient
         // Will not start reading into the next chunk if bytes requested is larger than
         // the current chunk length. Do another ReadPlpLength, ReadPlpUnicodeChars in that case.
         // Returns the actual chars read
-        private bool TryReadPlpUnicodeCharsChunk(char[] buff, int offst, int len, TdsParserStateObject stateObj, out int charsRead)
+        private static bool TryReadPlpUnicodeCharsChunk(char[] buff, int offst, int len, TdsParserStateObject stateObj, out int charsRead)
         {
             Debug.Assert((buff == null && len == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpUnicodeChars()!");
             Debug.Assert((stateObj._longlen != 0) && (stateObj._longlen != TdsEnums.SQL_PLP_NULL),
@@ -8711,7 +8719,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal int ReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj)
+        internal static int ReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj)
         {
             int charsRead;
             bool rentedBuff = false;
@@ -8728,7 +8736,7 @@ namespace Microsoft.Data.SqlClient
         // requested length is -1 or larger than the actual length of data. First call to this method
         //  should be preceeded by a call to ReadPlpLength or ReadDataLength.
         // Returns the actual chars read.
-        internal bool TryReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj, out int totalCharsRead, bool supportRentedBuff, ref bool rentedBuff)
+        internal static bool TryReadPlpUnicodeChars(ref char[] buff, int offst, int len, TdsParserStateObject stateObj, out int totalCharsRead, bool supportRentedBuff, ref bool rentedBuff)
         {
             int charsRead = 0;
             int charsLeft = 0;

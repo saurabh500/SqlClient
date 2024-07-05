@@ -1468,7 +1468,7 @@ namespace Microsoft.Data.SqlClient
             int length = metadata.length;
             if (metadata.isEncrypted)
             {
-                Debug.Assert(_parser.ShouldEncryptValuesForBulkCopy());
+                Debug.Assert(TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_parser.Connection));
                 type = metadata.baseTI.metaType;
                 scale = metadata.baseTI.scale;
                 precision = metadata.baseTI.precision;
@@ -2162,8 +2162,8 @@ namespace Microsoft.Data.SqlClient
                 if (!isNull && // if value is not NULL
                     metadata.isEncrypted)
                 { // If we are transparently encrypting
-                    Debug.Assert(_parser.ShouldEncryptValuesForBulkCopy());
-                    value = TdsParserExtensions.EncryptColumnValue(value, metadata, metadata.column, _stateObj, isDataFeed, isSqlType, _parser);
+                    Debug.Assert(TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_parser.Connection));
+                    value = TdsParserExtensions.EncryptColumnValue(value, metadata, metadata.column, _stateObj, isDataFeed, isSqlType, _parser, _parser.Connection);
                     isSqlType = false; // Its not a sql type anymore
                 }
             }
@@ -2343,7 +2343,7 @@ namespace Microsoft.Data.SqlClient
             if (exception != null)
             {
                 _parser._asyncWrite = false;
-                Task writeTask = _parser.WriteBulkCopyDone(_stateObj); //We should complete the current batch up to this row.
+                Task writeTask = TdsParser.WriteBulkCopyDone(_stateObj, _parser.State); //We should complete the current batch up to this row.
                 Debug.Assert(writeTask == null, "Task should not pend while doing sync bulk copy");
                 RunParser();
                 AbortTransaction();
@@ -2559,9 +2559,11 @@ namespace Microsoft.Data.SqlClient
                 WriteMetaData(internalResults);
 
                 // Load encryption keys now (if needed)
-                _parser.LoadColumnEncryptionKeys(
+                TdsParser.LoadColumnEncryptionKeys(
                     internalResults[MetaDataResultId].MetaData,
-                    _connection);
+                    _connection,
+                    _parser.IsColumnEncryptionSupported,
+                    _parser.Connection);
 
                 Task task = CopyRowsAsync(0, _savedBatchSize, cts); // This is copying 1 batch of rows and setting _hasMoreRowToCopy = true/false.
 
@@ -2616,7 +2618,7 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(source == null || !source.Task.IsCompleted, "Called into CopyBatchesAsync with a completed task!");
             try
             {
-                Task writeTask = _parser.WriteBulkCopyDone(_stateObj);
+                Task writeTask = TdsParser.WriteBulkCopyDone(_stateObj, _parser.State);
 
                 if (writeTask == null)
                 {
@@ -2679,7 +2681,7 @@ namespace Microsoft.Data.SqlClient
                 if ((cleanupParser) && (_parser != null) && (_stateObj != null))
                 {
                     _parser._asyncWrite = false;
-                    Task task = _parser.WriteBulkCopyDone(_stateObj);
+                    Task task = TdsParser.WriteBulkCopyDone(_stateObj, _parser.State);
                     Debug.Assert(task == null, "Write should not pend when error occurs");
                     RunParser();
                 }
