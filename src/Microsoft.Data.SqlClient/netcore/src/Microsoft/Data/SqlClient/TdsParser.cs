@@ -1916,7 +1916,12 @@ namespace Microsoft.Data.SqlClient
                             stateObj._syncOverAsync = true;
 
                             SqlEnvChange env;
-                            if (!TryProcessEnvChange(tokenLength, stateObj, out env))
+                            if (!TryProcessEnvChange(tokenLength, stateObj, _physicalStateObj, out env, ref _defaultCodePage, 
+                                ref _defaultLCID, ref _defaultEncoding,
+                                _connHandler,
+                                ref _defaultCollation,
+                                ref _cachedCollation,
+                                this))
                             {
                                 return false;
                             }
@@ -2353,7 +2358,17 @@ namespace Microsoft.Data.SqlClient
         // This is in its own method to avoid always allocating the lambda in TryRun
         private static void TryRunSetupSpinWaitContinuation(TdsParserStateObject stateObj) => SpinWait.SpinUntil(() => !stateObj._attentionSending);
 
-        private bool TryProcessEnvChange(int tokenLength, TdsParserStateObject stateObj, out SqlEnvChange sqlEnvChange)
+        private static bool TryProcessEnvChange(int tokenLength,
+            TdsParserStateObject stateObj,
+            TdsParserStateObject _physicalStateObj,
+            out SqlEnvChange sqlEnvChange,
+            ref int _defaultCodePage,
+            ref int _defaultLCID,
+            ref Encoding _defaultEncoding,
+            SqlInternalConnectionTds _connHandler,
+            ref SqlCollation _defaultCollation,
+            ref SqlCollation _cachedCollation,
+            TdsParser parser)
         {
             // There could be multiple environment change messages following this token.
             byte byteLength;
@@ -2485,7 +2500,7 @@ namespace Microsoft.Data.SqlClient
                             }
                             else
                             {
-                                int newCodePage = TdsParserExtensions.GetCodePage(env._newCollation, stateObj, this);
+                                int newCodePage = TdsParserExtensions.GetCodePage(env._newCollation, stateObj, parser);
                                 if (newCodePage != _defaultCodePage)
                                 {
                                     _defaultCodePage = newCodePage;
