@@ -2198,7 +2198,7 @@ namespace Microsoft.Data.SqlClient
             bool isReturnValue,
             SqlInternalConnectionTds connectionHandler,
             SqlCollation cachedCollation, int defaultCodePage, Encoding defaultEncoding,
-            TdsParser parser)
+            Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
         {
             Debug.Assert(isReturnValue == (cipherTable == null), "Ciphertable is not set iff this is a return value");
 
@@ -2230,7 +2230,7 @@ namespace Microsoft.Data.SqlClient
 
             // Read the base TypeInfo
             col.baseTI = new SqlMetaDataPriv();
-            if (!TryProcessTypeInfo(stateObj, col.baseTI, userType, cachedCollation, defaultCodePage, defaultEncoding, parser))
+            if (!TryProcessTypeInfo(stateObj, col.baseTI, userType, cachedCollation, defaultCodePage, defaultEncoding, throwOnUnsupportedCollationAction))
             {
                 return false;
             }
@@ -2371,7 +2371,7 @@ namespace Microsoft.Data.SqlClient
 
         private static bool TryProcessTypeInfo(TdsParserStateObject stateObj, 
             SqlMetaDataPriv col, UInt32 userType, SqlCollation cachedCollation, int _defaultCodePage, Encoding _defaultEncoding,
-            TdsParser parser)
+            Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
             byte tdsType;
@@ -2531,7 +2531,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    int codePage = GetCodePage(col.collation, stateObj, parser);
+                    int codePage = GetCodePage(col.collation, stateObj, unsupportedCollationAction);
 
                     if (codePage == _defaultCodePage)
                     {
@@ -2552,7 +2552,7 @@ namespace Microsoft.Data.SqlClient
         internal static bool TryCommonProcessMetaData(TdsParserStateObject stateObj, _SqlMetaData col, SqlTceCipherInfoTable cipherTable, 
             bool fColMD, SqlCommandColumnEncryptionSetting columnEncryptionSetting, bool IsColumnEncryptionSupported,
             SqlInternalConnectionTds connectionHandler, ref SqlCollation cachedCollation,
-            int _defaultCodePage, Encoding defaultEncoding, TdsParser parser)
+            int _defaultCodePage, Encoding defaultEncoding, Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
             uint userType;
@@ -2588,7 +2588,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             // Read TypeInfo
-            if (!TryProcessTypeInfo(stateObj, col, userType, cachedCollation, _defaultCodePage, defaultEncoding, parser))
+            if (!TryProcessTypeInfo(stateObj, col, userType, cachedCollation, _defaultCodePage, defaultEncoding, unsupportedCollationAction))
             {
                 return false;
             }
@@ -2608,7 +2608,7 @@ namespace Microsoft.Data.SqlClient
             {
                 // If the column is encrypted, we should have a valid cipherTable
                 if (cipherTable != null && !TryProcessTceCryptoMetadata(stateObj, col, cipherTable, columnEncryptionSetting, isReturnValue: false, connectionHandler, cachedCollation,
-                    _defaultCodePage, defaultEncoding, parser))
+                    _defaultCodePage, defaultEncoding, unsupportedCollationAction))
                 {
                     return false;
                 }
@@ -2630,7 +2630,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal static int GetCodePage(SqlCollation collation, TdsParserStateObject stateObj, TdsParser tdsParser)
+        internal static int GetCodePage(SqlCollation collation, TdsParserStateObject stateObj, Action<TdsParserStateObject> unsupportedCollationAction)
         {
             int codePage = 0;
 
@@ -2710,7 +2710,7 @@ namespace Microsoft.Data.SqlClient
 
                     if (!success)
                     {
-                        tdsParser.ThrowUnsupportedCollationEncountered(stateObj);
+                        unsupportedCollationAction(stateObj);
                     }
 
                     Debug.Assert(codePage >= 0, $"Invalid code page. codePage: {codePage}. cultureId: {cultureId}");
@@ -2884,7 +2884,7 @@ namespace Microsoft.Data.SqlClient
 
         internal static bool TryProcessMetaData(int cColumns, TdsParserStateObject stateObj, out _SqlMetaDataSet metaData, SqlCommandColumnEncryptionSetting columnEncryptionSetting, bool IsColumnEncryptionSupported,
             SqlInternalConnectionTds connectionHandler, ref SqlCollation cachedCollation,
-            int defaultCodePage, Encoding defaultEncoding, TdsParser parser)
+            int defaultCodePage, Encoding defaultEncoding, Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
         {
             Debug.Assert(cColumns > 0, "should have at least 1 column in metadata!");
 
@@ -2904,7 +2904,7 @@ namespace Microsoft.Data.SqlClient
             for (int i = 0; i < cColumns; i++)
             {
                 if (!TdsParserExtensions.TryCommonProcessMetaData(stateObj, newMetaData[i], cipherTable, fColMD: true, columnEncryptionSetting: columnEncryptionSetting, IsColumnEncryptionSupported,
-                    connectionHandler, ref cachedCollation, defaultCodePage, defaultEncoding, parser))
+                    connectionHandler, ref cachedCollation, defaultCodePage, defaultEncoding, throwOnUnsupportedCollationAction))
                 {
                     metaData = null;
                     return false;

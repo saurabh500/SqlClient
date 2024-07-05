@@ -1915,8 +1915,7 @@ namespace Microsoft.Data.SqlClient
                             // ENVCHANGE must be processed synchronously (since it can modify the state of many objects)
                             stateObj._syncOverAsync = true;
 
-                            SqlEnvChange env;
-                            if (!TryProcessEnvChange(tokenLength, stateObj, _physicalStateObj, out env, ref _defaultCodePage, 
+                            if (!TryProcessEnvChange(tokenLength, stateObj, _physicalStateObj, out SqlEnvChange env, ref _defaultCodePage, 
                                 ref _defaultLCID, ref _defaultEncoding,
                                 _connHandler,
                                 ref _defaultCollation,
@@ -2061,7 +2060,7 @@ namespace Microsoft.Data.SqlClient
                             {
                                 _SqlMetaDataSet metadata;
                                 if (!TdsParserExtensions.TryProcessMetaData(tokenLength, stateObj, out metadata, cmdHandler?.ColumnEncryptionSetting ?? SqlCommandColumnEncryptionSetting.UseConnectionSetting, 
-                                    IsColumnEncryptionSupported, _connHandler, ref _cachedCollation, _defaultCodePage, _defaultEncoding, this))
+                                    IsColumnEncryptionSupported, _connHandler, ref _cachedCollation, _defaultCodePage, _defaultEncoding, ThrowUnsupportedCollationEncountered))
                                 {
                                     return false;
                                 }
@@ -2500,7 +2499,7 @@ namespace Microsoft.Data.SqlClient
                             }
                             else
                             {
-                                int newCodePage = TdsParserExtensions.GetCodePage(env._newCollation, stateObj, parser);
+                                int newCodePage = TdsParserExtensions.GetCodePage(env._newCollation, stateObj, parser.ThrowUnsupportedCollationEncountered);
                                 if (newCodePage != _defaultCodePage)
                                 {
                                     _defaultCodePage = newCodePage;
@@ -3257,7 +3256,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    int codePage = TdsParserExtensions.GetCodePage(rec.collation, stateObj, this);
+                    int codePage = TdsParserExtensions.GetCodePage(rec.collation, stateObj, ThrowUnsupportedCollationEncountered);
 
                     // If the column lcid is the same as the default, use the default encoder
                     if (codePage == _defaultCodePage)
@@ -3276,7 +3275,8 @@ namespace Microsoft.Data.SqlClient
             // For encrypted parameters, read the unencrypted type and encryption information.
             if (IsColumnEncryptionSupported && rec.isEncrypted)
             {
-                if (!TdsParserExtensions.TryProcessTceCryptoMetadata(stateObj, rec, cipherTable: null, columnEncryptionSetting: columnEncryptionSetting, isReturnValue: true, _connHandler, _cachedCollation, _defaultCodePage, _defaultEncoding, this))
+                if (!TdsParserExtensions.TryProcessTceCryptoMetadata(stateObj, rec, cipherTable: null, columnEncryptionSetting: columnEncryptionSetting, 
+                    isReturnValue: true, _connHandler, _cachedCollation, _defaultCodePage, _defaultEncoding, ThrowUnsupportedCollationEncountered))
                 {
                     return false;
                 }
@@ -3459,7 +3459,7 @@ namespace Microsoft.Data.SqlClient
                     cachedCollation: ref _cachedCollation,
                     _defaultCodePage: _defaultCodePage,
                     defaultEncoding: _defaultEncoding,
-                    this))
+                    ThrowUnsupportedCollationEncountered))
                 {
                     return false;
                 }
@@ -4640,7 +4640,7 @@ namespace Microsoft.Data.SqlClient
                             }
                         }
 
-                        Encoding encoding = Encoding.GetEncoding(TdsParserExtensions.GetCodePage(collation, stateObj, this));
+                        Encoding encoding = Encoding.GetEncoding(TdsParserExtensions.GetCodePage(collation, stateObj, ThrowUnsupportedCollationEncountered));
                         if (!TryReadSqlStringValue(value, type, lenData, encoding, false, stateObj))
                         {
                             return false;
