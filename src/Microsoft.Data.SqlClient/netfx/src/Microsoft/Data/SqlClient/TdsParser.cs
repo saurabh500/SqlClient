@@ -162,8 +162,7 @@ namespace Microsoft.Data.SqlClient
         // Constants
         const int constBinBufferSize = 4096; // Size of the buffer used to read input parameter of type Stream
         const int constTextBufferSize = 4096; // Size of the buffer (in chars) user to read input parameter of type TextReader
-        private const string enableTruncateSwitch = "Switch.Microsoft.Data.SqlClient.TruncateScaledDecimal"; // for applications that need to maintain backwards compatibility with the previous behavior
-
+        
         // State variables
         internal TdsParserState _state = TdsParserState.Closed; // status flag for connection
 
@@ -328,15 +327,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private static bool EnableTruncateSwitch
-        {
-            get
-            {
-                bool value;
-                value = AppContext.TryGetSwitch(enableTruncateSwitch, out value) ? value : false;
-                return value;
-            }
-        }
+        
 
         internal SqlInternalTransaction CurrentTransaction
         {
@@ -8067,32 +8058,8 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        static internal SqlDecimal AdjustSqlDecimalScale(SqlDecimal d, int newScale)
-        {
-            if (d.Scale != newScale)
-            {
-                bool round = !EnableTruncateSwitch;
-                return SqlDecimal.AdjustScale(d, newScale - d.Scale, round);
-            }
+        
 
-            return d;
-        }
-
-        static internal decimal AdjustDecimalScale(decimal value, int newScale)
-        {
-            int oldScale = (Decimal.GetBits(value)[3] & 0x00ff0000) >> 0x10;
-
-            if (newScale != oldScale)
-            {
-                bool round = !EnableTruncateSwitch;
-                SqlDecimal num = new SqlDecimal(value);
-
-                num = SqlDecimal.AdjustScale(num, newScale - oldScale, round);
-                return num.Value;
-            }
-
-            return value;
-        }
 
         internal byte[] SerializeSqlDecimal(SqlDecimal d, TdsParserStateObject stateObj)
         {
@@ -9938,7 +9905,7 @@ namespace Microsoft.Data.SqlClient
                                 {
                                     if (isSqlVal)
                                     {
-                                        value = AdjustSqlDecimalScale((SqlDecimal)value, scale);
+                                        value = TdsParserExtensions.AdjustSqlDecimalScale((SqlDecimal)value, scale);
 
                                         // If Precision is specified, verify value precision vs param precision
                                         if (precision != 0)
@@ -9951,7 +9918,7 @@ namespace Microsoft.Data.SqlClient
                                     }
                                     else
                                     {
-                                        value = AdjustDecimalScale((Decimal)value, scale);
+                                        value = TdsParserExtensions.AdjustDecimalScale((Decimal)value, scale);
 
                                         SqlDecimal sqlValue = new SqlDecimal((Decimal)value);
 

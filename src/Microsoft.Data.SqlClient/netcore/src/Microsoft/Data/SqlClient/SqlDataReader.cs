@@ -231,7 +231,7 @@ namespace Microsoft.Data.SqlClient
             // If there are an unknown (-1) number of bytes left for a PLP, read its size
             if (-1 == _sharedState._columnDataBytesRemaining)
             {
-                _sharedState._columnDataBytesRemaining = (long)_parser.PlpBytesLeft(_stateObj);
+                _sharedState._columnDataBytesRemaining = (long)TdsParserExtensions.PlpBytesLeft(_stateObj);
             }
 
             return _sharedState._columnDataBytesRemaining;
@@ -784,7 +784,7 @@ namespace Microsoft.Data.SqlClient
             // i. user called read but didn't fetch anything
             if (0 == _sharedState._nextColumnHeaderToRead)
             {
-                if (!_stateObj.Parser.TrySkipRow(_metaData, _stateObj))
+                if (!TdsParserExtensions.TrySkipRow(_metaData, _stateObj))
                 {
                     return false;
                 }
@@ -799,7 +799,7 @@ namespace Microsoft.Data.SqlClient
 
                 // iib.
                 // now read the remaining values off the wire for this row
-                if (!_stateObj.Parser.TrySkipRow(_metaData, _sharedState._nextColumnHeaderToRead, _stateObj))
+                if (!TdsParserExtensions.TrySkipRow(_metaData, _sharedState._nextColumnHeaderToRead, _stateObj))
                 {
                     return false;
                 }
@@ -1670,7 +1670,7 @@ namespace Microsoft.Data.SqlClient
                 if ((-1 == _sharedState._columnDataBytesRemaining) && (_metaData[i].metaType.IsPlp))
                 {
                     ulong left;
-                    if (!_parser.TryPlpBytesLeft(_stateObj, out left))
+                    if (!TdsParserExtensions.TryPlpBytesLeft(_stateObj, out left))
                     {
                         return false;
                     }
@@ -1687,7 +1687,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     if (_metaData[i].metaType.IsPlp)
                     {
-                        remaining = (long)_parser.PlpBytesTotalLength(_stateObj);
+                        remaining = (long)TdsParserExtensions.PlpBytesTotalLength(_stateObj);
                         return true;
                     }
                     remaining = _sharedState._columnDataBytesRemaining;
@@ -1728,7 +1728,7 @@ namespace Microsoft.Data.SqlClient
                     if (_metaData[i].metaType.IsPlp)
                     {
                         ulong skipped;
-                        if (!_parser.TrySkipPlpValue((ulong)cb, _stateObj, out skipped))
+                        if (!_stateObj.TrySkipPlpValue((ulong)cb, out skipped))
                         {
                             return false;
                         }
@@ -1912,7 +1912,7 @@ namespace Microsoft.Data.SqlClient
 
                     // Query for number of bytes left
                     ulong left;
-                    if (!_parser.TryPlpBytesLeft(_stateObj, out left))
+                    if (!TdsParserExtensions.TryPlpBytesLeft(_stateObj, out left))
                     {
                         _sharedState._columnDataBytesRemaining = -1;
                         return false;
@@ -2225,7 +2225,7 @@ namespace Microsoft.Data.SqlClient
             // If there are an unknown (-1) number of bytes left for a PLP, read its size
             if (-1 == _sharedState._columnDataBytesRemaining)
             {
-                _sharedState._columnDataBytesRemaining = (long)_parser.PlpBytesLeft(_stateObj);
+                _sharedState._columnDataBytesRemaining = (long)TdsParserExtensions.PlpBytesLeft(_stateObj);
             }
 
             if (0 == _sharedState._columnDataBytesRemaining)
@@ -2237,7 +2237,7 @@ namespace Microsoft.Data.SqlClient
             // if no buffer is passed in, return the total number of characters or -1
             if (null == buffer)
             {
-                cch = (long)_parser.PlpBytesTotalLength(_stateObj);
+                cch = (long)TdsParserExtensions.PlpBytesTotalLength(_stateObj);
                 return (isUnicode && (cch > 0)) ? cch >> 1 : cch;
             }
             if (dataIndex > _columnDataCharsRead)
@@ -2249,7 +2249,7 @@ namespace Microsoft.Data.SqlClient
                 _stateObj._plpdecoder = null;
                 cch = dataIndex - _columnDataCharsRead;
                 cch = isUnicode ? (cch << 1) : cch;
-                cch = (long)_parser.SkipPlpValue((ulong)(cch), _stateObj);
+                cch = (long)TdsParserExtensions.SkipPlpValue((ulong)(cch), _stateObj);
                 _columnDataBytesRead += cch;
                 _columnDataCharsRead += (isUnicode && (cch > 0)) ? cch >> 1 : cch;
             }
@@ -2262,11 +2262,11 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                cch = (long)_parser.ReadPlpAnsiChars(ref buffer, bufferIndex, length, _metaData[i], _stateObj);
+                cch = (long)TdsParserExtensions.ReadPlpAnsiChars(ref buffer, bufferIndex, length, _metaData[i], _stateObj);
                 _columnDataBytesRead += cch << 1;
             }
             _columnDataCharsRead += cch;
-            _sharedState._columnDataBytesRemaining = (long)_parser.PlpBytesLeft(_stateObj);
+            _sharedState._columnDataBytesRemaining = (long)TdsParserExtensions.PlpBytesLeft(_stateObj);
             return cch;
         }
 
@@ -3842,7 +3842,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         // SkipValue is no-op if the column appears in NBC bitmask
                         // if not, it skips regular and PLP types
-                        if (!_parser.TrySkipValue(columnMetaData, _sharedState._nextColumnHeaderToRead, _stateObj))
+                        if (!TdsParserExtensions.TrySkipValue(columnMetaData, _sharedState._nextColumnHeaderToRead, _stateObj))
                         {
                             return false;
                         }
@@ -3867,7 +3867,7 @@ namespace Microsoft.Data.SqlClient
                         {
                             if (columnMetaData.type != SqlDbType.Timestamp)
                             {
-                                TdsParser.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
+                                TdsParserExtensions.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
                                     columnMetaData,
                                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
                                     _parser.Connection);
@@ -3916,7 +3916,7 @@ namespace Microsoft.Data.SqlClient
                     // if LegacyRowVersionNullBehavior is enabled, Timestamp type must enter "else" block.
                     if (isNull && (!LocalAppContextSwitches.LegacyRowVersionNullBehavior || columnMetaData.type != SqlDbType.Timestamp))
                     {
-                        TdsParser.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
+                        TdsParserExtensions.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
                                 columnMetaData,
                                 _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
                                 _parser.Connection);
@@ -4064,7 +4064,7 @@ namespace Microsoft.Data.SqlClient
                     if (_stateObj._longlen != 0)
                     {
                         ulong ignored;
-                        if (!_stateObj.Parser.TrySkipPlpValue(ulong.MaxValue, _stateObj, out ignored))
+                        if (!_stateObj.TrySkipPlpValue(ulong.MaxValue, out ignored))
                         {
                             return false;
                         }

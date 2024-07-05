@@ -2187,11 +2187,11 @@ namespace Microsoft.Data.SqlClient
 
                 if (variantInternalType == SqlBuffer.StorageType.DateTime2)
                 {
-                    _parser.WriteSqlVariantDateTime2(((DateTime)value), _stateObj);
+                    TdsParserExtensions.WriteSqlVariantDateTime2(((DateTime)value), _stateObj);
                 }
                 else if (variantInternalType == SqlBuffer.StorageType.Date)
                 {
-                    _parser.WriteSqlVariantDate(((DateTime)value), _stateObj);
+                    TdsParserExtensions.WriteSqlVariantDate(((DateTime)value), _stateObj);
                 }
                 else
                 {

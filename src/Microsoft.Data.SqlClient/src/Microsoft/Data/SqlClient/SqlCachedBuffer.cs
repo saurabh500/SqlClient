@@ -43,7 +43,7 @@ namespace Microsoft.Data.SqlClient
             buffer = null;
 
             // the very first length is already read.
-            if (!parser.TryPlpBytesLeft(stateObj, out ulong plplength))
+            if (!TdsParserExtensions.TryPlpBytesLeft(stateObj, out ulong plplength))
             {
                 return false;
             }
@@ -72,7 +72,7 @@ namespace Microsoft.Data.SqlClient
                     cachedBytes.Add(byteArr);
                     plplength -= (ulong)cb;
                 } while (plplength > 0);
-                if (!parser.TryPlpBytesLeft(stateObj, out plplength))
+                if (!TdsParserExtensions.TryPlpBytesLeft(stateObj, out plplength))
                 {
                     return false;
                 }

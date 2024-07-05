@@ -30,5 +30,14 @@ namespace Microsoft.Data.SqlClientX.IO
         /// Queues a cancellation request to the stream, which will be sent to the server.
         /// </summary>
         public void QueueCancellation();
+
+        /// <summary>
+        /// Writes the string to the stream. Uses Unicode encoding.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="isAsync"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask WriteStringAsync(string value, bool isAsync, CancellationToken ct);
     }
 }

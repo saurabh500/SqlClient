@@ -1545,7 +1545,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (sqlValue.Scale != scale)
                         {
-                            sqlValue = TdsParser.AdjustSqlDecimalScale(sqlValue, scale);
+                            sqlValue = TdsParserExtensions.AdjustSqlDecimalScale(sqlValue, scale);
                         }
 
                         if (sqlValue.Precision > precision)

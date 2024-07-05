@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Common;
+using Microsoft.Data.SqlClient.Server;
 using Microsoft.Data.SqlTypes;
 
 namespace Microsoft.Data.SqlClient
@@ -19,7 +20,20 @@ namespace Microsoft.Data.SqlClient
 
     internal partial class TdsParserExtensions
     {
+        private const string enableTruncateSwitch = "Switch.Microsoft.Data.SqlClient.TruncateScaledDecimal"; // for applications that need to maintain backwards compatibility with the previous behavior
+
+        internal static bool EnableTruncateSwitch
+        {
+            get
+            {
+                bool value;
+                value = AppContext.TryGetSwitch(enableTruncateSwitch, out value) ? value : false;
+                return value;
+            }
+        }
+
         const int GUID_SIZE = 16;
+
         internal static void WriteInt(Span<byte> buffer, int value)
         {
 #if NET6_0_OR_GREATER
@@ -92,6 +106,23 @@ namespace Microsoft.Data.SqlClient
             WriteInt((int)i, stateObj);
         }
 
+        internal static void WriteSqlVariantDateTime2(DateTime value, TdsParserStateObject stateObj)
+        {
+            SmiMetaData dateTime2MetaData = SmiMetaData.DefaultDateTime2;
+            // NOTE: 3 bytes added here to support additional header information for variant - internal type, scale prop, scale
+            TdsParserExtensions.WriteSqlVariantHeader((int)(dateTime2MetaData.MaxLength + 3), TdsEnums.SQLDATETIME2, 1 /* one scale prop */, stateObj);
+            stateObj.WriteByte(dateTime2MetaData.Scale); //scale property
+            TdsParserExtensions.WriteDateTime2(value, dateTime2MetaData.Scale, (int)(dateTime2MetaData.MaxLength), stateObj);
+        }
+
+        internal static void WriteSqlVariantDate(DateTime value, TdsParserStateObject stateObj)
+        {
+            SmiMetaData dateMetaData = SmiMetaData.DefaultDate;
+            // NOTE: 2 bytes added here to support additional header information for variant - internal type, scale prop (ignoring scale here)
+            TdsParserExtensions.WriteSqlVariantHeader((int)(dateMetaData.MaxLength + 2), TdsEnums.SQLDATE, 0 /* one scale prop */, stateObj);
+            TdsParserExtensions.WriteDate(value, stateObj);
+        }
+
         //
         // Takes an int and writes it as an int.
         //
@@ -147,9 +178,15 @@ namespace Microsoft.Data.SqlClient
 
         internal static void WriteFloat(float v, TdsParserStateObject stateObj)
         {
+#if NETFRAMEWORK
+            byte[] bytes = BitConverter.GetBytes(v);
+
+            stateObj.WriteByteArray(bytes, bytes.Length, 0);
+#else
             Span<byte> bytes = stackalloc byte[sizeof(float)];
             FillFloatBytes(v, bytes);
             stateObj.WriteByteSpan(bytes);
+#endif
         }
         internal static void FillFloatBytes(float value, Span<byte> buffer) => BinaryPrimitives.TryWriteInt32LittleEndian(buffer, BitConverterCompatible.SingleToInt32Bits(value));
 
@@ -273,9 +310,15 @@ namespace Microsoft.Data.SqlClient
 
         internal static void WriteDouble(double v, TdsParserStateObject stateObj)
         {
+#if NETFRAMEWORK
+            byte[] bytes = BitConverter.GetBytes(v);
+
+            stateObj.WriteByteArray(bytes, bytes.Length, 0);
+#else
             Span<byte> bytes = stackalloc byte[sizeof(double)];
             FillDoubleBytes(v, bytes);
             stateObj.WriteByteSpan(bytes);
+#endif
         }
 
         internal static void FillDoubleBytes(double value, Span<byte> buffer) => BinaryPrimitives.TryWriteInt64LittleEndian(buffer, BitConverter.DoubleToInt64Bits(value));
@@ -409,7 +452,7 @@ namespace Microsoft.Data.SqlClient
             return WriteEncodingChar(s, s.Length, 0, encoding, stateObj, defaultEncoding, canAccumulate);
         }
 
-        internal static byte[] SerializeEncodingChar(string s, int numChars, int offset, Encoding encoding)
+        internal static byte[] SerializeEncodingChar(string s, int numChars, int offset, Encoding encoding, Encoding defaultEncoding)
         {
 #if NETFRAMEWORK
             char[] charData;
@@ -418,7 +461,7 @@ namespace Microsoft.Data.SqlClient
             // if hitting 7.0 server, encoding will be null in metadata for columns or return values since
             // 7.0 has no support for multiple code pages in data - single code page support only
             if (encoding == null)
-                encoding = _defaultEncoding;
+                encoding = defaultEncoding;
 
             charData = s.ToCharArray(offset, numChars);
 
@@ -620,7 +663,7 @@ namespace Microsoft.Data.SqlClient
         {
             if (d.Scale != newScale)
             {
-                bool round = !TdsParser.EnableTruncateSwitch;
+                bool round = !EnableTruncateSwitch;
                 return SqlDecimal.AdjustScale(d, newScale - d.Scale, round);
             }
 
@@ -633,7 +676,7 @@ namespace Microsoft.Data.SqlClient
 
             if (newScale != oldScale)
             {
-                bool round = !TdsParser.EnableTruncateSwitch;
+                bool round = !EnableTruncateSwitch;
                 SqlDecimal num = new SqlDecimal(value);
                 num = SqlDecimal.AdjustScale(num, newScale - oldScale, round);
                 return num.Value;
@@ -979,7 +1022,7 @@ namespace Microsoft.Data.SqlClient
                         }
                         else
                         {
-                            return TdsParserExtensions.SerializeEncodingChar((string)value, actualLength, offset, defaultEncoding);
+                            return TdsParserExtensions.SerializeEncodingChar((string)value, actualLength, offset, defaultEncoding, defaultEncoding);
                         }
                     }
                 case TdsEnums.SQLNCHAR:
@@ -1169,12 +1212,12 @@ namespace Microsoft.Data.SqlClient
                     if (value is SqlChars)
                     {
                         String sch = new String(((SqlChars)value).Value);
-                        return TdsParserExtensions.SerializeEncodingChar(sch, actualLength, offset, defaultEncoding);
+                        return TdsParserExtensions.SerializeEncodingChar(sch, actualLength, offset, defaultEncoding, defaultEncoding);
                     }
                     else
                     {
                         Debug.Assert(value is SqlString);
-                        return TdsParserExtensions.SerializeEncodingChar(((SqlString)value).Value, actualLength, offset, defaultEncoding);
+                        return TdsParserExtensions.SerializeEncodingChar(((SqlString)value).Value, actualLength, offset, defaultEncoding, defaultEncoding);
                     }
 
 
@@ -1852,7 +1895,7 @@ namespace Microsoft.Data.SqlClient
             SessionData sdata = _connHandler._currentSessionData;
             if (length < 5)
             {
-                throw SQL.ParsingError();
+                throw SQL.ParsingErrorLength(ParsingErrorState.SessionStateLengthTooShort, length);
             }
             uint seqNum;
             if (!stateObj.TryReadUInt32(out seqNum))
@@ -1870,7 +1913,7 @@ namespace Microsoft.Data.SqlClient
             }
             if (status > 1)
             {
-                throw SQL.ParsingError();
+                throw SQL.ParsingErrorStatus(ParsingErrorState.SessionStateInvalidStatus, status);
             }
             bool recoverable = status != 0;
             length -= 5;
@@ -3219,6 +3262,134 @@ namespace Microsoft.Data.SqlClient
             }
 
             return true;
+        }
+
+
+        internal static int ReadPlpAnsiChars(ref char[] buff, int offst, int len, SqlMetaDataPriv metadata, TdsParserStateObject stateObj, Encoding defaultEncoding, TdsParser parser)
+        {
+            int charsRead = 0;
+            int charsLeft = 0;
+            int bytesRead = 0;
+            int totalcharsRead = 0;
+
+            if (stateObj._longlen == 0)
+            {
+                Debug.Assert(stateObj._longlenleft == 0);
+                return 0;       // No data
+            }
+
+            Debug.Assert(((ulong)stateObj._longlen != TdsEnums.SQL_PLP_NULL),
+                    "Out of sync plp read request");
+
+            Debug.Assert((buff == null && offst == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpAnsiChars()!");
+            charsLeft = len;
+
+            if (stateObj._longlenleft == 0)
+            {
+                stateObj.ReadPlpLength(false);
+                if (stateObj._longlenleft == 0)
+                {// Data read complete
+                    stateObj._plpdecoder = null;
+                    return 0;
+                }
+            }
+
+            if (stateObj._plpdecoder == null)
+            {
+                Encoding enc = metadata.encoding;
+
+                if (enc == null)
+                {
+                    if (null == defaultEncoding)
+                    {
+                        parser.ThrowUnsupportedCollationEncountered(stateObj);
+                    }
+
+                    enc = defaultEncoding;
+                }
+                stateObj._plpdecoder = enc.GetDecoder();
+            }
+
+            while (charsLeft > 0)
+            {
+                bytesRead = (int)Math.Min(stateObj._longlenleft, (ulong)charsLeft);
+                if ((stateObj._bTmp == null) || (stateObj._bTmp.Length < bytesRead))
+                {
+                    // Grow the array
+                    stateObj._bTmp = new byte[bytesRead];
+                }
+
+                bytesRead = stateObj.ReadPlpBytesChunk(stateObj._bTmp, 0, bytesRead);
+
+                charsRead = stateObj._plpdecoder.GetChars(stateObj._bTmp, 0, bytesRead, buff, offst);
+                charsLeft -= charsRead;
+                offst += charsRead;
+                totalcharsRead += charsRead;
+                if (stateObj._longlenleft == 0)  // Read the next chunk or cleanup state if hit the end
+                    stateObj.ReadPlpLength(false);
+
+                if (stateObj._longlenleft == 0)
+                { // Data read complete
+                    stateObj._plpdecoder = null;
+                    break;
+                }
+            }
+            return (totalcharsRead);
+        }
+
+        // ensure value is not null and does not have an NBC bit set for it before using this method
+        internal static ulong SkipPlpValue(ulong cb, TdsParserStateObject stateObj)
+        {
+            ulong skipped;
+            Debug.Assert(stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
+            bool result = stateObj.TrySkipPlpValue(cb, out skipped);
+            if (!result)
+            {
+                throw SQL.SynchronousCallMayNotPend();
+            }
+            return skipped;
+        }
+
+
+        internal static ulong PlpBytesLeft(TdsParserStateObject stateObj)
+        {
+            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
+                stateObj.ReadPlpLength(false);
+
+            return stateObj._longlenleft;
+        }
+
+        internal static bool TryPlpBytesLeft(TdsParserStateObject stateObj, out ulong left)
+        {
+            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
+            {
+                if (!stateObj.TryReadPlpLength(false, out left))
+                {
+                    return false;
+                }
+            }
+
+            left = stateObj._longlenleft;
+            return true;
+        }
+
+        private const ulong _indeterminateSize = 0xffffffffffffffff;        // Represents unknown size
+
+        internal static ulong PlpBytesTotalLength(TdsParserStateObject stateObj)
+        {
+            if (stateObj._longlen == TdsEnums.SQL_PLP_UNKNOWNLEN)
+                return _indeterminateSize;
+            else if (stateObj._longlen == TdsEnums.SQL_PLP_NULL)
+                return 0;
+
+            return stateObj._longlen;
+        }
+
+        internal static void WriteSqlVariantHeader(int length, byte tdstype, byte propbytes, TdsParserStateObject stateObj)
+        {
+            TdsParserExtensions.WriteInt(length, stateObj);
+            stateObj.WriteByte(tdstype);
+            stateObj.WriteByte(propbytes);
         }
 
 

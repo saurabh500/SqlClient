@@ -3354,7 +3354,7 @@ namespace Microsoft.Data.SqlClient
                                 if (stateObj._longlen != 0)
                                 {
                                     ulong ignored;
-                                    if (!TdsParserExtensions.TrySkipPlpValue(ulong.MaxValue, stateObj, out ignored))
+                                    if (!stateObj.TrySkipPlpValue(ulong.MaxValue, out ignored))
                                     {
                                         throw SQL.SynchronousCallMayNotPend();
                                     }
@@ -4879,37 +4879,37 @@ namespace Microsoft.Data.SqlClient
             switch (metatype.TDSType)
             {
                 case TdsEnums.SQLFLT4:
-                    WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteFloat((float)value, stateObj);
                     break;
 
                 case TdsEnums.SQLFLT8:
-                    WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteDouble((double)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT8:
-                    WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteLong((long)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT4:
-                    WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteInt((int)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT2:
-                    WriteSqlVariantHeader(4, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(4, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteShort((short)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT1:
-                    WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte((byte)value);
                     break;
 
                 case TdsEnums.SQLBIT:
-                    WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
                     if ((bool)value == true)
                         stateObj.WriteByte(1);
                     else
@@ -4922,7 +4922,7 @@ namespace Microsoft.Data.SqlClient
                         byte[] b = (byte[])value;
 
                         length = b.Length;
-                        WriteSqlVariantHeader(4 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(4 + length, metatype.TDSType, metatype.PropBytes, stateObj);
                         TdsParserExtensions.WriteShort(length, stateObj); // propbytes: varlen
                         return stateObj.WriteByteArray(b, length, 0, canAccumulate);
                     }
@@ -4932,7 +4932,7 @@ namespace Microsoft.Data.SqlClient
                         string s = (string)value;
 
                         length = s.Length;
-                        WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
                         TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj); // propbytes: collation.Info
                         stateObj.WriteByte(_defaultCollation._sortId); // propbytes: collation.SortId
                         TdsParserExtensions.WriteShort(length, stateObj);
@@ -4947,7 +4947,7 @@ namespace Microsoft.Data.SqlClient
 
                         length = b.Length;
                         Debug.Assert(length == 16, "Invalid length for guid type in com+ object");
-                        WriteSqlVariantHeader(18, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(18, metatype.TDSType, metatype.PropBytes, stateObj);
                         stateObj.WriteByteSpan(b);
                         break;
                     }
@@ -4957,7 +4957,7 @@ namespace Microsoft.Data.SqlClient
                         string s = (string)value;
 
                         length = s.Length * 2;
-                        WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
                         TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj); // propbytes: collation.Info
                         stateObj.WriteByte(_defaultCollation._sortId); // propbytes: collation.SortId
                         TdsParserExtensions.WriteShort(length, stateObj); // propbyte: varlen
@@ -4971,7 +4971,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         TdsDateTime dt = MetaType.FromDateTime((DateTime)value, 8);
 
-                        WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                         TdsParserExtensions.WriteInt(dt.days, stateObj);
                         TdsParserExtensions.WriteInt(dt.time, stateObj);
                         break;
@@ -4979,14 +4979,14 @@ namespace Microsoft.Data.SqlClient
 
                 case TdsEnums.SQLMONEY:
                     {
-                        WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                         WriteCurrency((decimal)value, 8, stateObj);
                         break;
                     }
 
                 case TdsEnums.SQLNUMERICN:
                     {
-                        WriteSqlVariantHeader(21, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteSqlVariantHeader(21, metatype.TDSType, metatype.PropBytes, stateObj);
                         stateObj.WriteByte(metatype.Precision); //propbytes: precision
                         stateObj.WriteByte((byte)((decimal.GetBits((decimal)value)[3] & 0x00ff0000) >> 0x10)); // propbytes: scale
                         TdsParserExtensions.WriteDecimal((decimal)value, stateObj);
@@ -4994,13 +4994,13 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLTIME:
-                    WriteSqlVariantHeader(8, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(8, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte(metatype.Scale); //propbytes: scale
                     TdsParserExtensions.WriteTime((TimeSpan)value, metatype.Scale, 5, stateObj);
                     break;
 
                 case TdsEnums.SQLDATETIMEOFFSET:
-                    WriteSqlVariantHeader(13, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteSqlVariantHeader(13, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte(metatype.Scale); //propbytes: scale
                     TdsParserExtensions.WriteDateTimeOffset((DateTimeOffset)value, metatype.Scale, 10, stateObj);
                     break;
@@ -5011,30 +5011,6 @@ namespace Microsoft.Data.SqlClient
             } // switch
               // return point for accumulated writes, note: non-accumulated writes returned from their case statements
             return null;
-        }
-
-        internal void WriteSqlVariantHeader(int length, byte tdstype, byte propbytes, TdsParserStateObject stateObj)
-        {
-            TdsParserExtensions.WriteInt(length, stateObj);
-            stateObj.WriteByte(tdstype);
-            stateObj.WriteByte(propbytes);
-        }
-
-        internal void WriteSqlVariantDateTime2(DateTime value, TdsParserStateObject stateObj)
-        {
-            SmiMetaData dateTime2MetaData = SmiMetaData.DefaultDateTime2;
-            // NOTE: 3 bytes added here to support additional header information for variant - internal type, scale prop, scale
-            WriteSqlVariantHeader((int)(dateTime2MetaData.MaxLength + 3), TdsEnums.SQLDATETIME2, 1 /* one scale prop */, stateObj);
-            stateObj.WriteByte(dateTime2MetaData.Scale); //scale property
-            TdsParserExtensions.WriteDateTime2(value, dateTime2MetaData.Scale, (int)(dateTime2MetaData.MaxLength), stateObj);
-        }
-
-        internal void WriteSqlVariantDate(DateTime value, TdsParserStateObject stateObj)
-        {
-            SmiMetaData dateMetaData = SmiMetaData.DefaultDate;
-            // NOTE: 2 bytes added here to support additional header information for variant - internal type, scale prop (ignoring scale here)
-            WriteSqlVariantHeader((int)(dateMetaData.MaxLength + 2), TdsEnums.SQLDATE, 0 /* one scale prop */, stateObj);
-            TdsParserExtensions.WriteDate(value, stateObj);
         }
 
         
@@ -9490,126 +9466,6 @@ namespace Microsoft.Data.SqlClient
                     break;
             }
             return true;
-        }
-
-        internal static int ReadPlpAnsiChars(ref char[] buff, int offst, int len, SqlMetaDataPriv metadata, TdsParserStateObject stateObj, Encoding defaultEncoding, TdsParser parser)
-        {
-            int charsRead = 0;
-            int charsLeft = 0;
-            int bytesRead = 0;
-            int totalcharsRead = 0;
-
-            if (stateObj._longlen == 0)
-            {
-                Debug.Assert(stateObj._longlenleft == 0);
-                return 0;       // No data
-            }
-
-            Debug.Assert(((ulong)stateObj._longlen != TdsEnums.SQL_PLP_NULL),
-                    "Out of sync plp read request");
-
-            Debug.Assert((buff == null && offst == 0) || (buff.Length >= offst + len), "Invalid length sent to ReadPlpAnsiChars()!");
-            charsLeft = len;
-
-            if (stateObj._longlenleft == 0)
-            {
-                stateObj.ReadPlpLength(false);
-                if (stateObj._longlenleft == 0)
-                {// Data read complete
-                    stateObj._plpdecoder = null;
-                    return 0;
-                }
-            }
-
-            if (stateObj._plpdecoder == null)
-            {
-                Encoding enc = metadata.encoding;
-
-                if (enc == null)
-                {
-                    if (null == defaultEncoding)
-                    {
-                        parser.ThrowUnsupportedCollationEncountered(stateObj);
-                    }
-
-                    enc = defaultEncoding;
-                }
-                stateObj._plpdecoder = enc.GetDecoder();
-            }
-
-            while (charsLeft > 0)
-            {
-                bytesRead = (int)Math.Min(stateObj._longlenleft, (ulong)charsLeft);
-                if ((stateObj._bTmp == null) || (stateObj._bTmp.Length < bytesRead))
-                {
-                    // Grow the array
-                    stateObj._bTmp = new byte[bytesRead];
-                }
-
-                bytesRead = stateObj.ReadPlpBytesChunk(stateObj._bTmp, 0, bytesRead);
-
-                charsRead = stateObj._plpdecoder.GetChars(stateObj._bTmp, 0, bytesRead, buff, offst);
-                charsLeft -= charsRead;
-                offst += charsRead;
-                totalcharsRead += charsRead;
-                if (stateObj._longlenleft == 0)  // Read the next chunk or cleanup state if hit the end
-                    stateObj.ReadPlpLength(false);
-
-                if (stateObj._longlenleft == 0)
-                { // Data read complete
-                    stateObj._plpdecoder = null;
-                    break;
-                }
-            }
-            return (totalcharsRead);
-        }
-
-        // ensure value is not null and does not have an NBC bit set for it before using this method
-        internal static ulong SkipPlpValue(ulong cb, TdsParserStateObject stateObj)
-        {
-            ulong skipped;
-            Debug.Assert(stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-            bool result = TdsParserExtensions.TrySkipPlpValue(cb, stateObj, out skipped);
-            if (!result)
-            {
-                throw SQL.SynchronousCallMayNotPend();
-            }
-            return skipped;
-        }
-
-        
-        internal static ulong PlpBytesLeft(TdsParserStateObject stateObj)
-        {
-            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
-                stateObj.ReadPlpLength(false);
-
-            return stateObj._longlenleft;
-        }
-
-        internal static bool TryPlpBytesLeft(TdsParserStateObject stateObj, out ulong left)
-        {
-            if ((stateObj._longlen != 0) && (stateObj._longlenleft == 0))
-            {
-                if (!stateObj.TryReadPlpLength(false, out left))
-                {
-                    return false;
-                }
-            }
-
-            left = stateObj._longlenleft;
-            return true;
-        }
-
-        private const ulong _indeterminateSize = 0xffffffffffffffff;        // Represents unknown size
-
-        internal static ulong PlpBytesTotalLength(TdsParserStateObject stateObj)
-        {
-            if (stateObj._longlen == TdsEnums.SQL_PLP_UNKNOWNLEN)
-                return _indeterminateSize;
-            else if (stateObj._longlen == TdsEnums.SQL_PLP_NULL)
-                return 0;
-
-            return stateObj._longlen;
         }
 
         
