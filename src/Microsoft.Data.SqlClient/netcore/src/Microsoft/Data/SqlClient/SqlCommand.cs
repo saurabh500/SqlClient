@@ -6449,7 +6449,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (null != s)
                         {
-                            int actualBytes = parser.GetEncodingCharLength(s, sqlParam.GetActualSize(), sqlParam.Offset, null);
+                            int actualBytes = TdsParser.GetEncodingCharLength(s, sqlParam.GetActualSize(), sqlParam.Offset, null, parser._defaultEncoding);
                             // if actual number of bytes is greater than the user given number of chars, use actual bytes
                             if (actualBytes > size)
                                 size = actualBytes;
