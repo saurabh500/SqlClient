@@ -1502,7 +1502,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (sqlValue.Scale != scale)
                         {
-                            sqlValue = TdsParser.AdjustSqlDecimalScale(sqlValue, scale);
+                            sqlValue = TdsParserExtensions.AdjustSqlDecimalScale(sqlValue, scale);
                         }
 
                         if (sqlValue.Precision > precision)
@@ -2163,7 +2163,7 @@ namespace Microsoft.Data.SqlClient
                     metadata.isEncrypted)
                 { // If we are transparently encrypting
                     Debug.Assert(_parser.ShouldEncryptValuesForBulkCopy());
-                    value = _parser.EncryptColumnValue(value, metadata, metadata.column, _stateObj, isDataFeed, isSqlType);
+                    value = TdsParserExtensions.EncryptColumnValue(value, metadata, metadata.column, _stateObj, isDataFeed, isSqlType, _parser);
                     isSqlType = false; // Its not a sql type anymore
                 }
             }
