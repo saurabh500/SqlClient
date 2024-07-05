@@ -12314,7 +12314,8 @@ namespace Microsoft.Data.SqlClient
 
         // For MAX types, this method can only write everything in one big chunk. If multiple
         // chunk writes needed, please use WritePlpBytes/WritePlpChars
-        private Task WriteUnterminatedValue(object value, MetaType type, byte scale, int actualLength, int encodingByteSize, int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed)
+        private Task WriteUnterminatedValue(object value, MetaType type, byte scale, int actualLength, 
+            int encodingByteSize, int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed)
         {
             Debug.Assert((null != value) && (DBNull.Value != value), "unexpected missing or empty object");
 

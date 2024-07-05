@@ -5004,7 +5004,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         
-        private void WriteSqlMoney(SqlMoney value, int length, TdsParserStateObject stateObj)
+        private static void WriteSqlMoney(SqlMoney value, int length, TdsParserStateObject stateObj)
         {
             int[] bits = decimal.GetBits(value.Value);
 
@@ -5036,7 +5036,7 @@ namespace Microsoft.Data.SqlClient
 
         
 
-        private void WriteCurrency(decimal value, int length, TdsParserStateObject stateObj)
+        private static void WriteCurrency(decimal value, int length, TdsParserStateObject stateObj)
         {
             SqlMoney m = new SqlMoney(value);
             int[] bits = decimal.GetBits(m.Value);
@@ -5741,7 +5741,11 @@ namespace Microsoft.Data.SqlClient
 
                             if (mt.Is2008Type)
                             {
-                                WriteSmiParameter(param, i, 0 != (options & TdsEnums.RPC_PARAM_DEFAULT), stateObj, enableOptimizedParameterBinding, isAdvancedTraceOn);
+                                WriteSmiParameter(param, i, 0 != (options & TdsEnums.RPC_PARAM_DEFAULT), stateObj, 
+                                    enableOptimizedParameterBinding, isAdvancedTraceOn,
+                                    _is2008,
+                                    _defaultCollation,
+                                    ObjectID);
                                 continue;
                             }
 
@@ -6303,20 +6307,26 @@ namespace Microsoft.Data.SqlClient
             {
                 if (isSqlVal)
                 {
-                    writeParamTask = WriteSqlValue(value, mt, actualSize, codePageByteSize, param.Offset, stateObj);
+                    writeParamTask = WriteSqlValue(value, mt, actualSize, codePageByteSize, param.Offset, stateObj, _defaultEncoding);
                 }
                 else
                 {
                     // for codePageEncoded types, WriteValue simply expects the number of characters
                     // For plp types, we also need the encoded byte size
-                    writeParamTask = WriteValue(value, mt, isParameterEncrypted ? (byte)0 : param.GetActualScale(), actualSize, codePageByteSize, isParameterEncrypted ? 0 : param.Offset, stateObj, isParameterEncrypted ? 0 : param.Size, isDataFeed);
+                    writeParamTask = WriteValue(value, mt, isParameterEncrypted ? (byte)0 : param.GetActualScale(), 
+                        actualSize, 
+                        codePageByteSize, 
+                        isParameterEncrypted ? 0 : param.Offset, 
+                        stateObj, isParameterEncrypted ? 0 : param.Size, isDataFeed,
+                        _asyncWrite,
+                        _defaultEncoding);
                 }
             }
 
             // Send encryption metadata for encrypted parameters.
             if (isParameterEncrypted)
             {
-                writeParamTask = WriteEncryptionMetadata(writeParamTask, encryptedParameterInfoToWrite, stateObj);
+                writeParamTask = WriteEncryptionMetadata(writeParamTask, encryptedParameterInfoToWrite, stateObj, _connHandler, _defaultCollation);
             }
 
             return writeParamTask;
@@ -6418,7 +6428,7 @@ namespace Microsoft.Data.SqlClient
         /// Will check the parameter name for the required @ prefix and then write the correct prefixed
         /// form and correct character length to the output buffer
         /// </summary>
-        private void WriteParameterName(string rawParameterName, TdsParserStateObject stateObj, bool isAnonymous)
+        private static void WriteParameterName(string rawParameterName, TdsParserStateObject stateObj, bool isAnonymous)
         {
             // paramLen
             // paramName
@@ -6449,7 +6459,15 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteSmiParameter(SqlParameter param, int paramIndex, bool sendDefault, TdsParserStateObject stateObj, bool isAnonymous, bool advancedTraceIsOn)
+        private static void WriteSmiParameter(SqlParameter param, 
+            int paramIndex, 
+            bool sendDefault, 
+            TdsParserStateObject stateObj, 
+            bool isAnonymous, 
+            bool advancedTraceIsOn,
+            bool _is2008,
+            SqlCollation _defaultCollation,
+            int ObjectID)
         {
             //
             // Determine Metadata
@@ -6508,7 +6526,7 @@ namespace Microsoft.Data.SqlClient
             //
             // Write parameter metadata
             //
-            WriteSmiParameterMetaData(metaData, sendDefault, isAnonymous, stateObj);
+            WriteSmiParameterMetaData(metaData, sendDefault, isAnonymous, stateObj, _defaultCollation);
 
             //
             // Now write the value
@@ -6526,7 +6544,8 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Writes metadata portion of parameter stream from an SmiParameterMetaData object.
-        private void WriteSmiParameterMetaData(SmiParameterMetaData metaData, bool sendDefault, bool isAnonymous, TdsParserStateObject stateObj)
+        private static void WriteSmiParameterMetaData(SmiParameterMetaData metaData, bool sendDefault, bool isAnonymous, TdsParserStateObject stateObj,
+            SqlCollation _defaultCollation)
         {
             // Determine status
             byte status = 0;
@@ -6543,12 +6562,13 @@ namespace Microsoft.Data.SqlClient
             // Write everything out
             WriteParameterName(metaData.Name, stateObj, isAnonymous);
             stateObj.WriteByte(status);
-            WriteSmiTypeInfo(metaData, stateObj);
+            WriteSmiTypeInfo(metaData, stateObj, _defaultCollation);
         }
 
         // Write a TypeInfo stream
         // Devnote: we remap the legacy types (text, ntext, and image) to SQLBIGVARCHAR,  SQLNVARCHAR, and SQLBIGVARBINARY
-        private void WriteSmiTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteSmiTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj,
+            SqlCollation defaultCollation)
         {
             switch (metaData.SqlDbType)
             {
@@ -6567,8 +6587,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Char:
                     stateObj.WriteByte(TdsEnums.SQLBIGCHAR);
                     TdsParserExtensions.WriteUnsignedShort(checked((ushort)(metaData.MaxLength)), stateObj);
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.DateTime:
                     stateObj.WriteByte(TdsEnums.SQLDATETIMN);
@@ -6599,14 +6619,14 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.NChar:
                     stateObj.WriteByte(TdsEnums.SQLNCHAR);
                     TdsParserExtensions.WriteUnsignedShort(checked((ushort)(metaData.MaxLength * 2)), stateObj);
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.NText:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
                     TdsParserExtensions.WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.NVarChar:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
@@ -6618,8 +6638,8 @@ namespace Microsoft.Data.SqlClient
                     {
                         TdsParserExtensions.WriteUnsignedShort(checked((ushort)(metaData.MaxLength * 2)), stateObj);
                     }
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Real:
                     stateObj.WriteByte(TdsEnums.SQLFLTN);
@@ -6644,8 +6664,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Text:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     TdsParserExtensions.WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Timestamp:
                     stateObj.WriteByte(TdsEnums.SQLBIGBINARY);
@@ -6662,8 +6682,8 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.VarChar:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     TdsParserExtensions.WriteUnsignedShort(unchecked((ushort)metaData.MaxLength), stateObj);
-                    TdsParserExtensions.WriteUnsignedInt(_defaultCollation._info, stateObj);
-                    stateObj.WriteByte(_defaultCollation._sortId);
+                    TdsParserExtensions.WriteUnsignedInt(defaultCollation._info, stateObj);
+                    stateObj.WriteByte(defaultCollation._sortId);
                     break;
                 case SqlDbType.Variant:
                     stateObj.WriteByte(TdsEnums.SQLVARIANT);
@@ -6694,7 +6714,7 @@ namespace Microsoft.Data.SqlClient
                 case SqlDbType.Structured:
                     if (metaData.IsMultiValued)
                     {
-                        WriteTvpTypeInfo(metaData, stateObj);
+                        WriteTvpTypeInfo(metaData, stateObj, defaultCollation);
                     }
                     else
                     {
@@ -6722,7 +6742,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteTvpTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteTvpTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj, SqlCollation defaultCollation)
         {
             Debug.Assert(SqlDbType.Structured == metaData.SqlDbType && metaData.IsMultiValued,
                         "Invalid metadata for TVPs. Type=" + metaData.SqlDbType);
@@ -6748,7 +6768,7 @@ namespace Microsoft.Data.SqlClient
                 SmiDefaultFieldsProperty defaults = (SmiDefaultFieldsProperty)metaData.ExtendedProperties[SmiPropertySelector.DefaultFields];
                 for (int i = 0; i < metaData.FieldMetaData.Count; i++)
                 {
-                    WriteTvpColumnMetaData(metaData.FieldMetaData[i], defaults[i], stateObj);
+                    WriteTvpColumnMetaData(metaData.FieldMetaData[i], defaults[i], stateObj, defaultCollation);
                 }
 
                 // optional OrderUnique metadata
@@ -6760,7 +6780,8 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Write a single TvpColumnMetaData stream to the server
-        private void WriteTvpColumnMetaData(SmiExtendedMetaData md, bool isDefault, TdsParserStateObject stateObj)
+        private static void WriteTvpColumnMetaData(SmiExtendedMetaData md, bool isDefault, TdsParserStateObject stateObj,
+            SqlCollation defaultCollation)
         {
             // User Type
             if (SqlDbType.Timestamp == md.SqlDbType)
@@ -6781,7 +6802,7 @@ namespace Microsoft.Data.SqlClient
             TdsParserExtensions.WriteUnsignedShort(status, stateObj);
 
             // Type info
-            WriteSmiTypeInfo(md, stateObj);
+            WriteSmiTypeInfo(md, stateObj, defaultCollation);
 
             // Column name
             // per spec, "ColName is never sent to server or client for TVP, it is required within a TVP to be zero length."
@@ -6802,7 +6823,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private void WriteTvpOrderUnique(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
+        private static void WriteTvpOrderUnique(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
         {
             // TVP_ORDER_UNIQUE token (uniqueness and sort order)
 
@@ -7283,11 +7304,13 @@ namespace Microsoft.Data.SqlClient
 
                 if (isSqlType)
                 {
-                    internalWriteTask = WriteSqlValue(value, metatype, ccb, ccbStringBytes, 0, stateObj);
+                    internalWriteTask = WriteSqlValue(value, metatype, ccb, ccbStringBytes, 0, stateObj, _defaultEncoding);
                 }
                 else if (metatype.SqlDbType != SqlDbType.Udt || metatype.IsLong)
                 {
-                    internalWriteTask = WriteValue(value, metatype, metadata.scale, ccb, ccbStringBytes, 0, stateObj, metadata.length, isDataFeed);
+                    internalWriteTask = WriteValue(value, metatype, metadata.scale, 
+                        ccb, ccbStringBytes, 0, stateObj, metadata.length, isDataFeed,
+                        _asyncWrite, _defaultEncoding);
                     if ((internalWriteTask == null) && (_asyncWrite))
                     {
                         internalWriteTask = stateObj.WaitForAccumulatedWrites();
@@ -7575,7 +7598,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Returns true if BOM byte mark is needed for an XML value
-        private bool IsBOMNeeded(MetaType type, object value)
+        private static bool IsBOMNeeded(MetaType type, object value)
         {
             if (type.NullableType == TdsEnums.SQLXMLTYPE)
             {
@@ -7607,7 +7630,12 @@ namespace Microsoft.Data.SqlClient
             return false;
         }
 
-        private Task GetTerminationTask(Task unterminatedWriteTask, object value, MetaType type, int actualLength, TdsParserStateObject stateObj, bool isDataFeed)
+        private static Task GetTerminationTask(Task unterminatedWriteTask, 
+            object value, 
+            MetaType type, 
+            int actualLength, 
+            TdsParserStateObject stateObj, 
+            bool isDataFeed)
         {
             if (type.IsPlp && ((actualLength > 0) || isDataFeed))
             {
@@ -7628,16 +7656,28 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        private Task WriteSqlValue(object value, MetaType type, int actualLength, int codePageByteSize, int offset, TdsParserStateObject stateObj)
+        private static Task WriteSqlValue(object value, 
+            MetaType type, 
+            int actualLength, 
+            int codePageByteSize, 
+            int offset, 
+            TdsParserStateObject stateObj,
+            Encoding defaultEncoding)
         {
             return GetTerminationTask(
-                WriteUnterminatedSqlValue(value, type, actualLength, codePageByteSize, offset, stateObj),
+                WriteUnterminatedSqlValue(value, type, actualLength, codePageByteSize, offset, stateObj, defaultEncoding),
                 value, type, actualLength, stateObj, false);
         }
 
         // For MAX types, this method can only write everything in one big chunk. If multiple
         // chunk writes needed, please use WritePlpBytes/WritePlpChars
-        private Task WriteUnterminatedSqlValue(object value, MetaType type, int actualLength, int codePageByteSize, int offset, TdsParserStateObject stateObj)
+        private static Task WriteUnterminatedSqlValue(object value, 
+            MetaType type, 
+            int actualLength, 
+            int codePageByteSize, 
+            int offset, 
+            TdsParserStateObject stateObj,
+            Encoding _defaultEncoding)
         {
             Debug.Assert(((type.NullableType == TdsEnums.SQLXMLTYPE) ||
                    (value is INullable && !((INullable)value).IsNull)),
@@ -7827,13 +7867,11 @@ namespace Microsoft.Data.SqlClient
 
         private sealed class TdsOutputStream : Stream
         {
-            private TdsParser _parser;
             private TdsParserStateObject _stateObj;
             private byte[] _preambleToStrip;
 
-            public TdsOutputStream(TdsParser parser, TdsParserStateObject stateObj, byte[] preambleToStrip)
+            public TdsOutputStream(TdsParserStateObject stateObj, byte[] preambleToStrip)
             {
-                _parser = parser;
                 _stateObj = stateObj;
                 _preambleToStrip = preambleToStrip;
             }
@@ -7911,7 +7949,6 @@ namespace Microsoft.Data.SqlClient
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                Debug.Assert(!_parser._asyncWrite);
                 ValidateWriteParameters(buffer, offset, count);
 
                 StripPreamble(buffer, ref offset, ref count);
@@ -7925,7 +7962,6 @@ namespace Microsoft.Data.SqlClient
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                Debug.Assert(_parser._asyncWrite);
                 ValidateWriteParameters(buffer, offset, count);
 
                 StripPreamble(buffer, ref offset, ref count);
@@ -8093,7 +8129,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private async Task WriteXmlFeed(XmlDataFeed feed, TdsParserStateObject stateObj, bool needBom, Encoding encoding, int size)
+        private static async Task WriteXmlFeed(XmlDataFeed feed, TdsParserStateObject stateObj, bool needBom, Encoding encoding, int size, bool isAsyncWrite)
         {
             byte[] preambleToSkip = null;
             if (!needBom)
@@ -8104,11 +8140,11 @@ namespace Microsoft.Data.SqlClient
             XmlWriterSettings writerSettings = new XmlWriterSettings();
             writerSettings.CloseOutput = false;     // don't close the memory stream
             writerSettings.ConformanceLevel = ConformanceLevel.Fragment;
-            if (_asyncWrite)
+            if (isAsyncWrite)
             {
                 writerSettings.Async = true;
             }
-            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(this, stateObj, preambleToSkip), encoding), size))
+            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(stateObj, preambleToSkip), encoding), size))
             using (XmlWriter ww = XmlWriter.Create(writer, writerSettings))
             {
                 if (feed._source.ReadState == ReadState.Initial)
@@ -8127,7 +8163,7 @@ namespace Microsoft.Data.SqlClient
                         continue;
                     }
 
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         await ww.WriteNodeAsync(feed._source, true).ConfigureAwait(false);
                     }
@@ -8137,7 +8173,7 @@ namespace Microsoft.Data.SqlClient
                     }
                 }
 
-                if (_asyncWrite)
+                if (isAsyncWrite)
                 {
                     await ww.FlushAsync().ConfigureAwait(false);
                 }
@@ -8148,18 +8184,18 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private async Task WriteTextFeed(TextDataFeed feed, Encoding encoding, bool needBom, TdsParserStateObject stateObj, int size)
+        private static async Task WriteTextFeed(TextDataFeed feed, Encoding encoding, bool needBom, TdsParserStateObject stateObj, int size, bool isAsyncWrite)
         {
             Debug.Assert(encoding == null || !needBom);
             char[] inBuff = ArrayPool<char>.Shared.Rent(constTextBufferSize);
 
             encoding = encoding ?? TextDataFeed.DefaultEncoding;
 
-            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(this, stateObj, null), encoding), size))
+            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(stateObj, null), encoding), size))
             {
                 if (needBom)
                 {
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         await writer.WriteAsync((char)TdsEnums.XMLUNICODEBOM).ConfigureAwait(false);
                     }
@@ -8174,7 +8210,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     int nRead = 0;
 
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         nRead = await feed._source.ReadBlockAsync(inBuff, 0, constTextBufferSize).ConfigureAwait(false);
                     }
@@ -8188,7 +8224,7 @@ namespace Microsoft.Data.SqlClient
                         break;
                     }
 
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         await writer.WriteAsync(inBuff, 0, nRead).ConfigureAwait(false);
                     }
@@ -8200,7 +8236,7 @@ namespace Microsoft.Data.SqlClient
                     nWritten += nRead;
                 } while (!writer.IsComplete);
 
-                if (_asyncWrite)
+                if (isAsyncWrite)
                 {
                     await writer.FlushAsync().ConfigureAwait(false);
                 }
@@ -8212,11 +8248,12 @@ namespace Microsoft.Data.SqlClient
             ArrayPool<char>.Shared.Return(inBuff, clearArray: true);
         }
 
-        private async Task WriteStreamFeed(StreamDataFeed feed, TdsParserStateObject stateObj, int len)
+        private static async Task WriteStreamFeed(StreamDataFeed feed, TdsParserStateObject stateObj, int len,
+             bool isAsyncWrite)
         {
             byte[] buff = ArrayPool<byte>.Shared.Rent(constBinBufferSize);
 
-            using (TdsOutputStream output = new TdsOutputStream(this, stateObj, null))
+            using (TdsOutputStream output = new TdsOutputStream(stateObj, null))
             {
                 int nWritten = 0;
                 do
@@ -8230,7 +8267,7 @@ namespace Microsoft.Data.SqlClient
 
                     Debug.Assert(readSize >= 0);
 
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         nRead = await feed._source.ReadAsync(buff, 0, readSize).ConfigureAwait(false);
                     }
@@ -8244,7 +8281,7 @@ namespace Microsoft.Data.SqlClient
                         return;
                     }
 
-                    if (_asyncWrite)
+                    if (isAsyncWrite)
                     {
                         await output.WriteAsync(buff, 0, nRead).ConfigureAwait(false);
                     }
@@ -8260,7 +8297,7 @@ namespace Microsoft.Data.SqlClient
             ArrayPool<byte>.Shared.Return(buff, clearArray: true);
         }
 
-        private Task NullIfCompletedWriteTask(Task task)
+        private static Task NullIfCompletedWriteTask(Task task)
         {
             if (task == null)
             {
@@ -8279,15 +8316,23 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private Task WriteValue(object value, MetaType type, byte scale, int actualLength, int encodingByteSize, int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed)
+        private static Task WriteValue(object value, MetaType type, byte scale, 
+            int actualLength, int encodingByteSize, 
+            int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed,
+            bool isAsyncWrite,
+            Encoding defaultEncoding)
         {
-            return GetTerminationTask(WriteUnterminatedValue(value, type, scale, actualLength, encodingByteSize, offset, stateObj, paramSize, isDataFeed),
+            return GetTerminationTask(
+                WriteUnterminatedValue(value, type, scale, actualLength, encodingByteSize, offset, stateObj, paramSize, isDataFeed, isAsyncWrite, defaultEncoding),
                 value, type, actualLength, stateObj, isDataFeed);
         }
 
         // For MAX types, this method can only write everything in one big chunk. If multiple
         // chunk writes needed, please use WritePlpBytes/WritePlpChars
-        private Task WriteUnterminatedValue(object value, MetaType type, byte scale, int actualLength, int encodingByteSize, int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed)
+        private static Task WriteUnterminatedValue(object value, MetaType type, byte scale, int actualLength,
+            int encodingByteSize, int offset, TdsParserStateObject stateObj, int paramSize, bool isDataFeed,
+            bool isAsyncWrite,
+            Encoding defaultEncoding)
         {
             Debug.Assert((null != value) && (DBNull.Value != value), "unexpected missing or empty object");
 
@@ -8317,7 +8362,7 @@ namespace Microsoft.Data.SqlClient
                         if (isDataFeed)
                         {
                             Debug.Assert(type.IsPlp, "Stream assigned to non-PLP was not converted!");
-                            return NullIfCompletedWriteTask(WriteStreamFeed((StreamDataFeed)value, stateObj, paramSize));
+                            return NullIfCompletedWriteTask(WriteStreamFeed((StreamDataFeed)value, stateObj, paramSize, isAsyncWrite));
                         }
                         else
                         {
@@ -8377,11 +8422,12 @@ namespace Microsoft.Data.SqlClient
                             TextDataFeed tdf = value as TextDataFeed;
                             if (tdf == null)
                             {
-                                return NullIfCompletedWriteTask(WriteXmlFeed((XmlDataFeed)value, stateObj, needBom: true, encoding: _defaultEncoding, size: paramSize));
+                                return NullIfCompletedWriteTask(WriteXmlFeed((XmlDataFeed)value, stateObj, needBom: true,
+                                    encoding: defaultEncoding, size: paramSize, isAsyncWrite: isAsyncWrite));
                             }
                             else
                             {
-                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, _defaultEncoding, false, stateObj, paramSize));
+                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, defaultEncoding, false, stateObj, paramSize, isAsyncWrite));
                             }
                         }
                         else
@@ -8396,7 +8442,7 @@ namespace Microsoft.Data.SqlClient
                             }
                             else
                             {
-                                return TdsParserExtensions.WriteEncodingChar((string)value, actualLength, offset, _defaultEncoding, stateObj, _defaultEncoding, canAccumulate: false);
+                                return TdsParserExtensions.WriteEncodingChar((string)value, actualLength, offset, defaultEncoding, stateObj, defaultEncoding, canAccumulate: false);
                             }
                         }
                     }
@@ -8414,11 +8460,12 @@ namespace Microsoft.Data.SqlClient
                             TextDataFeed tdf = value as TextDataFeed;
                             if (tdf == null)
                             {
-                                return NullIfCompletedWriteTask(WriteXmlFeed((XmlDataFeed)value, stateObj, IsBOMNeeded(type, value), Encoding.Unicode, paramSize));
+                                return NullIfCompletedWriteTask(WriteXmlFeed((XmlDataFeed)value, stateObj, IsBOMNeeded(type, value),
+                                    Encoding.Unicode, paramSize, isAsyncWrite));
                             }
                             else
                             {
-                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, null, IsBOMNeeded(type, value), stateObj, paramSize));
+                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, null, IsBOMNeeded(type, value), stateObj, paramSize, isAsyncWrite));
                             }
                         }
                         else
@@ -8517,7 +8564,11 @@ namespace Microsoft.Data.SqlClient
         /// <summary>
         /// Write parameter encryption metadata and returns a task if necessary.
         /// </summary>
-        private Task WriteEncryptionMetadata(Task terminatedWriteTask, SqlColumnEncryptionInputParameterInfo columnEncryptionParameterInfo, TdsParserStateObject stateObj)
+        private static Task WriteEncryptionMetadata(Task terminatedWriteTask,
+            SqlColumnEncryptionInputParameterInfo columnEncryptionParameterInfo,
+            TdsParserStateObject stateObj,
+            SqlInternalConnectionTds _connHandler,
+            SqlCollation defaultCollation)
         {
             Debug.Assert(columnEncryptionParameterInfo != null, @"columnEncryptionParameterInfo cannot be null");
             Debug.Assert(stateObj != null, @"stateObj cannot be null");
@@ -8525,14 +8576,14 @@ namespace Microsoft.Data.SqlClient
             // If there is not task already, simply write the encryption metadata synchronously.
             if (terminatedWriteTask == null)
             {
-                WriteEncryptionMetadata(columnEncryptionParameterInfo, stateObj);
+                WriteEncryptionMetadata(columnEncryptionParameterInfo, stateObj, defaultCollation);
                 return null;
             }
             else
             {
                 // Otherwise, create a continuation task to write the encryption metadata after the previous write completes.
-                return AsyncHelper.CreateContinuationTask<SqlColumnEncryptionInputParameterInfo, TdsParserStateObject>(terminatedWriteTask,
-                    WriteEncryptionMetadata, columnEncryptionParameterInfo, stateObj,
+                return AsyncHelper.CreateContinuationTask<SqlColumnEncryptionInputParameterInfo, TdsParserStateObject, SqlCollation>(terminatedWriteTask,
+                    WriteEncryptionMetadata, columnEncryptionParameterInfo, stateObj, defaultCollation,
                     connectionToDoom: _connHandler);
             }
         }
@@ -8540,13 +8591,14 @@ namespace Microsoft.Data.SqlClient
         /// <summary>
         /// Write parameter encryption metadata.
         /// </summary>
-        private void WriteEncryptionMetadata(SqlColumnEncryptionInputParameterInfo columnEncryptionParameterInfo, TdsParserStateObject stateObj)
+        private static void WriteEncryptionMetadata(SqlColumnEncryptionInputParameterInfo columnEncryptionParameterInfo, TdsParserStateObject stateObj,
+            SqlCollation defaultCollation)
         {
             Debug.Assert(columnEncryptionParameterInfo != null, @"columnEncryptionParameterInfo cannot be null");
             Debug.Assert(stateObj != null, @"stateObj cannot be null");
 
             // Write the TypeInfo.
-            WriteSmiTypeInfo(columnEncryptionParameterInfo.ParameterMetadata, stateObj);
+            WriteSmiTypeInfo(columnEncryptionParameterInfo.ParameterMetadata, stateObj, defaultCollation);
 
             // Write the serialized array in columnEncryptionParameterInfo.
             stateObj.WriteByteArray(columnEncryptionParameterInfo.SerializedWireFormat,
