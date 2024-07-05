@@ -2972,5 +2972,255 @@ namespace Microsoft.Data.SqlClient
             multiPartTableNames = tables;
             return true;
         }
+
+        
+
+        /// <summary>
+        /// Determines if a column value should be transparently decrypted (based on SqlCommand and Connection String settings).
+        /// </summary>
+        /// <returns>true if the value should be transparently decrypted, false otherwise</returns>
+        internal static bool ShouldHonorTceForRead(SqlCommandColumnEncryptionSetting columnEncryptionSetting, SqlInternalConnectionTds connection)
+        {
+            // Command leve setting trumps all
+            switch (columnEncryptionSetting)
+            {
+                case SqlCommandColumnEncryptionSetting.Disabled:
+                    return false;
+                case SqlCommandColumnEncryptionSetting.Enabled:
+                    return true;
+                case SqlCommandColumnEncryptionSetting.ResultSetOnly:
+                    return true;
+                default:
+                    // Check connection level setting!
+                    Debug.Assert(SqlCommandColumnEncryptionSetting.UseConnectionSetting == columnEncryptionSetting,
+                        "Unexpected value for command level override");
+                    return (connection != null && connection.ConnectionOptions != null && connection.ConnectionOptions.ColumnEncryptionSetting == SqlConnectionColumnEncryptionSetting.Enabled);
+            }
+        }
+
+        internal static object GetNullSqlValue(SqlBuffer nullVal, SqlMetaDataPriv md, SqlCommandColumnEncryptionSetting columnEncryptionSetting, SqlInternalConnectionTds connection)
+        {
+            SqlDbType type = md.type;
+
+            if (type == SqlDbType.VarBinary && // if its a varbinary
+                md.isEncrypted &&// and encrypted
+                ShouldHonorTceForRead(columnEncryptionSetting, connection))
+            {
+                type = md.baseTI.type; // the use the actual (plaintext) type
+            }
+
+            switch (type)
+            {
+                case SqlDbType.Real:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Single);
+                    break;
+
+                case SqlDbType.Float:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Double);
+                    break;
+
+                case SqlDbType.Udt:
+                case SqlDbType.Binary:
+                case SqlDbType.VarBinary:
+                case SqlDbType.Image:
+                    nullVal.SqlBinary = SqlBinary.Null;
+                    break;
+
+                case SqlDbType.UniqueIdentifier:
+                    nullVal.SqlGuid = SqlGuid.Null;
+                    break;
+
+                case SqlDbType.Bit:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Boolean);
+                    break;
+
+                case SqlDbType.TinyInt:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Byte);
+                    break;
+
+                case SqlDbType.SmallInt:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Int16);
+                    break;
+
+                case SqlDbType.Int:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Int32);
+                    break;
+
+                case SqlDbType.BigInt:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Int64);
+                    break;
+
+                case SqlDbType.Char:
+                case SqlDbType.VarChar:
+                case SqlDbType.NChar:
+                case SqlDbType.NVarChar:
+                case SqlDbType.Text:
+                case SqlDbType.NText:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.String);
+                    break;
+
+                case SqlDbType.Decimal:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Decimal);
+                    break;
+
+                case SqlDbType.DateTime:
+                case SqlDbType.SmallDateTime:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTime);
+                    break;
+
+                case SqlDbType.Money:
+                case SqlDbType.SmallMoney:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Money);
+                    break;
+
+                case SqlDbType.Variant:
+                    // DBNull.Value will have to work here
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Empty);
+                    break;
+
+                case SqlDbType.Xml:
+                    nullVal.SqlCachedBuffer = SqlCachedBuffer.Null;
+                    break;
+
+                case SqlDbType.Date:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Date);
+                    break;
+
+                case SqlDbType.Time:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.Time);
+                    break;
+
+                case SqlDbType.DateTime2:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTime2);
+                    break;
+
+                case SqlDbType.DateTimeOffset:
+                    nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTimeOffset);
+                    break;
+
+                case SqlDbType.Timestamp:
+                    if (!LocalAppContextSwitches.LegacyRowVersionNullBehavior)
+                    {
+                        nullVal.SetToNullOfType(SqlBuffer.StorageType.SqlBinary);
+                    }
+                    break;
+
+                default:
+                    Debug.Fail("unknown null sqlType!" + md.type.ToString());
+                    break;
+            }
+
+            return nullVal;
+        }
+
+
+        internal static bool IsNull(MetaType mt, ulong length)
+        {
+            // null bin and char types have a length of -1 to represent null
+            if (mt.IsPlp)
+            {
+                return (TdsEnums.SQL_PLP_NULL == length);
+            }
+
+            // HOTFIX #50000415: for image/text, 0xFFFF is the length, not representing null
+            if ((TdsEnums.VARNULL == length) && !mt.IsLong)
+            {
+                return true;
+            }
+
+            // other types have a length of 0 to represent null
+            // long and non-PLP types will always return false because these types are either char or binary
+            // this is expected since for long and non-plp types isnull is checked based on textptr field and not the length
+            return ((TdsEnums.FIXEDNULL == length) && !mt.IsCharType && !mt.IsBinType);
+        }
+
+
+        internal static bool TrySkipRow(_SqlMetaDataSet columns, TdsParserStateObject stateObj)
+        {
+            return TrySkipRow(columns, 0, stateObj);
+        }
+
+        internal static bool TrySkipRow(_SqlMetaDataSet columns, int startCol, TdsParserStateObject stateObj)
+        {
+            for (int i = startCol; i < columns.Length; i++)
+            {
+                _SqlMetaData md = columns[i];
+
+                if (!TrySkipValue(md, i, stateObj))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// This method skips bytes of a single column value from the media. It supports NBCROW and handles all types of values, including PLP and long
+        /// </summary>
+        internal static bool TrySkipValue(SqlMetaDataPriv md, int columnOrdinal, TdsParserStateObject stateObj)
+        {
+            if (stateObj.IsNullCompressionBitSet(columnOrdinal))
+            {
+                return true;
+            }
+
+            if (md.metaType.IsPlp)
+            {
+                ulong ignored;
+                if (!stateObj.TrySkipPlpValue(ulong.MaxValue, out ignored))
+                {
+                    return false;
+                }
+            }
+            else if (md.metaType.IsLong)
+            {
+                Debug.Assert(!md.metaType.IsPlp, "Plp types must be handled using SkipPlpValue");
+
+                byte textPtrLen;
+                if (!stateObj.TryReadByte(out textPtrLen))
+                {
+                    return false;
+                }
+
+                if (0 != textPtrLen)
+                {
+                    if (!stateObj.TrySkipBytes(textPtrLen + TdsEnums.TEXT_TIME_STAMP_LEN))
+                    {
+                        return false;
+                    }
+
+                    int length;
+                    if (!TdsParserExtensions.TryGetTokenLength(md.tdsType, stateObj, out length))
+                    {
+                        return false;
+                    }
+                    if (!stateObj.TrySkipBytes(length))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                int length;
+                if (!TdsParserExtensions.TryGetTokenLength(md.tdsType, stateObj, out length))
+                {
+                    return false;
+                }
+
+                // if false, no value to skip - it's null
+                if (!TdsParserExtensions.IsNull(md.metaType, (ulong)length))
+                {
+                    if (!stateObj.TrySkipBytes(length))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
     }
 }

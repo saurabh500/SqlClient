@@ -1623,7 +1623,7 @@ namespace Microsoft.Data.SqlClient
                 // Need to skip the current column before throwing the error - this ensures that the state shared between this and the data reader is consistent when calling DrainData
                 if (isPlp)
                 {
-                    if (!_parser.TrySkipPlpValue((ulong)length, this, out _))
+                    if (!TrySkipPlpValue((ulong)length, out _))
                     {
                         value = null;
                         return false;
@@ -1689,6 +1689,51 @@ namespace Microsoft.Data.SqlClient
             value = encoding.GetString(buf, offset, length);
             return true;
         }
+
+        internal bool TrySkipPlpValue(ulong cb, out ulong totalBytesSkipped)
+        {
+            // Read and skip cb bytes or until  ReadPlpLength returns 0.
+            int bytesSkipped;
+            totalBytesSkipped = 0;
+
+            if (_longlenleft == 0)
+            {
+                ulong ignored;
+                if (!TryReadPlpLength(false, out ignored))
+                {
+                    return false;
+                }
+            }
+
+            while ((totalBytesSkipped < cb) &&
+                    (_longlenleft > 0))
+            {
+                if (_longlenleft > int.MaxValue)
+                    bytesSkipped = int.MaxValue;
+                else
+                    bytesSkipped = (int)_longlenleft;
+                bytesSkipped = ((cb - totalBytesSkipped) < (ulong)bytesSkipped) ? (int)(cb - totalBytesSkipped) : bytesSkipped;
+
+                if (!TrySkipBytes(bytesSkipped))
+                {
+                    return false;
+                }
+                _longlenleft -= (ulong)bytesSkipped;
+                totalBytesSkipped += (ulong)bytesSkipped;
+
+                if (_longlenleft == 0)
+                {
+                    ulong ignored;
+                    if (!TryReadPlpLength(false, out ignored))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
 
         internal ulong ReadPlpLength(bool returnPlpNullIfNull)
         {
