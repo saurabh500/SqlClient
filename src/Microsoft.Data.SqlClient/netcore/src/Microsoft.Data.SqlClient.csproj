@@ -593,6 +593,7 @@
     <Compile Include="$(CommonSourceRoot)Microsoft\Data\SqlClient\TdsParserStateObjectExtensions.cs">
       <Link>Microsoft\Data\SqlClient\TdsParserStateObjectExtensions.cs</Link>
     </Compile>
+    <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlClient\TdsLoginExtension.cs" Link="Microsoft\Data\SqlClient\TdsLoginExtension.cs" />
     <Compile Include="$(CommonSourceRoot)Microsoft\Data\SqlClient\VirtualSecureModeEnclaveProvider.cs">
       <Link>Microsoft\Data\SqlClient\VirtualSecureModeEnclaveProvider.cs</Link>
     </Compile>

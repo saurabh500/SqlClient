@@ -146,7 +146,7 @@ namespace Microsoft.Data.SqlClient
         //
 
         // NIC address caching
-        private static byte[] s_nicAddress;             // cache the NIC address from the registry
+        private static byte[] s_nicAddress = TdsParserStaticMethods.GetNetworkPhysicalAddressForTdsLoginOnly();             // cache the NIC address from the registry
 
         // textptr sequence
         private static readonly byte[] s_longDataHeader = { 0x10, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
@@ -2056,7 +2056,7 @@ namespace Microsoft.Data.SqlClient
                             {
                                 _SqlMetaDataSet metadata;
                                 if (!TdsParserExtensions.TryProcessMetaData(tokenLength, stateObj, out metadata, cmdHandler?.ColumnEncryptionSetting ?? SqlCommandColumnEncryptionSetting.UseConnectionSetting, 
-                                    IsColumnEncryptionSupported, _connHandler, _cachedCollation, _defaultCodePage, _defaultEncoding, this))
+                                    IsColumnEncryptionSupported, _connHandler, ref _cachedCollation, _defaultCodePage, _defaultEncoding, this))
                                 {
                                     return false;
                                 }
@@ -2470,7 +2470,7 @@ namespace Microsoft.Data.SqlClient
                         env._newLength = byteLength;
                         if (env._newLength == 5)
                         {
-                            if (!TdsParserExtensions.TryProcessCollation(stateObj, out env._newCollation, _cachedCollation))
+                            if (!TdsParserExtensions.TryProcessCollation(stateObj, out env._newCollation, ref _cachedCollation))
                             {
                                 return false;
                             }
@@ -2503,7 +2503,7 @@ namespace Microsoft.Data.SqlClient
                         Debug.Assert(env._oldLength == 5 || env._oldLength == 0, "Improper length in old collation!");
                         if (env._oldLength == 5)
                         {
-                            if (!TdsParserExtensions.TryProcessCollation(stateObj, out env._oldCollation, _cachedCollation))
+                            if (!TdsParserExtensions.TryProcessCollation(stateObj, out env._oldCollation, ref _cachedCollation))
                             {
                                 return false;
                             }
@@ -3230,7 +3230,7 @@ namespace Microsoft.Data.SqlClient
             else if (rec.metaType.IsCharType)
             {
                 // read the collation for 8.x servers
-                if (!TdsParserExtensions.TryProcessCollation(stateObj, out rec.collation, _cachedCollation))
+                if (!TdsParserExtensions.TryProcessCollation(stateObj, out rec.collation, ref _cachedCollation))
                 {
                     return false;
                 }
@@ -3304,20 +3304,6 @@ namespace Microsoft.Data.SqlClient
         }
 
         
-        private void WriteCollation(SqlCollation collation, TdsParserStateObject stateObj)
-        {
-            if (collation == null)
-            {
-                _physicalStateObj.WriteByte(0);
-            }
-            else
-            {
-                _physicalStateObj.WriteByte(sizeof(uint) + sizeof(byte));
-                TdsParserExtensions.WriteUnsignedInt(collation._info, _physicalStateObj);
-                _physicalStateObj.WriteByte(collation._sortId);
-            }
-        }
-
         
 
 
@@ -3448,10 +3434,14 @@ namespace Microsoft.Data.SqlClient
                 }
 
                 // TCE is not applicable to AltMetadata.
-                if (!TdsParserExtensions.TryCommonProcessMetaData(stateObj, col, null, fColMD: false, columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Disabled,
+                if (!TdsParserExtensions.TryCommonProcessMetaData(stateObj, 
+                    col, 
+                    null, 
+                    fColMD: false, 
+                    columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Disabled,
                     IsColumnEncryptionSupported: IsColumnEncryptionSupported,
                     connectionHandler: _connHandler,
-                    cachedCollation: _cachedCollation,
+                    cachedCollation: ref _cachedCollation,
                     _defaultCodePage: _defaultCodePage,
                     defaultEncoding: _defaultEncoding,
                     this))
@@ -3625,7 +3615,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     isNull = false;
-                    return TryGetDataLength(col, stateObj, out length);
+                    return TdsParserExtensions.TryGetDataLength(col, stateObj, out length);
                 }
                 else
                 {
@@ -3638,7 +3628,7 @@ namespace Microsoft.Data.SqlClient
             {
                 // non-blob columns
                 ulong longlen;
-                if (!TryGetDataLength(col, stateObj, out longlen))
+                if (!TdsParserExtensions.TryGetDataLength(col, stateObj, out longlen))
                 {
                     isNull = false;
                     length = 0;
@@ -4615,7 +4605,7 @@ namespace Microsoft.Data.SqlClient
                         Debug.Assert(cbPropsExpected == 7, "SqlVariant: invalid PropBytes for character type!");
 
                         SqlCollation collation;
-                        if (!TdsParserExtensions.TryProcessCollation(stateObj, out collation, _cachedCollation))
+                        if (!TdsParserExtensions.TryProcessCollation(stateObj, out collation, ref _cachedCollation))
                         {
                             return false;
                         }
@@ -5100,37 +5090,6 @@ namespace Microsoft.Data.SqlClient
             return encoding.GetByteCount(charData, 0, numChars);
         }
 
-        //
-        // Returns the data stream length of the data identified by tds type or SqlMetaData returns
-        // Returns either the total size or the size of the first chunk for partially length prefixed types.
-        //
-        internal bool TryGetDataLength(SqlMetaDataPriv colmeta, TdsParserStateObject stateObj, out ulong length)
-        {
-            // Handle 2005 specific tokens
-            if (colmeta.metaType.IsPlp)
-            {
-                Debug.Assert(colmeta.tdsType == TdsEnums.SQLXMLTYPE ||
-                             colmeta.tdsType == TdsEnums.SQLBIGVARCHAR ||
-                             colmeta.tdsType == TdsEnums.SQLBIGVARBINARY ||
-                             colmeta.tdsType == TdsEnums.SQLNVARCHAR ||
-                             // Large UDTs is WinFS-only
-                             colmeta.tdsType == TdsEnums.SQLUDT,
-                             "GetDataLength:Invalid streaming datatype");
-                return stateObj.TryReadPlpLength(true, out length);
-            }
-            else
-            {
-                int intLength;
-                if (!TdsParserExtensions.TryGetTokenLength(colmeta.tdsType, stateObj, out intLength))
-                {
-                    length = 0;
-                    return false;
-                }
-                length = (ulong)intLength;
-                return true;
-            }
-        }
-
 
         private void ProcessAttention(TdsParserStateObject stateObj)
         {
@@ -5175,625 +5134,7 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(!stateObj._attentionSent, "Invalid attentionSent state at end of ProcessAttention");
         }
 
-        private static int StateValueLength(int dataLen)
-        {
-            return dataLen < 0xFF ? (dataLen + 1) : (dataLen + 5);
-        }
-
-        internal int WriteSessionRecoveryFeatureRequest(SessionData reconnectData, bool write /* if false just calculates the length */)
-        {
-            int len = 1;
-            if (write)
-            {
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_SRECOVERY);
-            }
-            if (reconnectData == null)
-            {
-                if (write)
-                {
-                    TdsParserExtensions.WriteInt(0, _physicalStateObj);
-                }
-                len += 4;
-            }
-            else
-            {
-                Debug.Assert(reconnectData._unrecoverableStatesCount == 0, "Unrecoverable state count should be 0");
-                int initialLength = 0; // sizeof(DWORD) - length itself
-                initialLength += 1 + 2 * TdsParserStaticMethods.NullAwareStringLength(reconnectData._initialDatabase);
-                initialLength += 1 + 2 * TdsParserStaticMethods.NullAwareStringLength(reconnectData._initialLanguage);
-                initialLength += (reconnectData._initialCollation == null) ? 1 : 6;
-                for (int i = 0; i < SessionData._maxNumberOfSessionStates; i++)
-                {
-                    if (reconnectData._initialState[i] != null)
-                    {
-                        initialLength += 1 /* StateId*/ + StateValueLength(reconnectData._initialState[i].Length);
-                    }
-                }
-                int currentLength = 0; // sizeof(DWORD) - length itself
-                currentLength += 1 + 2 * (reconnectData._initialDatabase == reconnectData._database ? 0 : TdsParserStaticMethods.NullAwareStringLength(reconnectData._database));
-                currentLength += 1 + 2 * (reconnectData._initialLanguage == reconnectData._language ? 0 : TdsParserStaticMethods.NullAwareStringLength(reconnectData._language));
-                currentLength += (reconnectData._collation != null && !SqlCollation.Equals(reconnectData._collation, reconnectData._initialCollation)) ? 6 : 1;
-                bool[] writeState = new bool[SessionData._maxNumberOfSessionStates];
-                for (int i = 0; i < SessionData._maxNumberOfSessionStates; i++)
-                {
-                    if (reconnectData._delta[i] != null)
-                    {
-                        Debug.Assert(reconnectData._delta[i]._recoverable, "State should be recoverable");
-                        writeState[i] = true;
-                        if (reconnectData._initialState[i] != null && reconnectData._initialState[i].Length == reconnectData._delta[i]._dataLength)
-                        {
-                            writeState[i] = false;
-                            for (int j = 0; j < reconnectData._delta[i]._dataLength; j++)
-                            {
-                                if (reconnectData._initialState[i][j] != reconnectData._delta[i]._data[j])
-                                {
-                                    writeState[i] = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (writeState[i])
-                        {
-                            currentLength += 1 /* StateId*/ + StateValueLength(reconnectData._delta[i]._dataLength);
-                        }
-                    }
-                }
-                if (write)
-                {
-                    TdsParserExtensions.WriteInt(8 + initialLength + currentLength, _physicalStateObj); // length of data w/o total length (initial + current + 2 * sizeof(DWORD))
-                    TdsParserExtensions.WriteInt(initialLength, _physicalStateObj);
-                    TdsParserExtensions.WriteIdentifier(reconnectData._initialDatabase, _physicalStateObj);
-                    WriteCollation(reconnectData._initialCollation, _physicalStateObj);
-                    TdsParserExtensions.WriteIdentifier(reconnectData._initialLanguage, _physicalStateObj);
-                    for (int i = 0; i < SessionData._maxNumberOfSessionStates; i++)
-                    {
-                        if (reconnectData._initialState[i] != null)
-                        {
-                            _physicalStateObj.WriteByte((byte)i);
-                            if (reconnectData._initialState[i].Length < 0xFF)
-                            {
-                                _physicalStateObj.WriteByte((byte)reconnectData._initialState[i].Length);
-                            }
-                            else
-                            {
-                                _physicalStateObj.WriteByte(0xFF);
-                                TdsParserExtensions.WriteInt(reconnectData._initialState[i].Length, _physicalStateObj);
-                            }
-                            _physicalStateObj.WriteByteArray(reconnectData._initialState[i], reconnectData._initialState[i].Length, 0);
-                        }
-                    }
-                    TdsParserExtensions.WriteInt(currentLength, _physicalStateObj);
-                    TdsParserExtensions.WriteIdentifier(reconnectData._database != reconnectData._initialDatabase ? reconnectData._database : null, _physicalStateObj);
-                    WriteCollation(SqlCollation.Equals(reconnectData._initialCollation, reconnectData._collation) ? null : reconnectData._collation, _physicalStateObj);
-                    TdsParserExtensions.WriteIdentifier(reconnectData._language != reconnectData._initialLanguage ? reconnectData._language : null, _physicalStateObj);
-                    for (int i = 0; i < SessionData._maxNumberOfSessionStates; i++)
-                    {
-                        if (writeState[i])
-                        {
-                            _physicalStateObj.WriteByte((byte)i);
-                            if (reconnectData._delta[i]._dataLength < 0xFF)
-                            {
-                                _physicalStateObj.WriteByte((byte)reconnectData._delta[i]._dataLength);
-                            }
-                            else
-                            {
-                                _physicalStateObj.WriteByte(0xFF);
-                                TdsParserExtensions.WriteInt(reconnectData._delta[i]._dataLength, _physicalStateObj);
-                            }
-                            _physicalStateObj.WriteByteArray(reconnectData._delta[i]._data, reconnectData._delta[i]._dataLength, 0);
-                        }
-                    }
-                }
-                len += initialLength + currentLength + 12 /* length fields (initial, current, total) */;
-            }
-            return len;
-        }
-
-        internal int WriteFedAuthFeatureRequest(FederatedAuthenticationFeatureExtensionData fedAuthFeatureData,
-                                                bool write /* if false just calculates the length */)
-        {
-            Debug.Assert(fedAuthFeatureData.libraryType == TdsEnums.FedAuthLibrary.MSAL || fedAuthFeatureData.libraryType == TdsEnums.FedAuthLibrary.SecurityToken,
-                "only fed auth library type MSAL and Security Token are supported in writing feature request");
-
-            int dataLen = 0;
-            int totalLen = 0;
-
-            // set dataLen and totalLen
-            switch (fedAuthFeatureData.libraryType)
-            {
-                case TdsEnums.FedAuthLibrary.MSAL:
-                    dataLen = 2;  // length of feature data = 1 byte for library and echo + 1 byte for workflow
-                    break;
-                case TdsEnums.FedAuthLibrary.SecurityToken:
-                    Debug.Assert(fedAuthFeatureData.accessToken != null, "AccessToken should not be null.");
-                    dataLen = 1 + sizeof(int) + fedAuthFeatureData.accessToken.Length; // length of feature data = 1 byte for library and echo, security token length and sizeof(int) for token length itself
-                    break;
-                default:
-                    Debug.Fail("Unrecognized library type for fedauth feature extension request");
-                    break;
-            }
-
-            totalLen = dataLen + 5; // length of feature id (1 byte), data length field (4 bytes), and feature data (dataLen)
-
-            // write feature id
-            if (write)
-            {
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_FEDAUTH);
-
-                // set options
-                byte options = 0x00;
-
-                // set upper 7 bits of options to indicate fed auth library type
-                switch (fedAuthFeatureData.libraryType)
-                {
-                    case TdsEnums.FedAuthLibrary.MSAL:
-                        Debug.Assert(_connHandler._federatedAuthenticationInfoRequested == true, "_federatedAuthenticationInfoRequested field should be true");
-                        options |= TdsEnums.FEDAUTHLIB_MSAL << 1;
-                        break;
-                    case TdsEnums.FedAuthLibrary.SecurityToken:
-                        Debug.Assert(_connHandler._federatedAuthenticationRequested == true, "_federatedAuthenticationRequested field should be true");
-                        options |= TdsEnums.FEDAUTHLIB_SECURITYTOKEN << 1;
-                        break;
-                    default:
-                        Debug.Fail("Unrecognized FedAuthLibrary type for feature extension request");
-                        break;
-                }
-
-                options |= (byte)(fedAuthFeatureData.fedAuthRequiredPreLoginResponse == true ? 0x01 : 0x00);
-
-                // write dataLen and options
-                TdsParserExtensions.WriteInt(dataLen, _physicalStateObj);
-                _physicalStateObj.WriteByte(options);
-
-                // write accessToken for FedAuthLibrary.SecurityToken
-                switch (fedAuthFeatureData.libraryType)
-                {
-                    case TdsEnums.FedAuthLibrary.MSAL:
-                        byte workflow = 0x00;
-                        switch (fedAuthFeatureData.authentication)
-                        {
-                            case SqlAuthenticationMethod.ActiveDirectoryPassword:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYPASSWORD;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryIntegrated:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYINTEGRATED;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryInteractive:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYINTERACTIVE;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryServicePrincipal:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYSERVICEPRINCIPAL;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryDeviceCodeFlow:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYDEVICECODEFLOW;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryManagedIdentity:
-                            case SqlAuthenticationMethod.ActiveDirectoryMSI:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYMANAGEDIDENTITY;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryDefault:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYDEFAULT;
-                                break;
-                            case SqlAuthenticationMethod.ActiveDirectoryWorkloadIdentity:
-                                workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYWORKLOADIDENTITY;
-                                break;
-                            default:
-                                if (_connHandler._accessTokenCallback != null)
-                                {
-                                    workflow = TdsEnums.MSALWORKFLOW_ACTIVEDIRECTORYTOKENCREDENTIAL;
-                                }
-                                else
-                                {
-                                    Debug.Assert(false, "Unrecognized Authentication type for fedauth MSAL request");
-                                }
-                                break;
-                        }
-
-                        _physicalStateObj.WriteByte(workflow);
-                        break;
-                    case TdsEnums.FedAuthLibrary.SecurityToken:
-                        TdsParserExtensions.WriteInt(fedAuthFeatureData.accessToken.Length, _physicalStateObj);
-                        _physicalStateObj.WriteByteArray(fedAuthFeatureData.accessToken, fedAuthFeatureData.accessToken.Length, 0);
-                        break;
-                    default:
-                        Debug.Fail("Unrecognized FedAuthLibrary type for feature extension request");
-                        break;
-                }
-            }
-            return totalLen;
-        }
-
-        internal int WriteTceFeatureRequest(bool write /* if false just calculates the length */)
-        {
-            int len = 6; // (1byte = featureID, 4bytes = featureData length, 1 bytes = Version
-
-            if (write)
-            {
-                // Write Feature ID, length of the version# field and TCE Version#
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_TCE);
-                TdsParserExtensions.WriteInt(1, _physicalStateObj);
-                _physicalStateObj.WriteByte(TdsEnums.MAX_SUPPORTED_TCE_VERSION);
-            }
-
-            return len; // size of data written
-        }
-
-        internal int WriteDataClassificationFeatureRequest(bool write /* if false just calculates the length */)
-        {
-            int len = 6; // 1byte = featureID, 4bytes = featureData length, 1 bytes = Version
-
-            if (write)
-            {
-                // Write Feature ID, length of the version# field and Sensitivity Classification Version#
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_DATACLASSIFICATION);
-                TdsParserExtensions.WriteInt(1, _physicalStateObj);
-                _physicalStateObj.WriteByte(TdsEnums.DATA_CLASSIFICATION_VERSION_MAX_SUPPORTED);
-            }
-
-            return len; // size of data written
-        }
-
-        internal int WriteGlobalTransactionsFeatureRequest(bool write /* if false just calculates the length */)
-        {
-            int len = 5; // 1byte = featureID, 4bytes = featureData length
-
-            if (write)
-            {
-                // Write Feature ID
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_GLOBALTRANSACTIONS);
-                TdsParserExtensions.WriteInt(0, _physicalStateObj); // we don't send any data
-            }
-
-            return len;
-        }
-        internal int WriteUTF8SupportFeatureRequest(bool write /* if false just calculates the length */)
-        {
-            int len = 5; // 1byte = featureID, 4bytes = featureData length, sizeof(DWORD)
-
-            if (write)
-            {
-                // Write Feature ID
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_UTF8SUPPORT);
-                TdsParserExtensions.WriteInt(0, _physicalStateObj); // we don't send any data
-            }
-
-            return len;
-        }
-
-        internal int WriteSQLDNSCachingFeatureRequest(bool write /* if false just calculates the length */)
-        {
-            int len = 5; // 1byte = featureID, 4bytes = featureData length
-
-            if (write)
-            {
-                // Write Feature ID
-                _physicalStateObj.WriteByte(TdsEnums.FEATUREEXT_SQLDNSCACHING);
-                TdsParserExtensions.WriteInt(0, _physicalStateObj); // we don't send any data
-            }
-
-            return len;
-        }
-
-        private void WriteLoginData(SqlLogin rec,
-                                     TdsEnums.FeatureExtension requestedFeatures,
-                                     SessionData recoverySessionData,
-                                     FederatedAuthenticationFeatureExtensionData fedAuthFeatureExtensionData,
-                                     SqlConnectionEncryptOption encrypt,
-                                     byte[] encryptedPassword,
-                                     byte[] encryptedChangePassword,
-                                     int encryptedPasswordLengthInBytes,
-                                     int encryptedChangePasswordLengthInBytes,
-                                     bool useFeatureExt,
-                                     string userName,
-                                     int length,
-                                     int featureExOffset,
-                                     string clientInterfaceName,
-                                     byte[] outSSPIBuff,
-                                     uint outSSPILength)
-        {
-            try
-            {
-                TdsParserExtensions.WriteInt(length, _physicalStateObj);
-                if (recoverySessionData == null)
-                {
-                    if (encrypt == SqlConnectionEncryptOption.Strict)
-                    {
-                        TdsParserExtensions.WriteInt((TdsEnums.TDS8_MAJOR << 24) | (TdsEnums.TDS8_INCREMENT << 16) | TdsEnums.TDS8_MINOR, _physicalStateObj);
-                    }
-                    else
-                    {
-                        TdsParserExtensions.WriteInt((TdsEnums.SQL2012_MAJOR << 24) | (TdsEnums.SQL2012_INCREMENT << 16) | TdsEnums.SQL2012_MINOR, _physicalStateObj);
-                    }
-                }
-                else
-                {
-                    TdsParserExtensions.WriteUnsignedInt(recoverySessionData._tdsVersion, _physicalStateObj);
-                }
-                TdsParserExtensions.WriteInt(rec.packetSize, _physicalStateObj);
-                TdsParserExtensions.WriteInt(TdsEnums.CLIENT_PROG_VER, _physicalStateObj);
-                TdsParserExtensions.WriteInt(TdsParserStaticMethods.GetCurrentProcessIdForTdsLoginOnly(), _physicalStateObj);
-                TdsParserExtensions.WriteInt(0, _physicalStateObj); // connectionID is unused
-
-                // Log7Flags (DWORD)
-                int log7Flags = 0;
-
-                /*
-                 Current snapshot from TDS spec with the offsets added:
-                    0) fByteOrder:1,                // byte order of numeric data types on client
-                    1) fCharSet:1,                  // character set on client
-                    2) fFloat:2,                    // Type of floating point on client
-                    4) fDumpLoad:1,                 // Dump/Load and BCP enable
-                    5) fUseDb:1,                    // USE notification
-                    6) fDatabase:1,                 // Initial database fatal flag
-                    7) fSetLang:1,                  // SET LANGUAGE notification
-                    8) fLanguage:1,                 // Initial language fatal flag
-                    9) fODBC:1,                     // Set if client is ODBC driver
-                   10) fTranBoundary:1,             // Transaction boundary notification
-                   11) fDelegatedSec:1,             // Security with delegation is available
-                   12) fUserType:3,                 // Type of user
-                   15) fIntegratedSecurity:1,       // Set if client is using integrated security
-                   16) fSQLType:4,                  // Type of SQL sent from client
-                   20) fOLEDB:1,                    // Set if client is OLEDB driver
-                   21) fSpare1:3,                   // first bit used for read-only intent, rest unused
-                   24) fResetPassword:1,            // set if client wants to reset password
-                   25) fNoNBCAndSparse:1,           // set if client does not support NBC and Sparse column
-                   26) fUserInstance:1,             // This connection wants to connect to a SQL "user instance"
-                   27) fUnknownCollationHandling:1, // This connection can handle unknown collation correctly.
-                   28) fExtension:1                 // Extensions are used
-                   32 - total
-                */
-
-                // first byte
-                log7Flags |= TdsEnums.USE_DB_ON << 5;
-                log7Flags |= TdsEnums.INIT_DB_FATAL << 6;
-                log7Flags |= TdsEnums.SET_LANG_ON << 7;
-
-                // second byte
-                log7Flags |= TdsEnums.INIT_LANG_FATAL << 8;
-                log7Flags |= TdsEnums.ODBC_ON << 9;
-                if (rec.useReplication)
-                {
-                    log7Flags |= TdsEnums.REPL_ON << 12;
-                }
-                if (rec.useSSPI)
-                {
-                    log7Flags |= TdsEnums.SSPI_ON << 15;
-                }
-
-                // third byte
-                if (rec.readOnlyIntent)
-                {
-                    log7Flags |= TdsEnums.READONLY_INTENT_ON << 21; // read-only intent flag is a first bit of fSpare1
-                }
-
-                // 4th one
-                if (!string.IsNullOrEmpty(rec.newPassword) || (rec.newSecurePassword != null && rec.newSecurePassword.Length != 0))
-                {
-                    log7Flags |= 1 << 24;
-                }
-                if (rec.userInstance)
-                {
-                    log7Flags |= 1 << 26;
-                }
-                if (useFeatureExt)
-                {
-                    log7Flags |= 1 << 28;
-                }
-
-                TdsParserExtensions.WriteInt(log7Flags, _physicalStateObj);
-                SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.TdsParser.TdsLogin|ADV> {0}, TDS Login7 flags = {1}:", ObjectID, log7Flags);
-
-                TdsParserExtensions.WriteInt(0, _physicalStateObj);  // ClientTimeZone is not used
-                TdsParserExtensions.WriteInt(0, _physicalStateObj);  // LCID is unused by server
-
-                // Start writing offset and length of variable length portions
-                int offset = TdsEnums.SQL2005_LOG_REC_FIXED_LEN;
-
-                // write offset/length pairs
-
-                // note that you must always set ibHostName since it indicates the beginning of the variable length section of the login record
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // host name offset
-                TdsParserExtensions.WriteShort(rec.hostName.Length, _physicalStateObj);
-                offset += rec.hostName.Length * 2;
-
-                // Only send user/password over if not fSSPI...  If both user/password and SSPI are in login
-                // rec, only SSPI is used.  Confirmed same behavior as in luxor.
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
-                {
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(userName.Length, _physicalStateObj);
-                    offset += userName.Length * 2;
-
-                    // the encrypted password is a byte array - so length computations different than strings
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj); // password offset
-                    TdsParserExtensions.WriteShort(encryptedPasswordLengthInBytes / 2, _physicalStateObj);
-                    offset += encryptedPasswordLengthInBytes;
-                }
-                else
-                {
-                    // case where user/password data is not used, send over zeros
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // password offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
-                }
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // app name offset
-                TdsParserExtensions.WriteShort(rec.applicationName.Length, _physicalStateObj);
-                offset += rec.applicationName.Length * 2;
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // server name offset
-                TdsParserExtensions.WriteShort(rec.serverName.Length, _physicalStateObj);
-                offset += rec.serverName.Length * 2;
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj);
-                if (useFeatureExt)
-                {
-                    TdsParserExtensions.WriteShort(4, _physicalStateObj); // length of ibFeatgureExtLong (which is a DWORD)
-                    offset += 4;
-                }
-                else
-                {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj); // unused (was remote password ?)
-                }
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // client interface name offset
-                TdsParserExtensions.WriteShort(clientInterfaceName.Length, _physicalStateObj);
-                offset += clientInterfaceName.Length * 2;
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // language name offset
-                TdsParserExtensions.WriteShort(rec.language.Length, _physicalStateObj);
-                offset += rec.language.Length * 2;
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // database name offset
-                TdsParserExtensions.WriteShort(rec.database.Length, _physicalStateObj);
-                offset += rec.database.Length * 2;
-
-                if (null == s_nicAddress)
-                    s_nicAddress = TdsParserStaticMethods.GetNetworkPhysicalAddressForTdsLoginOnly();
-
-                _physicalStateObj.WriteByteArray(s_nicAddress, s_nicAddress.Length, 0);
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // ibSSPI offset
-                if (rec.useSSPI)
-                {
-                    TdsParserExtensions.WriteShort((int)outSSPILength, _physicalStateObj);
-                    offset += (int)outSSPILength;
-                }
-                else
-                {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
-                }
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // DB filename offset
-                TdsParserExtensions.WriteShort(rec.attachDBFilename.Length, _physicalStateObj);
-                offset += rec.attachDBFilename.Length * 2;
-
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // reset password offset
-                TdsParserExtensions.WriteShort(encryptedChangePasswordLengthInBytes / 2, _physicalStateObj);
-
-                TdsParserExtensions.WriteInt(0, _physicalStateObj);        // reserved for chSSPI
-
-                // write variable length portion
-                TdsParserExtensions.WriteString(rec.hostName, _physicalStateObj);
-
-                // if we are using SSPI, do not send over username/password, since we will use SSPI instead
-                // same behavior as Luxor
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
-                {
-                    TdsParserExtensions.WriteString(userName, _physicalStateObj);
-
-                    if (rec.credential != null)
-                    {
-                        _physicalStateObj.WriteSecureString(rec.credential.Password);
-                    }
-                    else
-                    {
-                        _physicalStateObj.WriteByteArray(encryptedPassword, encryptedPasswordLengthInBytes, 0);
-                    }
-                }
-
-                TdsParserExtensions.WriteString(rec.applicationName, _physicalStateObj);
-                TdsParserExtensions.WriteString(rec.serverName, _physicalStateObj);
-
-                // write ibFeatureExtLong
-                if (useFeatureExt)
-                {
-                    if ((requestedFeatures & TdsEnums.FeatureExtension.FedAuth) != 0)
-                    {
-                        SqlClientEventSource.Log.TryTraceEvent("<sc.TdsParser.TdsLogin|SEC> Sending federated authentication feature request");
-                    }
-
-                    TdsParserExtensions.WriteInt(featureExOffset, _physicalStateObj);
-                }
-
-                TdsParserExtensions.WriteString(clientInterfaceName, _physicalStateObj);
-                TdsParserExtensions.WriteString(rec.language, _physicalStateObj);
-                TdsParserExtensions.WriteString(rec.database, _physicalStateObj);
-
-                // send over SSPI data if we are using SSPI
-                if (rec.useSSPI)
-                    _physicalStateObj.WriteByteArray(outSSPIBuff, (int)outSSPILength, 0);
-
-                TdsParserExtensions.WriteString(rec.attachDBFilename, _physicalStateObj);
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
-                {
-                    if (rec.newSecurePassword != null)
-                    {
-                        _physicalStateObj.WriteSecureString(rec.newSecurePassword);
-                    }
-                    else
-                    {
-                        _physicalStateObj.WriteByteArray(encryptedChangePassword, encryptedChangePasswordLengthInBytes, 0);
-                    }
-                }
-
-                ApplyFeatureExData(requestedFeatures, recoverySessionData, fedAuthFeatureExtensionData, useFeatureExt, length, true);
-            }
-            catch (Exception e)
-            {
-                if (ADP.IsCatchableExceptionType(e))
-                {
-                    // be sure to wipe out our buffer if we started sending stuff
-                    _physicalStateObj.ResetPacketCounters();
-                    _physicalStateObj.ResetBuffer();
-                }
-
-                throw;
-            }
-        }
-
-        private int ApplyFeatureExData(TdsEnums.FeatureExtension requestedFeatures,
-                                        SessionData recoverySessionData,
-                                        FederatedAuthenticationFeatureExtensionData fedAuthFeatureExtensionData,
-                                        bool useFeatureExt,
-                                        int length,
-                                        bool write = false)
-        {
-            if (useFeatureExt)
-            {
-                if ((requestedFeatures & TdsEnums.FeatureExtension.SessionRecovery) != 0)
-                {
-                    length += WriteSessionRecoveryFeatureRequest(recoverySessionData, write);
-                }
-                if ((requestedFeatures & TdsEnums.FeatureExtension.FedAuth) != 0)
-                {
-                    SqlClientEventSource.Log.TryTraceEvent("<sc.TdsParser.TdsLogin|SEC> Sending federated authentication feature request & wirte = {0}", write);
-                    Debug.Assert(fedAuthFeatureExtensionData != null, "fedAuthFeatureExtensionData should not null.");
-                    length += WriteFedAuthFeatureRequest(fedAuthFeatureExtensionData, write: write);
-                }
-                if ((requestedFeatures & TdsEnums.FeatureExtension.Tce) != 0)
-                {
-                    length += WriteTceFeatureRequest(write);
-                }
-                if ((requestedFeatures & TdsEnums.FeatureExtension.GlobalTransactions) != 0)
-                {
-                    length += WriteGlobalTransactionsFeatureRequest(write);
-                }
-                if ((requestedFeatures & TdsEnums.FeatureExtension.DataClassification) != 0)
-                {
-                    length += WriteDataClassificationFeatureRequest(write);
-                }
-                if ((requestedFeatures & TdsEnums.FeatureExtension.UTF8Support) != 0)
-                {
-                    length += WriteUTF8SupportFeatureRequest(write);
-                }
-
-                if ((requestedFeatures & TdsEnums.FeatureExtension.SQLDNSCaching) != 0)
-                {
-                    length += WriteSQLDNSCachingFeatureRequest(write);
-                }
-
-                length++; // for terminator
-                if (write)
-                {
-                    _physicalStateObj.WriteByte(0xFF); // terminator
-                }
-            }
-
-            return length;
-        }
-
+        
         /// <summary>
         /// Send the access token to the server.
         /// </summary>

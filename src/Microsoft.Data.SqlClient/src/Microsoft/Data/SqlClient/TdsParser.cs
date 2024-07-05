@@ -211,9 +211,15 @@ namespace Microsoft.Data.SqlClient
 
             int feOffset = length;
             // calculate and reserve the required bytes for the featureEx
-            length = ApplyFeatureExData(requestedFeatures, recoverySessionData, fedAuthFeatureExtensionData, useFeatureExt, length);
+            length = TdsFeaturesHandler.ApplyFeatureExData(requestedFeatures,
+                recoverySessionData,
+                fedAuthFeatureExtensionData, 
+                useFeatureExt, 
+                length,
+                _physicalStateObj, 
+                _connHandler);
 
-            WriteLoginData(rec,
+            TdsLoginExtension.WriteLoginData(rec,
                            requestedFeatures,
                            recoverySessionData,
                            fedAuthFeatureExtensionData,
@@ -228,7 +234,11 @@ namespace Microsoft.Data.SqlClient
                            feOffset,
                            clientInterfaceName,
                            outSSPIBuff,
-                           outSSPILength);
+                           outSSPILength,
+                           _physicalStateObj,
+                           _connHandler,
+                           ObjectID,
+                           s_nicAddress);
 
             if (rentedSSPIBuff != null)
             {
