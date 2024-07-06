@@ -980,8 +980,7 @@ namespace Microsoft.Data.SqlClient
 #if DEBUG
                         else
                         {
-                            byte token;
-                            if (!_stateObj.TryPeekByte(out token))
+                            if (!_stateObj.TryPeekByte(out byte token))
                             {
                                 return false;
                             }

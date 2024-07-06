@@ -155,7 +155,7 @@ namespace Microsoft.Data.SqlClient
                         {
                             _cancelled = true;
 
-                            if (HasPendingData && !_attentionSent)
+                            if (HasPendingData && !_attentionSentToServer)
                             {
                                 bool hasParserLock = false;
                                 // Keep looping until we have the parser lock (and so are allowed to write), or the connection closes\breaks
@@ -207,7 +207,7 @@ namespace Microsoft.Data.SqlClient
                 _cancelled = false;
                 _allowObjectID = -1;
 
-                if (_attentionSent)
+                if (_attentionSentToServer)
                 {
                     // Make sure we're cleaning up the AttentionAck if Cancel happened before taking the lock.
                     // We serialize Cancel/CloseSession to prevent a race condition between these two states.
@@ -445,7 +445,7 @@ namespace Microsoft.Data.SqlClient
                     Debug.Assert(_parser.Connection != null, "SqlConnectionInternalTds handler can not be null at this point.");
                     AddError(new SqlError(TdsEnums.TIMEOUT_EXPIRED, 0x00, TdsEnums.MIN_ERROR_CLASS, _parser.Server, _parser.Connection.TimeoutErrorInternal.GetErrorMessage(), "", 0, TdsEnums.SNI_WAIT_TIMEOUT));
 
-                    if (!stateObj._attentionSent)
+                    if (!stateObj._attentionSentToServer)
                     {
                         if (stateObj.Parser.State == TdsParserState.OpenLoggedIn)
                         {
@@ -1267,7 +1267,7 @@ namespace Microsoft.Data.SqlClient
         // Sends an attention signal - executing thread will consume attn.
         internal void SendAttention(bool mustTakeWriteLock = false, bool asyncClose = false)
         {
-            if (!_attentionSent)
+            if (!_attentionSentToServer)
             {
                 // Dumps contents of buffer to OOB write (currently only used for
                 // attentions.  There is no body for this message
@@ -1327,7 +1327,7 @@ namespace Microsoft.Data.SqlClient
 #endif
 
                     SetTimeoutSeconds(AttentionTimeoutSeconds); // Initialize new attention timeout of 5 seconds.
-                    _attentionSent = true;
+                    _attentionSentToServer = true;
                 }
                 finally
                 {
@@ -1781,7 +1781,7 @@ namespace Microsoft.Data.SqlClient
                 Debug.Assert(_asyncWriteCount == 0, "StateObj still has outstanding async writes");
                 Debug.Assert(_delayedWriteAsyncCallbackException == null, "StateObj has an unobserved exceptions from an async write");
                 // Attention\Cancellation\Timeouts
-                Debug.Assert(!HasReceivedAttention && !_attentionSent && !_attentionSending, $"StateObj is still dealing with attention: Sent: {_attentionSent}, Received: {HasReceivedAttention}, Sending: {_attentionSending}");
+                Debug.Assert(!HasReceivedAttention && !_attentionSentToServer && !_attentionSending, $"StateObj is still dealing with attention: Sent: {_attentionSentToServer}, Received: {HasReceivedAttention}, Sending: {_attentionSending}");
                 Debug.Assert(!_cancelled, "StateObj still has cancellation set");
                 Debug.Assert(_timeoutState == TimeoutState.Stopped, "StateObj still has internal timeout set");
                 // Errors and Warnings

@@ -205,7 +205,7 @@ namespace Microsoft.Data.SqlClient
 
                 // Only send user/password over if not fSSPI...  If both user/password and SSPI are in login
                 // rec, only SSPI is used.  Confirmed same behavior as in luxor.
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
+                if (!rec.useSSPI && !(_connHandler.Features.FedAuth.IsInfoRequested || _connHandler.Features.FedAuth.IsRequested))
                 {
                     TdsParserExtensions.WriteShort(offset, _physicalStateObj);  // userName offset
                     TdsParserExtensions.WriteShort(userName.Length, _physicalStateObj);
@@ -283,7 +283,7 @@ namespace Microsoft.Data.SqlClient
 
                 // if we are using SSPI, do not send over username/password, since we will use SSPI instead
                 // same behavior as Luxor
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
+                if (!rec.useSSPI && !(_connHandler.Features.FedAuth.IsInfoRequested || _connHandler.Features.FedAuth.IsRequested))
                 {
                     TdsParserExtensions.WriteString(userName, _physicalStateObj);
 
@@ -320,7 +320,8 @@ namespace Microsoft.Data.SqlClient
                     _physicalStateObj.WriteByteArray(outSSPIBuff, (int)outSSPILength, 0);
 
                 TdsParserExtensions.WriteString(rec.attachDBFilename, _physicalStateObj);
-                if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
+                if (!rec.useSSPI && !(_connHandler.Features.FedAuth.IsInfoRequested || 
+                    _connHandler.Features.FedAuth.IsRequested))
                 {
                     if (rec.newSecurePassword != null)
                     {

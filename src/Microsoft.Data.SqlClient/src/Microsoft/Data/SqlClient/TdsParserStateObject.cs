@@ -136,7 +136,7 @@ namespace Microsoft.Data.SqlClient
         private int _timeoutState;                          // expected to be one of the constant values TimeoutStopped, TimeoutRunning, TimeoutExpiredAsync, TimeoutExpiredSync
         private int _timeoutIdentitySource;
         private volatile int _timeoutIdentityValue;
-        internal volatile bool _attentionSent;              // true if we sent an Attention to the server
+        internal volatile bool _attentionSentToServer;              // true if we sent an Attention to the server
         internal volatile bool _attentionSending;
         private readonly TimerCallback _onTimeoutAsync;
 
@@ -1994,7 +1994,7 @@ namespace Microsoft.Data.SqlClient
             TdsParser.ReliabilitySection.Assert("unreliable call to TryReadNetworkPacket");  // you need to setup for a thread abort somewhere before you call this method
 
 #if DEBUG
-            Debug.Assert(!_shouldHaveEnoughData || _attentionSent, "Caller said there should be enough data, but we are currently reading a packet");
+            Debug.Assert(!_shouldHaveEnoughData || _attentionSentToServer, "Caller said there should be enough data, but we are currently reading a packet");
 #endif
 
             if (_snapshot != null)
@@ -2225,7 +2225,7 @@ namespace Microsoft.Data.SqlClient
                 // lock protects against Close and Cancel
                 lock (this)
                 {
-                    if (!_attentionSent)
+                    if (!_attentionSentToServer)
                     {
                         AddError(new SqlError(TdsEnums.TIMEOUT_EXPIRED, 0x00, TdsEnums.MIN_ERROR_CLASS, _parser.Server, _parser.Connection.TimeoutErrorInternal.GetErrorMessage(), "", 0, TdsEnums.SNI_WAIT_TIMEOUT));
 

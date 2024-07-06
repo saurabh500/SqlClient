@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Common;
 using Microsoft.Data.ProviderBase;
+using Microsoft.Data.SqlClient.FeaturesX;
 using Microsoft.Identity.Client;
 using SysTx = System.Transactions;
 
@@ -148,6 +149,8 @@ namespace Microsoft.Data.SqlClient
 
         internal bool _cleanSQLDNSCaching = false;
         private bool _serverSupportsDNSCaching = false;
+
+        internal SqlNegotiatedFeatures Features { get; } = new SqlNegotiatedFeatures();
 
         /// <summary>
         /// Returns buffer time allowed before access token expiry to continue using the access token.
@@ -2979,7 +2982,7 @@ namespace Microsoft.Data.SqlClient
             return _fedAuthToken;
         }
 
-        internal void OnFeatureExtAck(int featureId, byte[] data)
+        internal void HandleFeatureExtensionAcknowledgement(int featureId, byte[] data)
         {
             if (_routingInfo != null)
             {

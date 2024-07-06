@@ -160,39 +160,9 @@ namespace Microsoft.Data.SqlClient
         // NOTE: You must take the internal connection's _parserLock before modifying this
         internal bool _asyncWrite = false;
 
-        /// <summary>
-        /// Get or set if column encryption is supported by the server.
-        /// </summary>
-        internal bool IsColumnEncryptionSupported { get; set; } = false;
-
-        /// <summary>
-        /// TCE version supported by the server
-        /// </summary>
-        internal byte TceVersionSupported { get; set; }
-
-        /// <summary>
-        /// Server supports retrying when the enclave CEKs sent by the client do not match what is needed for the query to run.
-        /// </summary>
-        internal bool AreEnclaveRetriesSupported { get; set; }
-
-        /// <summary>
-        /// Type of enclave being used by the server
-        /// </summary>
-        internal string EnclaveType { get; set; }
 
         internal bool isTcpProtocol { get; set; }
         internal string FQDNforDNSCache { get; set; }
-
-        /// <summary>
-        /// Get if data classification is enabled by the server.
-        /// </summary>
-        internal bool IsDataClassificationEnabled =>
-                (DataClassificationVersion != TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED);
-
-        /// <summary>
-        /// Get or set data classification version.  A value of 0 means that sensitivity classification is not enabled.
-        /// </summary>
-        internal int DataClassificationVersion { get; set; }
 
         public SqlCollation _cachedCollation;
 
@@ -201,7 +171,6 @@ namespace Microsoft.Data.SqlClient
             _fMARS = MARS; // may change during Connect to pre 2005 servers
 
             _physicalStateObj = TdsParserStateObjectFactory.Singleton.CreateTdsParserStateObject(this);
-            DataClassificationVersion = TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED;
         }
 
         internal SqlInternalConnectionTds Connection
@@ -341,7 +310,7 @@ namespace Microsoft.Data.SqlClient
 
         internal void ProcessPendingAck(TdsParserStateObject stateObj)
         {
-            if (stateObj._attentionSent)
+            if (stateObj._attentionSentToServer)
             {
                 SqlClientEventSource.Log.TryTraceEvent("TdsParser.ProcessPendingAck | INFO | Connection Object Id {0}, State Obj Id {1}, Processing Attention.", _connHandler._objectID, stateObj.ObjectID);
                 ProcessAttention(stateObj);
@@ -373,7 +342,7 @@ namespace Microsoft.Data.SqlClient
             _loginWithFailover = withFailover;
 
             // Clean up IsSQLDNSCachingSupported flag from previous status
-            _connHandler.IsSQLDNSCachingSupported = false;
+            _connHandler.Features.SqlDnsCaching.Reset();
 
             uint sniStatus = TdsParserStateObjectFactory.Singleton.SNIStatus;
 
@@ -1702,7 +1671,7 @@ namespace Microsoft.Data.SqlClient
             out bool dataReady)
         {
             Debug.Assert((SniContext.Undefined != stateObj.SniContext) &&       // SniContext must not be Undefined
-                ((stateObj._attentionSent) || ((SniContext.Snix_Execute != stateObj.SniContext) && (SniContext.Snix_SendRows != stateObj.SniContext))),  // SniContext should not be Execute or SendRows unless attention was sent (and, therefore, we are looking for an ACK)
+                ((stateObj._attentionSentToServer) || ((SniContext.Snix_Execute != stateObj.SniContext) && (SniContext.Snix_SendRows != stateObj.SniContext))),  // SniContext should not be Execute or SendRows unless attention was sent (and, therefore, we are looking for an ACK)
                          $"Unexpected SniContext on call to TryRun; SniContext={stateObj.SniContext}");
 
             if (TdsParserState.Broken == State || TdsParserState.Closed == State)
@@ -2044,7 +2013,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     case TdsEnums.SQLFEATUREEXTACK:
                         {
-                            if (!TdsParserExtensions.TryProcessFeatureExtAck(stateObj, connectionHandler, FQDNforDNSCache, IsColumnEncryptionSupported, TceVersionSupported, EnclaveType))
+                            if (!TdsParserExtensions.TryProcessFeatureExtAck(stateObj, connectionHandler, FQDNforDNSCache, IsColumnEncryptionSupported, TceVersionSupported?? 0, EnclaveType))
                             {
                                 return false;
                             }
@@ -2052,7 +2021,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     case TdsEnums.SQLFEDAUTHINFO:
                         {
-                            connectionHandler._federatedAuthenticationInfoReceived = true;
+                            connectionHandler.Features.FedAuth.IsInfoReceived = true;
                             SqlFedAuthInfo info;
 
                             if (!TdsParserExtensions.TryProcessFedAuthInfo(stateObj, tokenLength, out info))
@@ -2323,7 +2292,7 @@ namespace Microsoft.Data.SqlClient
             // received.
             while ((stateObj.HasPendingData &&
                     (RunBehavior.ReturnImmediately != (RunBehavior.ReturnImmediately & runBehavior))) ||
-                (!stateObj.HasPendingData && stateObj._attentionSent && !stateObj.HasReceivedAttention));
+                (!stateObj.HasPendingData && stateObj._attentionSentToServer && !stateObj.HasReceivedAttention));
 
 #if DEBUG
             if ((stateObj.HasPendingData) && (!dataReady))
@@ -2353,11 +2322,11 @@ namespace Microsoft.Data.SqlClient
                 // Spin until SendAttention has cleared _attentionSending, this prevents a race condition between receiving the attention ACK and setting _attentionSent
                 TryRunSetupSpinWaitContinuation(stateObj);
 
-                Debug.Assert(stateObj._attentionSent, "Attention ACK has been received without attention sent");
-                if (stateObj._attentionSent)
+                Debug.Assert(stateObj._attentionSentToServer, "Attention ACK has been received without attention sent");
+                if (stateObj._attentionSentToServer)
                 {
                     // Reset attention state.
-                    stateObj._attentionSent = false;
+                    stateObj._attentionSentToServer = false;
                     stateObj.HasReceivedAttention = false;
 
                     if (RunBehavior.Clean != (RunBehavior.Clean & runBehavior) && !stateObj.IsTimeoutStateExpired)
@@ -5191,7 +5160,7 @@ namespace Microsoft.Data.SqlClient
             {
                 return;
             }
-            Debug.Assert(stateObj._attentionSent, "invalid attempt to ProcessAttention, attentionSent == false!");
+            Debug.Assert(stateObj._attentionSentToServer, "invalid attempt to ProcessAttention, attentionSent == false!");
 
             // Attention processing scenarios:
             // 1) EOM packet with header ST_AACK bit plus DONE with status DONE_ATTN
@@ -5225,7 +5194,7 @@ namespace Microsoft.Data.SqlClient
 
             stateObj.RestoreErrorAndWarningAfterAttention();
 
-            Debug.Assert(!stateObj._attentionSent, "Invalid attentionSent state at end of ProcessAttention");
+            Debug.Assert(!stateObj._attentionSentToServer, "Invalid attentionSent state at end of ProcessAttention");
         }
 
 
@@ -7351,9 +7320,9 @@ namespace Microsoft.Data.SqlClient
                             break;
                         case TdsEnums.SQLXMLTYPE:
                             // Value here could be string or XmlReader
-                            if (value is XmlReader)
+                            if (value is XmlReader reader)
                             {
-                                value = MetaType.GetStringFromXml((XmlReader)value);
+                                value = MetaType.GetStringFromXml(reader);
                             }
                             ccb = ((isSqlType) ? ((SqlString)value).Value.Length : ((string)value).Length) * 2;
                             break;

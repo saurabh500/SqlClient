@@ -8,8 +8,18 @@ using System.Buffers.Binary;
 
 namespace Microsoft.Data.SqlClient
 {
-    internal sealed partial class TdsParser
+    internal sealed partial class TdsParser : IFeatureAdapter
     {
+        public bool AreEnclaveRetriesSupported => Connection.Features.ColumnEncryption.AreEnclaveRetriesSupported;
+
+        public bool IsColumnEncryptionSupported => Connection.Features.ColumnEncryption.IsAcknowledged;
+
+        public int? TceVersionSupported => Connection.Features.ColumnEncryption.FeatureVersion;
+
+        public string EnclaveType => Connection.Features.ColumnEncryption.EnclaveType;
+
+        public int DataClassificationVersion => Connection.Features.ColumnEncryption.FeatureVersion;
+
         internal static void FillGuidBytes(Guid guid, Span<byte> buffer) => guid.TryWriteBytes(buffer);
 
         internal static void FillDoubleBytes(double value, Span<byte> buffer) => BinaryPrimitives.TryWriteInt64LittleEndian(buffer, BitConverter.DoubleToInt64Bits(value));

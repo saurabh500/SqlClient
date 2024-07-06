@@ -17,6 +17,7 @@ using System.Transactions;
 using Microsoft.Data.Common;
 using Microsoft.Data.ProviderBase;
 using Microsoft.Identity.Client;
+using Microsoft.Data.SqlClient.FeaturesX;
 
 namespace Microsoft.Data.SqlClient
 {
@@ -113,18 +114,13 @@ namespace Microsoft.Data.SqlClient
         private FederatedAuthenticationFeatureExtensionData _fedAuthFeatureExtensionData;
 
         // Connection Resiliency
-        private bool _sessionRecoveryRequested;
-        internal bool _sessionRecoveryAcknowledged;
         internal SessionData _currentSessionData; // internal for use from TdsParser only, other should use CurrentSessionData property that will fix database and language
         private SessionData _recoverySessionData;
 
         // Federated Authentication
         // Response obtained from the server for FEDAUTHREQUIRED prelogin option.
         internal bool _fedAuthRequired;
-        internal bool _federatedAuthenticationRequested;
         internal bool _federatedAuthenticationAcknowledged;
-        internal bool _federatedAuthenticationInfoRequested; // Keep this distinct from _federatedAuthenticationRequested, since some fedauth library types may not need more info
-        internal bool _federatedAuthenticationInfoReceived;
 
         // The Federated Authentication returned by TryGetFedAuthTokenLocked or GetFedAuthToken.
         SqlFedAuthToken _fedAuthToken = null;
@@ -133,9 +129,6 @@ namespace Microsoft.Data.SqlClient
 
         private readonly ActiveDirectoryAuthenticationTimeoutRetryHelper _activeDirectoryAuthTimeoutRetryHelper;
         private readonly SqlAuthenticationProviderManager _sqlAuthenticationProviderManager;
-
-        internal bool _cleanSQLDNSCaching = false;
-        private bool _serverSupportsDNSCaching = false;
 
         /// <summary>
         /// Returns buffer time allowed before access token expiry to continue using the access token.
@@ -149,60 +142,10 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        /// <summary>
-        /// Get or set if SQLDNSCaching is supported by the server.
-        /// </summary>
-        internal bool IsSQLDNSCachingSupported
-        {
-            get
-            {
-                return _serverSupportsDNSCaching;
-            }
-            set
-            {
-                _serverSupportsDNSCaching = value;
-            }
-        }
-
-        private bool _SQLDNSRetryEnabled = false;
-
-        /// <summary>
-        /// Get or set if we need retrying with IP received from FeatureExtAck.
-        /// </summary>
-        internal bool IsSQLDNSRetryEnabled
-        {
-            get
-            {
-                return _SQLDNSRetryEnabled;
-            }
-            set
-            {
-                _SQLDNSRetryEnabled = value;
-            }
-        }
-
-        private bool _DNSCachingBeforeRedirect = false;
-
-        /// <summary>
-        /// Get or set if the control ring send redirect token and feature ext ack with true for DNSCaching
-        /// </summary>
-        internal bool IsDNSCachingBeforeRedirectSupported
-        {
-            get
-            {
-                return _DNSCachingBeforeRedirect;
-            }
-            set
-            {
-                _DNSCachingBeforeRedirect = value;
-            }
-        }
+        internal SqlNegotiatedFeatures Features { get; } = new SqlNegotiatedFeatures();
 
         internal SQLDNSInfo pendingSQLDNSObject = null;
-
-        // TCE flags
-        internal byte _tceVersionSupported;
-
+        
         // The pool that this connection is associated with, if at all it is.
         private DbConnectionPool _dbConnectionPool;
 
@@ -692,7 +635,7 @@ namespace Microsoft.Data.SqlClient
         /// <summary>
         /// Validates if federated authentication is used, Access Token used by this connection is active for the value of 'accessTokenExpirationBufferTime'.
         /// </summary>
-        internal override bool IsAccessTokenExpired => _federatedAuthenticationInfoRequested && DateTime.FromFileTimeUtc(_fedAuthToken.expirationFileTime) < DateTime.UtcNow.AddSeconds(accessTokenExpirationBufferTime);
+        internal override bool IsAccessTokenExpired => Features.FedAuth.IsInfoRequested && DateTime.FromFileTimeUtc(_fedAuthToken.expirationFileTime) < DateTime.UtcNow.AddSeconds(accessTokenExpirationBufferTime);
 
         ////////////////////////////////////////////////////////////////////////////////////////
         // GENERAL METHODS
@@ -1159,17 +1102,18 @@ namespace Microsoft.Data.SqlClient
             if (RoutingInfo == null)
             {
                 // ROR should not affect state of connection recovery
-                if (_federatedAuthenticationRequested && !_federatedAuthenticationAcknowledged)
+                if (Features.FedAuth.IsRequested && !Features.FedAuth.IsAcknowledged)
                 {
                     SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.CompleteLogin|ERR> {0}, Server did not acknowledge the federated authentication request", ObjectID);
                     throw SQL.ParsingError(ParsingErrorState.FedAuthNotAcknowledged);
                 }
-                if (_federatedAuthenticationInfoRequested && !_federatedAuthenticationInfoReceived)
+                if (Features.FedAuth.IsInfoRequested 
+                    && !Features.FedAuth.IsInfoReceived)
                 {
                     SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.CompleteLogin|ERR> {0}, Server never sent the requested federated authentication info", ObjectID);
                     throw SQL.ParsingError(ParsingErrorState.FedAuthInfoNotReceived);
                 }
-                if (!_sessionRecoveryAcknowledged)
+                if (!Features.SessionRecovery.IsAcknowledged)
                 {
                     _currentSessionData = null;
                     if (_recoverySessionData != null)
@@ -1285,7 +1229,7 @@ namespace Microsoft.Data.SqlClient
             if (ConnectionOptions.ConnectRetryCount > 0)
             {
                 requestedFeatures |= TdsEnums.FeatureExtension.SessionRecovery;
-                _sessionRecoveryRequested = true;
+                Features.SessionRecovery.IsRequested = true;
             }
 
             // If the workflow being used is Active Directory Authentication and server's prelogin response
@@ -1304,7 +1248,7 @@ namespace Microsoft.Data.SqlClient
                 || _accessTokenCallback != null)
             {
                 requestedFeatures |= TdsEnums.FeatureExtension.FedAuth;
-                _federatedAuthenticationInfoRequested = true;
+                Features.FedAuth.IsInfoRequested = true;
                 _fedAuthFeatureExtensionData =
                     new FederatedAuthenticationFeatureExtensionData
                     {
@@ -1324,11 +1268,20 @@ namespace Microsoft.Data.SqlClient
                     accessToken = _accessTokenInBytes
                 };
                 // No need any further info from the server for token based authentication. So set _federatedAuthenticationRequested to true
-                _federatedAuthenticationRequested = true;
+                Features.FedAuth.IsRequested = true;
             }
 
+            Features.GlobalTransactions.IsRequested = true;
+            Features.DataClassification.IsRequested = true;
+            Features.ColumnEncryption.IsRequested = true;
+            Features.Utf8Support.IsRequested = true;
+            Features.SqlDnsCaching.IsRequested = true;
+
             // The GLOBALTRANSACTIONS, DATACLASSIFICATION, TCE, and UTF8 support features are implicitly requested
-            requestedFeatures |= TdsEnums.FeatureExtension.GlobalTransactions | TdsEnums.FeatureExtension.DataClassification | TdsEnums.FeatureExtension.Tce | TdsEnums.FeatureExtension.UTF8Support;
+            requestedFeatures |= TdsEnums.FeatureExtension.GlobalTransactions 
+                | TdsEnums.FeatureExtension.DataClassification 
+                | TdsEnums.FeatureExtension.Tce 
+                | TdsEnums.FeatureExtension.UTF8Support;
 
             // The SQLDNSCaching feature is implicitly set
             requestedFeatures |= TdsEnums.FeatureExtension.SQLDNSCaching;
@@ -2247,7 +2200,7 @@ namespace Microsoft.Data.SqlClient
 
             Debug.Assert(_fedAuthToken != null && _fedAuthToken.accessToken != null, "fedAuthToken and fedAuthToken.accessToken cannot be null.");
             TdsParser.SendFedAuthToken(_fedAuthToken, _parser._physicalStateObj);
-            _federatedAuthenticationRequested = true;
+            Features.FedAuth.IsRequested = true;
         }
 
         /// <summary>
@@ -2551,8 +2504,10 @@ namespace Microsoft.Data.SqlClient
             return _fedAuthToken;
         }
 
-        internal void OnFeatureExtAck(int featureId, byte[] data)
+        internal void HandleFeatureExtensionAcknowledgement(int featureId, byte[] data)
         {
+            // If we are being routed and the feature extension is not for caching then return,
+            // else we will end up processing the DNS caching feature.
             if (RoutingInfo != null && TdsEnums.FEATUREEXT_SQLDNSCACHING != featureId)
             {
                 return;
@@ -2563,11 +2518,11 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.FEATUREEXT_SRECOVERY:
                     {
                         // Session recovery not requested
-                        if (!_sessionRecoveryRequested)
+                        if (!Features.SessionRecovery.IsRequested)
                         {
                             throw SQL.ParsingError();
                         }
-                        _sessionRecoveryAcknowledged = true;
+                        Features.SessionRecovery.SetAcknowledged();
 
 #if DEBUG
                         foreach (var s in _currentSessionData._delta)
@@ -2618,18 +2573,18 @@ namespace Microsoft.Data.SqlClient
                             SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Unknown version number for GlobalTransactions", ObjectID);
                             throw SQL.ParsingError();
                         }
-
-                        IsGlobalTransaction = true;
+                        Features.GlobalTransactions.SetAcknowledged();
+                        
                         if (1 == data[0])
                         {
-                            IsGlobalTransactionsEnabledForServer = true;
+                            Features.GlobalTransactions.SetEnabledOnServer();
                         }
                         break;
                     }
                 case TdsEnums.FEATUREEXT_FEDAUTH:
                     {
                         SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, Received feature extension acknowledgement for federated authentication", ObjectID);
-                        if (!_federatedAuthenticationRequested)
+                        if (!Features.FedAuth.IsRequested)
                         {
                             SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Did not request federated authentication", ObjectID);
                             throw SQL.ParsingErrorFeatureId(ParsingErrorState.UnrequestedFeatureAckReceived, featureId);
@@ -2697,16 +2652,15 @@ namespace Microsoft.Data.SqlClient
                             throw SQL.ParsingErrorValue(ParsingErrorState.TceInvalidVersion, supportedTceVersion);
                         }
 
-                        _tceVersionSupported = supportedTceVersion;
-                        Debug.Assert(_tceVersionSupported <= TdsEnums.MAX_SUPPORTED_TCE_VERSION, "Client support TCE version 2");
-                        _parser.IsColumnEncryptionSupported = true;
-                        _parser.TceVersionSupported = _tceVersionSupported;
-                        _parser.AreEnclaveRetriesSupported = _tceVersionSupported == 3;
+                        Features.ColumnEncryption.SetAcknowledged();
+                        Features.ColumnEncryption.SetFeatureVersion(supportedTceVersion);
+                        
+                        Debug.Assert(Features.ColumnEncryption.FeatureVersion <= TdsEnums.MAX_SUPPORTED_TCE_VERSION, "Client support TCE version 2");
 
                         if (data.Length > 1)
                         {
                             // Extract the type of enclave being used by the server.
-                            _parser.EnclaveType = Encoding.Unicode.GetString(data, 2, (data.Length - 2));
+                            Features.ColumnEncryption.EnclaveType = Encoding.Unicode.GetString(data, 2, (data.Length - 2));
                         }
                         break;
                     }
@@ -2719,6 +2673,7 @@ namespace Microsoft.Data.SqlClient
                             SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Unknown value for UTF8 support", ObjectID);
                             throw SQL.ParsingError();
                         }
+                        Features.Utf8Support.SetAcknowledged();
                         break;
                     }
                 case TdsEnums.FEATUREEXT_DATACLASSIFICATION:
@@ -2742,7 +2697,12 @@ namespace Microsoft.Data.SqlClient
                             throw SQL.ParsingError(ParsingErrorState.CorruptedTdsStream);
                         }
                         byte enabled = data[1];
-                        _parser.DataClassificationVersion = (enabled == 0) ? TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED : supportedDataClassificationVersion;
+                        byte version = (enabled == 0) ? TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED : supportedDataClassificationVersion;
+                        if (enabled != 0)
+                        {
+                            Features.DataClassification.SetAcknowledged();
+                        }
+                        Features.DataClassification.SetFeatureVersion(version);
                         break;
                     }
 
@@ -2758,21 +2718,18 @@ namespace Microsoft.Data.SqlClient
 
                         if (1 == data[0])
                         {
-                            IsSQLDNSCachingSupported = true;
-                            _cleanSQLDNSCaching = false;
+                            Features.SqlDnsCaching.SetAcknowledged();
 
                             if (RoutingInfo != null)
                             {
-                                IsDNSCachingBeforeRedirectSupported = true;
+                                Features.SqlDnsCaching.IsDNSCachingBeforeRedirectSupported = true;
                             }
                         }
                         else
                         {
                             // we receive the IsSupported whose value is 0
-                            IsSQLDNSCachingSupported = false;
-                            _cleanSQLDNSCaching = true;
+                            // Do nothing. The feature acknowledgement by default is false.
                         }
-
                         // need to add more steps for phase 2
                         // get IPv4 + IPv6 + Port number
                         // not put them in the DNS cache at this point but need to store them somewhere

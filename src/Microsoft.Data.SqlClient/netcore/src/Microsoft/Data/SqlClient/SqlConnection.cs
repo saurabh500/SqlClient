@@ -773,7 +773,7 @@ namespace Microsoft.Data.SqlClient
 
                 if (null != innerConnection)
                 {
-                    result = innerConnection.IsSQLDNSCachingSupported ? "true" : "false";
+                    result = innerConnection.Features.SqlDnsCaching.IsAcknowledged ? "true" : "false";
                 }
                 else
                 {
@@ -796,7 +796,7 @@ namespace Microsoft.Data.SqlClient
 
                 if (null != innerConnection)
                 {
-                    result = innerConnection.IsDNSCachingBeforeRedirectSupported ? "true" : "false";
+                    result = innerConnection.Features.SqlDnsCaching.IsDNSCachingBeforeRedirectSupported ? "true" : "false";
                 }
                 else
                 {
@@ -1533,7 +1533,7 @@ namespace Microsoft.Data.SqlClient
                 if (_connectRetryCount > 0)
                 {
                     SqlInternalConnectionTds tdsConn = GetOpenTdsConnection();
-                    if (tdsConn._sessionRecoveryAcknowledged)
+                    if (tdsConn.Features.SessionRecovery.IsAcknowledged)
                     {
                         TdsParserStateObject stateObj = tdsConn.Parser._physicalStateObj;
                         if (!stateObj.ValidateSNIConnection())
@@ -2400,10 +2400,11 @@ namespace Microsoft.Data.SqlClient
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlConnection.xml' path='docs/members[@name="SqlConnection"]/RetrieveInternalInfo/*' />
         public IDictionary<string, object> RetrieveInternalInfo()
         {
-            IDictionary<string, object> internalDictionary = new Dictionary<string, object>();
-
-            internalDictionary.Add("SQLDNSCachingSupportedState", SQLDNSCachingSupportedState);
-            internalDictionary.Add("SQLDNSCachingSupportedStateBeforeRedirect", SQLDNSCachingSupportedStateBeforeRedirect);
+            IDictionary<string, object> internalDictionary = new Dictionary<string, object>
+            {
+                { "SQLDNSCachingSupportedState", SQLDNSCachingSupportedState },
+                { "SQLDNSCachingSupportedStateBeforeRedirect", SQLDNSCachingSupportedStateBeforeRedirect }
+            };
 
             return internalDictionary;
         }

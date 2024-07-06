@@ -472,7 +472,7 @@ namespace Microsoft.Data.SqlClient
 
         internal void ProcessPendingAck(TdsParserStateObject stateObj)
         {
-            if (stateObj._attentionSent)
+            if (stateObj._attentionSentToServer)
             {
                 ProcessAttention(stateObj);
             }
@@ -2425,7 +2425,7 @@ namespace Microsoft.Data.SqlClient
         {
             ReliabilitySection.Assert("unreliable call to Run");  // you need to setup for a thread abort somewhere before you call this method
             Debug.Assert((SniContext.Undefined != stateObj.SniContext) &&       // SniContext must not be Undefined
-                ((stateObj._attentionSent) || ((SniContext.Snix_Execute != stateObj.SniContext) && (SniContext.Snix_SendRows != stateObj.SniContext))),  // SniContext should not be Execute or SendRows unless attention was sent (and, therefore, we are looking for an ACK)
+                ((stateObj._attentionSentToServer) || ((SniContext.Snix_Execute != stateObj.SniContext) && (SniContext.Snix_SendRows != stateObj.SniContext))),  // SniContext should not be Execute or SendRows unless attention was sent (and, therefore, we are looking for an ACK)
                         $"Unexpected SniContext on call to TryRun; SniContext={stateObj.SniContext}");
 
             if (TdsParserState.Broken == State || TdsParserState.Closed == State)
@@ -3044,7 +3044,7 @@ namespace Microsoft.Data.SqlClient
             // received.
             while ((stateObj.HasPendingData &&
                     (RunBehavior.ReturnImmediately != (RunBehavior.ReturnImmediately & runBehavior))) ||
-                (!stateObj.HasPendingData && stateObj._attentionSent && !stateObj.HasReceivedAttention));
+                (!stateObj.HasPendingData && stateObj._attentionSentToServer && !stateObj.HasReceivedAttention));
 
 #if DEBUG
             if ((stateObj.HasPendingData) && (!dataReady))
@@ -3074,11 +3074,11 @@ namespace Microsoft.Data.SqlClient
                 // Spin until SendAttention has cleared _attentionSending, this prevents a race condition between receiving the attention ACK and setting _attentionSent
                 SpinWait.SpinUntil(() => !stateObj._attentionSending);
 
-                Debug.Assert(stateObj._attentionSent, "Attention ACK has been received without attention sent");
-                if (stateObj._attentionSent)
+                Debug.Assert(stateObj._attentionSentToServer, "Attention ACK has been received without attention sent");
+                if (stateObj._attentionSentToServer)
                 {
                     // Reset attention state.
-                    stateObj._attentionSent = false;
+                    stateObj._attentionSentToServer = false;
                     stateObj.HasReceivedAttention = false;
 
                     if (RunBehavior.Clean != (RunBehavior.Clean & runBehavior) && !stateObj.IsTimeoutStateExpired)
@@ -3547,7 +3547,7 @@ namespace Microsoft.Data.SqlClient
             if (TdsEnums.DONE_ATTN == (status & TdsEnums.DONE_ATTN))
             {
                 Debug.Assert(TdsEnums.DONE_MORE != (status & TdsEnums.DONE_MORE), "Not expecting DONE_MORE when receiving DONE_ATTN");
-                Debug.Assert(stateObj._attentionSent, "Received attention done without sending one!");
+                Debug.Assert(stateObj._attentionSentToServer, "Received attention done without sending one!");
                 stateObj.HasReceivedAttention = true;
                 Debug.Assert(stateObj._inBytesUsed == stateObj._inBytesRead && stateObj._inBytesPacket == 0, "DONE_ATTN received with more data left on wire");
             }
@@ -3741,16 +3741,13 @@ namespace Microsoft.Data.SqlClient
                             return false;
                         }
                     }
-                    _connHandler.OnFeatureExtAck(featureId, data);
+                    _connHandler.HandleFeatureExtensionAcknowledgement(featureId, data);
                 }
             } while (featureId != TdsEnums.FEATUREEXT_TERMINATOR);
 
             // Write to DNS Cache or clean up DNS Cache for TCP protocol
-            bool ret = false;
-            if (_connHandler._cleanSQLDNSCaching)
-            {
-                ret = SQLFallbackDNSCache.Instance.DeleteDNSInfo(FQDNforDNSCache);
-            }
+            bool ret = !_connHandler.IsSQLDNSCachingSupported && SQLFallbackDNSCache.Instance.DeleteDNSInfo(FQDNforDNSCache);
+            
 
             if (_connHandler.IsSQLDNSCachingSupported && _connHandler.pendingSQLDNSObject != null
                     && !SQLFallbackDNSCache.Instance.IsDuplicate(_connHandler.pendingSQLDNSObject))
@@ -8502,7 +8499,7 @@ namespace Microsoft.Data.SqlClient
             {
                 return;
             }
-            Debug.Assert(stateObj._attentionSent, "invalid attempt to ProcessAttention, attentionSent == false!");
+            Debug.Assert(stateObj._attentionSentToServer, "invalid attempt to ProcessAttention, attentionSent == false!");
 
             // Attention processing scenarios:
             // 1) EOM packet with header ST_AACK bit plus DONE with status DONE_ATTN
@@ -8538,7 +8535,7 @@ namespace Microsoft.Data.SqlClient
 
             stateObj.RestoreErrorAndWarningAfterAttention();
 
-            Debug.Assert(!stateObj._attentionSent, "Invalid attentionSent state at end of ProcessAttention");
+            Debug.Assert(!stateObj._attentionSentToServer, "Invalid attentionSent state at end of ProcessAttention");
         }
 
         static private int StateValueLength(int dataLen)

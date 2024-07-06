@@ -2562,7 +2562,7 @@ namespace Microsoft.Data.SqlClient
                 TdsParser.LoadColumnEncryptionKeys(
                     internalResults[MetaDataResultId].MetaData,
                     _connection,
-                    _parser.IsColumnEncryptionSupported,
+                    _parser.Connection.Features.ColumnEncryption.IsAcknowledged,
                     _parser.Connection);
 
                 Task task = CopyRowsAsync(0, _savedBatchSize, cts); // This is copying 1 batch of rows and setting _hasMoreRowToCopy = true/false.

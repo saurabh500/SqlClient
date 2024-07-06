@@ -1598,7 +1598,7 @@ namespace Microsoft.Data.SqlClient
             if (TdsEnums.DONE_ATTN == (status & TdsEnums.DONE_ATTN))
             {
                 Debug.Assert(TdsEnums.DONE_MORE != (status & TdsEnums.DONE_MORE), "Not expecting DONE_MORE when receiving DONE_ATTN");
-                Debug.Assert(stateObj._attentionSent, "Received attention done without sending one!");
+                Debug.Assert(stateObj._attentionSentToServer, "Received attention done without sending one!");
                 stateObj.HasReceivedAttention = true;
                 Debug.Assert(stateObj._inBytesUsed == stateObj._inBytesRead && stateObj._inBytesPacket == 0, "DONE_ATTN received with more data left on wire");
             }
@@ -1797,18 +1797,18 @@ namespace Microsoft.Data.SqlClient
                             return false;
                         }
                     }
-                    _connHandler.OnFeatureExtAck(featureId, data);
+                    _connHandler.HandleFeatureExtensionAcknowledgement(featureId, data);
                 }
             } while (featureId != TdsEnums.FEATUREEXT_TERMINATOR);
 
             // Write to DNS Cache or clean up DNS Cache for TCP protocol
             bool ret = false;
-            if (_connHandler._cleanSQLDNSCaching)
+            if (!_connHandler.Features.SqlDnsCaching.IsAcknowledged)
             {
                 ret = SQLFallbackDNSCache.Instance.DeleteDNSInfo(FQDNforDNSCache);
             }
 
-            if (_connHandler.IsSQLDNSCachingSupported && _connHandler.pendingSQLDNSObject != null
+            if (_connHandler.Features.SqlDnsCaching.IsAcknowledged && _connHandler.pendingSQLDNSObject != null
                     && !SQLFallbackDNSCache.Instance.IsDuplicate(_connHandler.pendingSQLDNSObject))
             {
                 ret = SQLFallbackDNSCache.Instance.AddDNSInfo(_connHandler.pendingSQLDNSObject);
@@ -2165,7 +2165,9 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal static bool TryProcessCollation(TdsParserStateObject stateObj, out SqlCollation collation, ref SqlCollation cachedCollation)
+        internal static bool TryProcessCollation(TdsParserStateObject stateObj, 
+            out SqlCollation collation, 
+            ref SqlCollation cachedCollation)
         {
             if (!stateObj.TryReadUInt32(out uint info))
             {
@@ -2549,10 +2551,17 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal static bool TryCommonProcessMetaData(TdsParserStateObject stateObj, _SqlMetaData col, SqlTceCipherInfoTable cipherTable, 
-            bool fColMD, SqlCommandColumnEncryptionSetting columnEncryptionSetting, bool IsColumnEncryptionSupported,
-            SqlInternalConnectionTds connectionHandler, ref SqlCollation cachedCollation,
-            int _defaultCodePage, Encoding defaultEncoding, Action<TdsParserStateObject> unsupportedCollationAction)
+        internal static bool TryCommonProcessMetaData(TdsParserStateObject stateObj, 
+            _SqlMetaData col, 
+            SqlTceCipherInfoTable cipherTable, 
+            bool fColMD, 
+            SqlCommandColumnEncryptionSetting columnEncryptionSetting, 
+            bool IsColumnEncryptionSupported,
+            SqlInternalConnectionTds connectionHandler, 
+            ref SqlCollation cachedCollation,
+            int _defaultCodePage, 
+            Encoding defaultEncoding, 
+            Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
             uint userType;
@@ -3504,11 +3513,12 @@ namespace Microsoft.Data.SqlClient
                 switch (fedAuthFeatureData.libraryType)
                 {
                     case TdsEnums.FedAuthLibrary.MSAL:
-                        Debug.Assert(connectionHandler._federatedAuthenticationInfoRequested == true, "_federatedAuthenticationInfoRequested field should be true");
+                        Debug.Assert(connectionHandler.Features.FedAuth.IsInfoRequested,
+                            "_federatedAuthenticationInfoRequested field should be true");
                         options |= TdsEnums.FEDAUTHLIB_MSAL << 1;
                         break;
                     case TdsEnums.FedAuthLibrary.SecurityToken:
-                        Debug.Assert(connectionHandler._federatedAuthenticationRequested == true, "_federatedAuthenticationRequested field should be true");
+                        Debug.Assert(connectionHandler.Features.FedAuth.IsRequested == true, "_federatedAuthenticationRequested field should be true");
                         options |= TdsEnums.FEDAUTHLIB_SECURITYTOKEN << 1;
                         break;
                     default:
