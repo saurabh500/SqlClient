@@ -925,6 +925,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="..\..\src\Microsoft\Data\SqlClient\TdsParserExtensionsHelpers.cs" Link="Microsoft\Data\SqlClient\TdsParserExtensionsHelpers.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsBufferAlloc.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsWriter.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\PreloginHandler.cs" />

@@ -2195,7 +2195,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    writeTask = _parser.WriteSqlVariantDataRowValue(value, _stateObj); //returns Task/Null
+                    writeTask = TdsParser.WriteSqlVariantDataRowValue(value, _stateObj, _parser.Connection, _parser.ThrowUnsupportedCollationEncountered); //returns Task/Null
                 }
             }
 

@@ -2778,21 +2778,14 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        public int DefaultCodePage { get; internal set; }
-        public int DefaultLCID { get; internal set; }
-        public SqlCollation DefaultCollation { get; internal set; }
-
-        /// <summary>
-        /// For the character data.
-        /// This is set during login while processing env change tokens.
-        /// </summary>
-        internal Encoding DefaultEncoding { get; set; }
-
+        public CollationInfo CollationInfo { get; } = new();
+        
         internal override bool TryReplaceConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource<DbConnectionInternal> retry, DbConnectionOptions userOptions)
         {
             return base.TryOpenConnectionInternal(outerConnection, connectionFactory, retry, userOptions);
         }
     }
+
 
     internal sealed class ServerInfo
     {

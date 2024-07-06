@@ -92,7 +92,7 @@ namespace Microsoft.Data.SqlClient
                     case SqlDbType.Timestamp:
                     case SqlDbType.VarBinary:
                     case SqlDbType.VarChar:
-                        TdsParserExtensions.WriteShort(TdsEnums.VARNULL, _stateObj);
+                        TdsParserExtensions.WriteShort(_stateObj, TdsEnums.VARNULL);
                         break;
                     case SqlDbType.Udt:
                     case SqlDbType.Xml:
@@ -118,7 +118,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetBoolean));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(3, TdsEnums.SQLBIT, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(3, TdsEnums.SQLBIT, 0, _stateObj);
             }
             else
             {
@@ -141,7 +141,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetByte));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(3, TdsEnums.SQLINT1, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(3, TdsEnums.SQLINT1, 0, _stateObj);
             }
             else
             {
@@ -193,9 +193,9 @@ namespace Microsoft.Data.SqlClient
 
                 if (SqlDbType.Variant == _metaData.SqlDbType)
                 {
-                    TdsParserExtensions.WriteSqlVariantHeader(4 + length, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(4 + length, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
                 }
-                TdsParserExtensions.WriteShort(length, _stateObj);
+                TdsParserExtensions.WriteShort(_stateObj, length);
                 _stateObj.WriteByteArray(buffer, length, bufferOffset);
             }
         }
@@ -222,9 +222,9 @@ namespace Microsoft.Data.SqlClient
 
                     if (SqlDbType.Variant == _metaData.SqlDbType)
                     {
-                        TdsParserExtensions.WriteSqlVariantHeader(4, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(4, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
                     }
-                    TdsParserExtensions.WriteShort(0, _stateObj);
+                    TdsParserExtensions.WriteShort(_stateObj, 0);
                 }
             }
             if (_plpUnknownSent)
@@ -252,7 +252,7 @@ namespace Microsoft.Data.SqlClient
             {
                 if (null == _encoder)
                 {
-                    _encoder = _stateObj.Parser.Connection.DefaultEncoding.GetEncoder();
+                    _encoder = _stateObj.Parser.Connection.CollationInfo.DefaultEncoding.GetEncoder();
                 }
                 byte[] bytes = new byte[_encoder.GetByteCount(buffer, bufferOffset, length, false)];
                 _encoder.GetBytes(buffer, bufferOffset, length, bytes, 0, false);
@@ -291,7 +291,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         Debug.Assert(!MetaType.GetMetaTypeFromSqlDbType(_metaData.SqlDbType, _metaData.IsMultiValued).IsLong,
                                 "We're assuming long length types are sent as PLP. SqlDbType = " + _metaData.SqlDbType);
-                        TdsParserExtensions.WriteShort(length * ADP.CharSize, _stateObj);
+                        TdsParserExtensions.WriteShort(_stateObj, length * ADP.CharSize);
                         TdsParserExtensions.WriteCharArray(buffer, length, bufferOffset, _stateObj);
                     }
                 }
@@ -322,7 +322,7 @@ namespace Microsoft.Data.SqlClient
                     Debug.Assert(!MetaType.GetMetaTypeFromSqlDbType(_metaData.SqlDbType, _metaData.IsMultiValued).IsLong,
                         "We're assuming long length types are sent as PLP. SqlDbType = " + _metaData.SqlDbType);
 
-                    TdsParserExtensions.WriteShort(0, _stateObj);
+                    TdsParserExtensions.WriteShort(_stateObj, 0);
                 }
             }
             if (_plpUnknownSent)
@@ -350,12 +350,12 @@ namespace Microsoft.Data.SqlClient
                 // Optimize for common case of writing entire string
                 if (offset == 0 && value.Length <= length)
                 {
-                    bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value);
+                    bytes = _stateObj.Parser.Connection.CollationInfo.DefaultEncoding.GetBytes(value);
                 }
                 else
                 {
                     char[] chars = value.ToCharArray(offset, length);
-                    bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(chars);
+                    bytes = _stateObj.Parser.Connection.CollationInfo.DefaultEncoding.GetBytes(chars);
                 }
                 SetBytes(0, bytes, 0, bytes.Length);
                 SetBytesLength(bytes.Length);
@@ -372,24 +372,24 @@ namespace Microsoft.Data.SqlClient
                     // Optimize for common case of writing entire string
                     if (offset == 0 && value.Length <= length)
                     {
-                        bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value);
+                        bytes = _stateObj.Parser.Connection.CollationInfo.DefaultEncoding.GetBytes(value);
                     }
                     else
                     {
-                        bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value.ToCharArray(offset, length));
+                        bytes = _stateObj.Parser.Connection.CollationInfo.DefaultEncoding.GetBytes(value.ToCharArray(offset, length));
                     }
-                    TdsParserExtensions.WriteSqlVariantHeader(9 + bytes.Length, TdsEnums.SQLBIGVARCHAR, 7, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(9 + bytes.Length, TdsEnums.SQLBIGVARCHAR, 7, _stateObj);
                     TdsParserExtensions.WriteUnsignedInt(collation._info, _stateObj); // propbytes: collation.Info
                     _stateObj.WriteByte(collation._sortId); // propbytes: collation.SortId
-                    TdsParserExtensions.WriteShort(bytes.Length, _stateObj); // propbyte: varlen
+                    TdsParserExtensions.WriteShort(_stateObj, bytes.Length); // propbyte: varlen
                     _stateObj.WriteByteArray(bytes, bytes.Length, 0);
                 }
                 else
                 {
-                    TdsParserExtensions.WriteSqlVariantHeader(9 + length * ADP.CharSize, TdsEnums.SQLNVARCHAR, 7, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(9 + length * ADP.CharSize, TdsEnums.SQLNVARCHAR, 7, _stateObj);
                     TdsParserExtensions.WriteUnsignedInt(collation._info, _stateObj); // propbytes: collation.Info
                     _stateObj.WriteByte(collation._sortId); // propbytes: collation.SortId
-                    TdsParserExtensions.WriteShort(length * ADP.CharSize, _stateObj); // propbyte: varlen
+                    TdsParserExtensions.WriteShort(_stateObj, length * ADP.CharSize); // propbyte: varlen
                     TdsParserExtensions.WriteString(value, length, offset, _stateObj);
                 }
                 _variantType = null;
@@ -407,7 +407,7 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                TdsParserExtensions.WriteShort(length * ADP.CharSize, _stateObj);
+                TdsParserExtensions.WriteShort(_stateObj, length * ADP.CharSize);
                 TdsParserExtensions.WriteString(value, length, offset, _stateObj);
             }
         }
@@ -420,13 +420,13 @@ namespace Microsoft.Data.SqlClient
 
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(4, TdsEnums.SQLINT2, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(4, TdsEnums.SQLINT2, 0, _stateObj);
             }
             else
             {
                 _stateObj.WriteByte((byte)_metaData.MaxLength);
             }
-            TdsParserExtensions.WriteShort(value, _stateObj);
+            TdsParserExtensions.WriteShort(_stateObj, value);
         }
 
         // valid for SqlDbType.Int
@@ -436,7 +436,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetInt32));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(6, TdsEnums.SQLINT4, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(6, TdsEnums.SQLINT4, 0, _stateObj);
             }
             else
             {
@@ -454,14 +454,14 @@ namespace Microsoft.Data.SqlClient
             {
                 if (null == _variantType)
                 {
-                    TdsParserExtensions.WriteSqlVariantHeader(10, TdsEnums.SQLINT8, 0, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(10, TdsEnums.SQLINT8, 0, _stateObj);
                     TdsParserExtensions.WriteLong(value, _stateObj);
                 }
                 else
                 {
                     Debug.Assert(SqlDbType.Money == _variantType.SqlDbType, "Invalid variant type");
 
-                    TdsParserExtensions.WriteSqlVariantHeader(10, TdsEnums.SQLMONEY, 0, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(10, TdsEnums.SQLMONEY, 0, _stateObj);
                     TdsParserExtensions.WriteInt((int)(value >> 0x20), _stateObj);
                     TdsParserExtensions.WriteInt((int)value, _stateObj);
                     _variantType = null;
@@ -493,7 +493,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetSingle));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(6, TdsEnums.SQLFLT4, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(6, TdsEnums.SQLFLT4, 0, _stateObj);
             }
             else
             {
@@ -509,7 +509,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetDouble));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(10, TdsEnums.SQLFLT8, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(10, TdsEnums.SQLFLT8, 0, _stateObj);
             }
             else
             {
@@ -525,7 +525,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetSqlDecimal));
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(21, TdsEnums.SQLNUMERICN, 2, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(21, TdsEnums.SQLNUMERICN, 2, _stateObj);
                 _stateObj.WriteByte(value.Precision); // propbytes: precision
                 _stateObj.WriteByte(value.Scale); // propbytes: scale
                 TdsParserExtensions.WriteSqlDecimal(value, _stateObj);
@@ -555,7 +555,7 @@ namespace Microsoft.Data.SqlClient
                 else
                 {
                     TdsDateTime dt = MetaType.FromDateTime(value, 8);
-                    TdsParserExtensions.WriteSqlVariantHeader(10, TdsEnums.SQLDATETIME, 0, _stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(10, TdsEnums.SQLDATETIME, 0, _stateObj);
                     TdsParserExtensions.WriteInt(dt.days, _stateObj);
                     TdsParserExtensions.WriteInt(dt.time, _stateObj);
                 }
@@ -572,8 +572,8 @@ namespace Microsoft.Data.SqlClient
                     TdsDateTime dt = MetaType.FromDateTime(value, (byte)_metaData.MaxLength);
                     Debug.Assert(0 <= dt.days && dt.days <= ushort.MaxValue, "Invalid DateTime '" + value + "' for SmallDateTime");
 
-                    TdsParserExtensions.WriteShort(dt.days, _stateObj);
-                    TdsParserExtensions.WriteShort(dt.time, _stateObj);
+                    TdsParserExtensions.WriteShort(_stateObj, dt.days);
+                    TdsParserExtensions.WriteShort(_stateObj, dt.time);
                 }
                 else if (SqlDbType.DateTime == _metaData.SqlDbType)
                 {
@@ -623,7 +623,7 @@ namespace Microsoft.Data.SqlClient
 
             if (SqlDbType.Variant == _metaData.SqlDbType)
             {
-                TdsParserExtensions.WriteSqlVariantHeader(18, TdsEnums.SQLUNIQUEID, 0, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(18, TdsEnums.SQLUNIQUEID, 0, _stateObj);
             }
             else
             {
@@ -649,7 +649,7 @@ namespace Microsoft.Data.SqlClient
             {
                 scale = SmiMetaData.DefaultTime.Scale;
                 length = (byte)SmiMetaData.DefaultTime.MaxLength;
-                TdsParserExtensions.WriteSqlVariantHeader(8, TdsEnums.SQLTIME, 1, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(8, TdsEnums.SQLTIME, 1, _stateObj);
                 _stateObj.WriteByte(scale); //propbytes: scale
             }
             else
@@ -682,7 +682,7 @@ namespace Microsoft.Data.SqlClient
                 SmiMetaData dateTimeOffsetMetaData = SmiMetaData.DefaultDateTimeOffset;
                 scale = MetaType.MetaDateTimeOffset.Scale;
                 length = (byte)dateTimeOffsetMetaData.MaxLength;
-                TdsParserExtensions.WriteSqlVariantHeader(13, TdsEnums.SQLDATETIMEOFFSET, 1, _stateObj);
+                TdsSqlWriterExtension.WriteSqlVariantHeader(13, TdsEnums.SQLDATETIMEOFFSET, 1, _stateObj);
                 _stateObj.WriteByte(scale); //propbytes: scale
             }
             else

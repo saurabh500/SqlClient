@@ -199,82 +199,82 @@ namespace Microsoft.Data.SqlClient
                 // write offset/length pairs
 
                 // note that you must always set ibHostName since it indicates the beginning of the variable length section of the login record
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // host name offset
-                TdsParserExtensions.WriteShort(rec.hostName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // host name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.hostName.Length);
                 offset += rec.hostName.Length * 2;
 
                 // Only send user/password over if not fSSPI...  If both user/password and SSPI are in login
                 // rec, only SSPI is used.  Confirmed same behavior as in luxor.
                 if (!rec.useSSPI && !(_connHandler.Features.FedAuth.IsInfoRequested || _connHandler.Features.FedAuth.IsRequested))
                 {
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(userName.Length, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, offset);  // userName offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, userName.Length);
                     offset += userName.Length * 2;
 
                     // the encrypted password is a byte array - so length computations different than strings
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj); // password offset
-                    TdsParserExtensions.WriteShort(encryptedPasswordLengthInBytes / 2, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, offset); // password offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, encryptedPasswordLengthInBytes / 2);
                     offset += encryptedPasswordLengthInBytes;
                 }
                 else
                 {
                     // case where user/password data is not used, send over zeros
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // password offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);  // userName offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);  // password offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // app name offset
-                TdsParserExtensions.WriteShort(rec.applicationName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // app name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.applicationName.Length);
                 offset += rec.applicationName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // server name offset
-                TdsParserExtensions.WriteShort(rec.serverName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // server name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.serverName.Length);
                 offset += rec.serverName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset);
                 if (useFeatureExt)
                 {
-                    TdsParserExtensions.WriteShort(4, _physicalStateObj); // length of ibFeatgureExtLong (which is a DWORD)
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 4); // length of ibFeatgureExtLong (which is a DWORD)
                     offset += 4;
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj); // unused (was remote password ?)
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0); // unused (was remote password ?)
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // client interface name offset
-                TdsParserExtensions.WriteShort(clientInterfaceName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // client interface name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, clientInterfaceName.Length);
                 offset += clientInterfaceName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // language name offset
-                TdsParserExtensions.WriteShort(rec.language.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // language name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.language.Length);
                 offset += rec.language.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // database name offset
-                TdsParserExtensions.WriteShort(rec.database.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // database name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.database.Length);
                 offset += rec.database.Length * 2;
 
                 _physicalStateObj.WriteByteArray(s_nicAddress, s_nicAddress.Length, 0);
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // ibSSPI offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // ibSSPI offset
                 if (rec.useSSPI)
                 {
-                    TdsParserExtensions.WriteShort((int)outSSPILength, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, (int)outSSPILength);
                     offset += (int)outSSPILength;
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // DB filename offset
-                TdsParserExtensions.WriteShort(rec.attachDBFilename.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // DB filename offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.attachDBFilename.Length);
                 offset += rec.attachDBFilename.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // reset password offset
-                TdsParserExtensions.WriteShort(encryptedChangePasswordLengthInBytes / 2, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // reset password offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, encryptedChangePasswordLengthInBytes / 2);
 
                 TdsParserExtensions.WriteInt(0, _physicalStateObj);        // reserved for chSSPI
 
@@ -473,61 +473,61 @@ namespace Microsoft.Data.SqlClient
                 // write offset/length pairs
 
                 // note that you must always set ibHostName since it indicaters the beginning of the variable length section of the login record
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // host name offset
-                TdsParserExtensions.WriteShort(rec.hostName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // host name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.hostName.Length);
                 offset += rec.hostName.Length * 2;
 
                 // Only send user/password over if not fSSPI or fed auth MSAL...  If both user/password and SSPI are in login
                 // rec, only SSPI is used.  Confirmed same bahavior as in luxor.
                 if (!rec.useSSPI && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested))
                 {
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(userName.Length, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, offset);  // userName offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, userName.Length);
                     offset += userName.Length * 2;
 
                     // the encrypted password is a byte array - so length computations different than strings
-                    TdsParserExtensions.WriteShort(offset, _physicalStateObj); // password offset
-                    TdsParserExtensions.WriteShort(encryptedPasswordLengthInBytes / 2, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, offset); // password offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, encryptedPasswordLengthInBytes / 2);
                     offset += encryptedPasswordLengthInBytes;
                 }
                 else
                 {
                     // case where user/password data is not used, send over zeros
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // userName offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);  // password offset
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);  // userName offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);  // password offset
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // app name offset
-                TdsParserExtensions.WriteShort(rec.applicationName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // app name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.applicationName.Length);
                 offset += rec.applicationName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // server name offset
-                TdsParserExtensions.WriteShort(rec.serverName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // server name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.serverName.Length);
                 offset += rec.serverName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset);
                 if (useFeatureExt)
                 {
-                    TdsParserExtensions.WriteShort(4, _physicalStateObj); // length of ibFeatgureExtLong (which is a DWORD)
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 4); // length of ibFeatgureExtLong (which is a DWORD)
                     offset += 4;
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj); // unused (was remote password ?)
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0); // unused (was remote password ?)
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // client interface name offset
-                TdsParserExtensions.WriteShort(clientInterfaceName.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // client interface name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, clientInterfaceName.Length);
                 offset += clientInterfaceName.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // language name offset
-                TdsParserExtensions.WriteShort(rec.language.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // language name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.language.Length);
                 offset += rec.language.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // database name offset
-                TdsParserExtensions.WriteShort(rec.database.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // database name offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.database.Length);
                 offset += rec.database.Length * 2;
 
                 // UNDONE: NIC address
@@ -537,23 +537,23 @@ namespace Microsoft.Data.SqlClient
 
                 _physicalStateObj.WriteByteArray(s_nicAddress, s_nicAddress.Length, 0);
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // ibSSPI offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // ibSSPI offset
                 if (rec.useSSPI)
                 {
-                    TdsParserExtensions.WriteShort((int)outSSPILength, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, (int)outSSPILength);
                     offset += (int)outSSPILength;
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(0, _physicalStateObj);
+                    TdsParserExtensions.WriteShort(_physicalStateObj, 0);
                 }
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // DB filename offset
-                TdsParserExtensions.WriteShort(rec.attachDBFilename.Length, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // DB filename offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, rec.attachDBFilename.Length);
                 offset += rec.attachDBFilename.Length * 2;
 
-                TdsParserExtensions.WriteShort(offset, _physicalStateObj); // reset password offset
-                TdsParserExtensions.WriteShort(encryptedChangePasswordLengthInBytes / 2, _physicalStateObj);
+                TdsParserExtensions.WriteShort(_physicalStateObj, offset); // reset password offset
+                TdsParserExtensions.WriteShort(_physicalStateObj, encryptedChangePasswordLengthInBytes / 2);
 
                 TdsParserExtensions.WriteInt(0, _physicalStateObj);        // reserved for chSSPI
 

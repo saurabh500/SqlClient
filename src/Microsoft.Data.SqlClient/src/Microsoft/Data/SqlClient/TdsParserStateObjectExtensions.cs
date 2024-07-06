@@ -71,7 +71,9 @@ namespace Microsoft.Data.SqlClient
         //
         // Takes a 16 bit short and writes it.
         //
-        internal static void WriteShort(int v, TdsParserStateObject stateObj)
+        internal static void WriteShort(
+            TdsParserStateObject stateObj,
+            int v)
         {
             if ((stateObj._outBytesUsed + 2) > stateObj._outBuff.Length)
             {
@@ -90,7 +92,7 @@ namespace Microsoft.Data.SqlClient
 
         internal static void WriteUnsignedShort(ushort us, TdsParserStateObject stateObj)
         {
-            WriteShort((short)us, stateObj);
+            WriteShort(stateObj, (short)us);
         }
 
         //
@@ -110,7 +112,7 @@ namespace Microsoft.Data.SqlClient
         {
             SmiMetaData dateTime2MetaData = SmiMetaData.DefaultDateTime2;
             // NOTE: 3 bytes added here to support additional header information for variant - internal type, scale prop, scale
-            TdsParserExtensions.WriteSqlVariantHeader((int)(dateTime2MetaData.MaxLength + 3), TdsEnums.SQLDATETIME2, 1 /* one scale prop */, stateObj);
+            TdsSqlWriterExtension.WriteSqlVariantHeader((int)(dateTime2MetaData.MaxLength + 3), TdsEnums.SQLDATETIME2, 1 /* one scale prop */, stateObj);
             stateObj.WriteByte(dateTime2MetaData.Scale); //scale property
             TdsParserExtensions.WriteDateTime2(value, dateTime2MetaData.Scale, (int)(dateTime2MetaData.MaxLength), stateObj);
         }
@@ -119,7 +121,7 @@ namespace Microsoft.Data.SqlClient
         {
             SmiMetaData dateMetaData = SmiMetaData.DefaultDate;
             // NOTE: 2 bytes added here to support additional header information for variant - internal type, scale prop (ignoring scale here)
-            TdsParserExtensions.WriteSqlVariantHeader((int)(dateMetaData.MaxLength + 2), TdsEnums.SQLDATE, 0 /* one scale prop */, stateObj);
+            TdsSqlWriterExtension.WriteSqlVariantHeader((int)(dateMetaData.MaxLength + 2), TdsEnums.SQLDATE, 0 /* one scale prop */, stateObj);
             TdsParserExtensions.WriteDate(value, stateObj);
         }
 
@@ -895,12 +897,12 @@ namespace Microsoft.Data.SqlClient
         {
             if (null != s)
             {
-                WriteShort(checked((short)s.Length), stateObj);
+                WriteShort(stateObj, checked((short)s.Length));
                 WriteString(s, stateObj);
             }
             else
             {
-                WriteShort(0, stateObj);
+                WriteShort(stateObj, 0);
             }
         }
 
@@ -1368,13 +1370,13 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLBIGCHAR:
                 case TdsEnums.SQLBIGVARCHAR:
                 case TdsEnums.SQLTEXT:
-                    if (null == _connHandler.DefaultEncoding)
+                    if (null == _connHandler.CollationInfo.DefaultEncoding)
                     {
                         parser.ThrowUnsupportedCollationEncountered(null); // stateObject only when reading
                     }
 
                     string stringValue = (isSqlType) ? ((SqlString)value).Value : (string)value;
-                    actualLengthInBytes = _connHandler.DefaultEncoding.GetByteCount(stringValue);
+                    actualLengthInBytes = _connHandler.CollationInfo.DefaultEncoding.GetByteCount(stringValue);
 
                     // If the string length is > max length, then use the max length (see comments above)
                     if (metadata.baseTI.length > 0 &&
@@ -1412,7 +1414,7 @@ namespace Microsoft.Data.SqlClient
                                             offset: 0,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
                                             stateObj: stateObj,
-                                            defaultEncoding: parser.Connection.DefaultEncoding);
+                                            defaultEncoding: parser.Connection.CollationInfo.DefaultEncoding);
             }
             else
             {
@@ -1424,7 +1426,7 @@ namespace Microsoft.Data.SqlClient
                                             isDataFeed: isDataFeed,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
                                             stateObj: stateObj,
-                                            defaultEncoding: parser.Connection.DefaultEncoding);
+                                            defaultEncoding: parser.Connection.CollationInfo.DefaultEncoding);
             }
 
             Debug.Assert(serializedValue != null, "serializedValue should not be null in TdsExecuteRPC.");
@@ -2243,7 +2245,12 @@ namespace Microsoft.Data.SqlClient
 
             // Read the base TypeInfo
             col.baseTI = new SqlMetaDataPriv();
-            if (!TryProcessTypeInfo(stateObj, col.baseTI, userType, connectionHandler.DefaultCodePage, connectionHandler.DefaultEncoding, throwOnUnsupportedCollationAction))
+            if (!TryProcessTypeInfo(stateObj, 
+                col.baseTI, 
+                userType, 
+                connectionHandler.CollationInfo.DefaultCodePage, 
+                connectionHandler.CollationInfo.DefaultEncoding, 
+                throwOnUnsupportedCollationAction))
             {
                 return false;
             }
@@ -2384,7 +2391,7 @@ namespace Microsoft.Data.SqlClient
 
         private static bool TryProcessTypeInfo(TdsParserStateObject stateObj, 
             SqlMetaDataPriv col, UInt32 userType,
-            int _defaultCodePage, Encoding _defaultEncoding,
+            int defaultCodePage, Encoding defaultEncoding,
             Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
@@ -2547,10 +2554,10 @@ namespace Microsoft.Data.SqlClient
                 {
                     int codePage = GetCodePage(col.collation, stateObj, unsupportedCollationAction);
 
-                    if (codePage == _defaultCodePage)
+                    if (codePage == defaultCodePage)
                     {
-                        col.codePage = _defaultCodePage;
-                        col.encoding = _defaultEncoding;
+                        col.codePage = defaultCodePage;
+                        col.encoding = defaultEncoding;
                     }
                     else
                     {
@@ -2608,8 +2615,8 @@ namespace Microsoft.Data.SqlClient
             if (!TryProcessTypeInfo(stateObj, 
                 col, 
                 userType, 
-                connectionHandler.DefaultCodePage, 
-                connectionHandler.DefaultEncoding,
+                connectionHandler.CollationInfo.DefaultCodePage, 
+                connectionHandler.CollationInfo.DefaultEncoding,
                 unsupportedCollationAction))
             {
                 return false;
@@ -3457,13 +3464,6 @@ namespace Microsoft.Data.SqlClient
             return stateObj._longlen;
         }
 
-        internal static void WriteSqlVariantHeader(int length, byte tdstype, byte propbytes, TdsParserStateObject stateObj)
-        {
-            TdsParserExtensions.WriteInt(length, stateObj);
-            stateObj.WriteByte(tdstype);
-            stateObj.WriteByte(propbytes);
-        }
-
 
         //
         // Returns the data stream length of the data identified by tds type or SqlMetaData returns
@@ -3495,6 +3495,19 @@ namespace Microsoft.Data.SqlClient
                 return true;
             }
         }
+
+    }
+
+    internal static class TdsSqlWriterExtension
+    {
+
+        internal static void WriteSqlVariantHeader(int length, byte tdstype, byte propbytes, TdsParserStateObject stateObj)
+        {
+            TdsParserExtensions.WriteInt(length, stateObj);
+            stateObj.WriteByte(tdstype);
+            stateObj.WriteByte(propbytes);
+        }
+
 
     }
 

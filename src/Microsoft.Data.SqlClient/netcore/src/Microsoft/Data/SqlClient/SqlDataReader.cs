@@ -436,7 +436,7 @@ namespace Microsoft.Data.SqlClient
             stateObj.Owner = this;
             _stateObj = stateObj;
             _parser = stateObj.Parser;
-            _defaultLCID = _parser.Connection.DefaultLCID;
+            _defaultLCID = _parser.Connection.CollationInfo.DefaultLCID;
         }
 
 #if NET6_0_OR_GREATER
@@ -2266,7 +2266,7 @@ namespace Microsoft.Data.SqlClient
                     length, 
                     _metaData[i], 
                     _stateObj,
-                    _parser.Connection.DefaultEncoding, 
+                    _parser.Connection.CollationInfo.DefaultEncoding, 
                     _parser.ThrowUnsupportedCollationEncountered);
                 _columnDataBytesRead += cch << 1;
             }

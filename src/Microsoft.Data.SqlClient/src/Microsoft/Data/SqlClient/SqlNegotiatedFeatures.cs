@@ -6,9 +6,38 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Microsoft.Data.SqlClient.FeaturesX
 {
+
+    /// <summary>
+    /// A type to represent the collation information.
+    /// </summary>
+    internal class CollationInfo
+    {
+        /// <summary>
+        /// Default Codepage of the collation.
+        /// </summary>
+        public int DefaultCodePage { get; internal set; }
+
+        /// <summary>
+        /// Default LCID of the database.
+        /// </summary>
+        public int DefaultLCID { get; internal set; }
+
+        /// <summary>
+        /// The default collation of the database.
+        /// </summary>
+        public SqlCollation DefaultCollation { get; internal set; }
+
+        /// <summary>
+        /// For the character data.
+        /// This is set during login while processing env change tokens.
+        /// </summary>
+        internal Encoding DefaultEncoding { get; set; }
+    }
+
     internal class SqlNegotiatedFeatures
     {
         internal readonly SRecoveryFeature SessionRecovery;

@@ -1196,8 +1196,8 @@ namespace Microsoft.Data.SqlClient
             _resetConnectionEvent?.Dispose();
             _resetConnectionEvent = null;
 
-            Connection.DefaultEncoding = null;
-            Connection.DefaultCollation = null;
+            Connection.CollationInfo.DefaultEncoding = null;
+            Connection.CollationInfo.DefaultCollation = null;
         }
 
         // Fires a single InfoMessageEvent
@@ -2378,8 +2378,8 @@ namespace Microsoft.Data.SqlClient
                         }
                         if (env._newValue == TdsEnums.DEFAULT_ENGLISH_CODE_PAGE_STRING)
                         {
-                            _connHandler.DefaultCodePage = TdsEnums.DEFAULT_ENGLISH_CODE_PAGE_VALUE;
-                            _connHandler.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.DefaultCodePage);
+                            _connHandler.CollationInfo.DefaultCodePage = TdsEnums.DEFAULT_ENGLISH_CODE_PAGE_VALUE;
+                            _connHandler.CollationInfo.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.CollationInfo.DefaultCodePage);
                         }
                         else
                         {
@@ -2387,8 +2387,8 @@ namespace Microsoft.Data.SqlClient
 
                             string stringCodePage = env._newValue.Substring(TdsEnums.CHARSET_CODE_PAGE_OFFSET);
 
-                            _connHandler.DefaultCodePage = int.Parse(stringCodePage, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                            _connHandler.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.DefaultCodePage);
+                            _connHandler.CollationInfo.DefaultCodePage = int.Parse(stringCodePage, NumberStyles.Integer, CultureInfo.InvariantCulture);
+                            _connHandler.CollationInfo.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.CollationInfo.DefaultCodePage);
                         }
 
                         break;
@@ -2428,7 +2428,7 @@ namespace Microsoft.Data.SqlClient
                         {
                             return false;
                         }
-                        _connHandler.DefaultLCID = int.Parse(env._newValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
+                        _connHandler.CollationInfo.DefaultLCID = int.Parse(env._newValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
                         break;
 
                     case TdsEnums.ENV_COMPFLAGS:
@@ -2453,23 +2453,23 @@ namespace Microsoft.Data.SqlClient
                             }
 
                             // Give the parser the new collation values in case parameters don't specify one
-                            _connHandler.DefaultCollation = env._newCollation;
+                            _connHandler.CollationInfo.DefaultCollation = env._newCollation;
 
                             // UTF8 collation
                             if (env._newCollation.IsUTF8)
                             {
-                                _connHandler.DefaultEncoding = Encoding.UTF8;
+                                _connHandler.CollationInfo.DefaultEncoding = Encoding.UTF8;
                             }
                             else
                             {
                                 int newCodePage = TdsParserExtensions.GetCodePage(env._newCollation, stateObj, ThrowUnsupportedCollationEncountered);
-                                if (newCodePage != _connHandler.DefaultCodePage)
+                                if (newCodePage != _connHandler.CollationInfo.DefaultCodePage)
                                 {
-                                    _connHandler.DefaultCodePage = newCodePage;
-                                    _connHandler.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.DefaultCodePage);
+                                    _connHandler.CollationInfo.DefaultCodePage = newCodePage;
+                                    _connHandler.CollationInfo.DefaultEncoding = System.Text.Encoding.GetEncoding(_connHandler.CollationInfo.DefaultCodePage);
                                 }
                             }
-                            _connHandler.DefaultLCID = env._newCollation.LCID;
+                            _connHandler.CollationInfo.DefaultLCID = env._newCollation.LCID;
                         }
 
                         if (!stateObj.TryReadByte(out byteLength))
@@ -3226,10 +3226,10 @@ namespace Microsoft.Data.SqlClient
                     int codePage = TdsParserExtensions.GetCodePage(rec.collation, stateObj, ThrowUnsupportedCollationEncountered);
 
                     // If the column lcid is the same as the default, use the default encoder
-                    if (codePage == connectionHandler.DefaultCodePage)
+                    if (codePage == connectionHandler.CollationInfo.DefaultCodePage)
                     {
-                        rec.codePage = connectionHandler.DefaultCodePage;
-                        rec.encoding = connectionHandler.DefaultEncoding;
+                        rec.codePage = connectionHandler.CollationInfo.DefaultCodePage;
+                        rec.encoding = connectionHandler.CollationInfo.DefaultEncoding;
                     }
                     else
                     {
@@ -4160,7 +4160,7 @@ namespace Microsoft.Data.SqlClient
                                     stateObj, 
                                     md.NormalizationRuleVersion, 
                                     throwOnCollationNotFound,
-                                    connectionHandler.DefaultEncoding);
+                                    connectionHandler.CollationInfo.DefaultEncoding);
                             }
                         }
                         catch (Exception e)
@@ -4193,7 +4193,7 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLNCHAR:
                 case TdsEnums.SQLNVARCHAR:
                 case TdsEnums.SQLNTEXT:
-                    if (!TryReadSqlStringValue(value, tdsType, length, md.encoding, isPlp, stateObj, connectionHandler.DefaultEncoding))
+                    if (!TryReadSqlStringValue(value, tdsType, length, md.encoding, isPlp, stateObj, connectionHandler.CollationInfo.DefaultEncoding))
                     {
                         return false;
                     }
@@ -4223,7 +4223,7 @@ namespace Microsoft.Data.SqlClient
                 default:
                     Debug.Assert(!isPlp, "ReadSqlValue calling ReadSqlValueInternal with plp data");
                     if (!TryReadSqlValueInternal(value, tdsType, length, stateObj,
-                         connectionHandler.DefaultEncoding, throwOnCollationNotFound))
+                         connectionHandler.CollationInfo.DefaultEncoding, throwOnCollationNotFound))
                     {
                         return false;
                     }
@@ -4713,7 +4713,8 @@ namespace Microsoft.Data.SqlClient
         // note that we also write out the maxlen and actuallen members (4 bytes each)
         // in addition to the SQLVariant structure
         //
-        internal Task WriteSqlVariantValue(object value, int length, int offset, TdsParserStateObject stateObj, bool canAccumulate = true)
+        internal Task WriteSqlVariantValue(object value, int length, int offset, TdsParserStateObject stateObj,
+            bool canAccumulate = true)
         {
             // handle null values
             if (ADP.IsNull(value))
@@ -4738,7 +4739,7 @@ namespace Microsoft.Data.SqlClient
 
             if (mt.IsAnsiType)
             {
-                length = GetEncodingCharLength((string)value, length, 0, Connection.DefaultEncoding, Connection.DefaultEncoding, ThrowUnsupportedCollationEncountered);
+                length = GetEncodingCharLength((string)value, length, 0, Connection.CollationInfo.DefaultEncoding, Connection.CollationInfo.DefaultEncoding, ThrowUnsupportedCollationEncountered);
             }
 
             // max and actual len are equal to
@@ -4770,7 +4771,7 @@ namespace Microsoft.Data.SqlClient
                     break;
 
                 case TdsEnums.SQLINT2:
-                    TdsParserExtensions.WriteShort((short)value, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, (short)value);
                     break;
 
                 case TdsEnums.SQLINT1:
@@ -4789,7 +4790,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         byte[] b = (byte[])value;
 
-                        TdsParserExtensions.WriteShort(length, stateObj); // propbytes: varlen
+                        TdsParserExtensions.WriteShort(stateObj, length); // propbytes: varlen
                         return stateObj.WriteByteArray(b, length, offset, canAccumulate);
                     }
 
@@ -4797,10 +4798,13 @@ namespace Microsoft.Data.SqlClient
                     {
                         string s = (string)value;
 
-                        TdsParserExtensions.WriteUnsignedInt(Connection.DefaultCollation._info, stateObj); // propbytes: collation.Info
-                        stateObj.WriteByte(Connection.DefaultCollation._sortId); // propbytes: collation.SortId
-                        TdsParserExtensions.WriteShort(length, stateObj); // propbyte: varlen
-                        return TdsParserExtensions.WriteEncodingChar(s, Connection.DefaultEncoding, stateObj, Connection.DefaultEncoding, canAccumulate);
+                        TdsParserExtensions.WriteUnsignedInt(Connection.CollationInfo.DefaultCollation._info,
+                            stateObj); // propbytes: collation.Info
+                        stateObj.WriteByte(Connection.CollationInfo.DefaultCollation._sortId); // propbytes: collation.SortId
+                        TdsParserExtensions.WriteShort(stateObj, length); // propbyte: varlen
+                        return TdsParserExtensions.WriteEncodingChar(s, Connection.CollationInfo.DefaultEncoding, stateObj, 
+                            Connection.CollationInfo.DefaultEncoding, 
+                            canAccumulate);
                     }
 
                 case TdsEnums.SQLUNIQUEID:
@@ -4818,9 +4822,9 @@ namespace Microsoft.Data.SqlClient
                     {
                         string s = (string)value;
 
-                        TdsParserExtensions.WriteUnsignedInt(_connHandler.DefaultCollation._info, stateObj); // propbytes: collation.Info
-                        stateObj.WriteByte(_connHandler.DefaultCollation._sortId); // propbytes: collation.SortId
-                        TdsParserExtensions.WriteShort(length, stateObj); // propbyte: varlen
+                        TdsParserExtensions.WriteUnsignedInt(_connHandler.CollationInfo.DefaultCollation._info, stateObj); // propbytes: collation.Info
+                        stateObj.WriteByte(_connHandler.CollationInfo.DefaultCollation._sortId); // propbytes: collation.SortId
+                        TdsParserExtensions.WriteShort(stateObj, length); // propbyte: varlen
 
                         // string takes cchar, not cbyte so convert
                         length >>= 1;
@@ -4881,7 +4885,8 @@ namespace Microsoft.Data.SqlClient
         // Therefore the sql_variant value must not include the MaxLength. This is the major difference
         // between this method and WriteSqlVariantValue above.
         //
-        internal Task WriteSqlVariantDataRowValue(object value, TdsParserStateObject stateObj, bool canAccumulate = true)
+        internal static Task WriteSqlVariantDataRowValue(object value, TdsParserStateObject stateObj,
+            SqlInternalConnectionTds Connection, Action<TdsParserStateObject> ThrowUnsupportedCollationEncountered, bool canAccumulate = true)
         {
             // handle null values
             if ((null == value) || (DBNull.Value == value))
@@ -4895,43 +4900,43 @@ namespace Microsoft.Data.SqlClient
 
             if (metatype.IsAnsiType)
             {
-                length = GetEncodingCharLength((string)value, length, 0, Connection.DefaultEncoding, Connection.DefaultEncoding, ThrowUnsupportedCollationEncountered);
+                length = GetEncodingCharLength((string)value, length, 0, Connection.CollationInfo.DefaultEncoding, Connection.CollationInfo.DefaultEncoding, ThrowUnsupportedCollationEncountered);
             }
 
             switch (metatype.TDSType)
             {
                 case TdsEnums.SQLFLT4:
-                    TdsParserExtensions.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteFloat((float)value, stateObj);
                     break;
 
                 case TdsEnums.SQLFLT8:
-                    TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteDouble((double)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT8:
-                    TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteLong((long)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT4:
-                    TdsParserExtensions.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(6, metatype.TDSType, metatype.PropBytes, stateObj);
                     TdsParserExtensions.WriteInt((int)value, stateObj);
                     break;
 
                 case TdsEnums.SQLINT2:
-                    TdsParserExtensions.WriteSqlVariantHeader(4, metatype.TDSType, metatype.PropBytes, stateObj);
-                    TdsParserExtensions.WriteShort((short)value, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(4, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, (short)value);
                     break;
 
                 case TdsEnums.SQLINT1:
-                    TdsParserExtensions.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte((byte)value);
                     break;
 
                 case TdsEnums.SQLBIT:
-                    TdsParserExtensions.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(3, metatype.TDSType, metatype.PropBytes, stateObj);
                     if ((bool)value == true)
                         stateObj.WriteByte(1);
                     else
@@ -4944,8 +4949,8 @@ namespace Microsoft.Data.SqlClient
                         byte[] b = (byte[])value;
 
                         length = b.Length;
-                        TdsParserExtensions.WriteSqlVariantHeader(4 + length, metatype.TDSType, metatype.PropBytes, stateObj);
-                        TdsParserExtensions.WriteShort(length, stateObj); // propbytes: varlen
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(4 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, length); // propbytes: varlen
                         return stateObj.WriteByteArray(b, length, 0, canAccumulate);
                     }
 
@@ -4954,11 +4959,11 @@ namespace Microsoft.Data.SqlClient
                         string s = (string)value;
 
                         length = s.Length;
-                        TdsParserExtensions.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
-                        TdsParserExtensions.WriteUnsignedInt(_connHandler.DefaultCollation._info, stateObj); // propbytes: collation.Info
-                        stateObj.WriteByte(_connHandler.DefaultCollation._sortId); // propbytes: collation.SortId
-                        TdsParserExtensions.WriteShort(length, stateObj);
-                        return TdsParserExtensions.WriteEncodingChar(s, Connection.DefaultEncoding, stateObj, Connection.DefaultEncoding, canAccumulate);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteUnsignedInt(Connection.CollationInfo.DefaultCollation._info, stateObj); // propbytes: collation.Info
+                        stateObj.WriteByte(Connection.CollationInfo.DefaultCollation._sortId); // propbytes: collation.SortId
+                        TdsParserExtensions.WriteShort(stateObj, length);
+                        return TdsParserExtensions.WriteEncodingChar(s, Connection.CollationInfo.DefaultEncoding, stateObj, Connection.CollationInfo.DefaultEncoding, canAccumulate);
                     }
 
                 case TdsEnums.SQLUNIQUEID:
@@ -4969,7 +4974,7 @@ namespace Microsoft.Data.SqlClient
 
                         length = b.Length;
                         Debug.Assert(length == 16, "Invalid length for guid type in com+ object");
-                        TdsParserExtensions.WriteSqlVariantHeader(18, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(18, metatype.TDSType, metatype.PropBytes, stateObj);
                         stateObj.WriteByteSpan(b);
                         break;
                     }
@@ -4979,10 +4984,10 @@ namespace Microsoft.Data.SqlClient
                         string s = (string)value;
 
                         length = s.Length * 2;
-                        TdsParserExtensions.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
-                        TdsParserExtensions.WriteUnsignedInt(Connection.DefaultCollation._info, stateObj); // propbytes: collation.Info
-                        stateObj.WriteByte(Connection.DefaultCollation._sortId); // propbytes: collation.SortId
-                        TdsParserExtensions.WriteShort(length, stateObj); // propbyte: varlen
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(9 + length, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsParserExtensions.WriteUnsignedInt(Connection.CollationInfo.DefaultCollation._info, stateObj); // propbytes: collation.Info
+                        stateObj.WriteByte(Connection.CollationInfo.DefaultCollation._sortId); // propbytes: collation.SortId
+                        TdsParserExtensions.WriteShort(stateObj, length); // propbyte: varlen
 
                         // string takes cchar, not cbyte so convert
                         length >>= 1;
@@ -4993,7 +4998,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         TdsDateTime dt = MetaType.FromDateTime((DateTime)value, 8);
 
-                        TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                         TdsParserExtensions.WriteInt(dt.days, stateObj);
                         TdsParserExtensions.WriteInt(dt.time, stateObj);
                         break;
@@ -5001,14 +5006,14 @@ namespace Microsoft.Data.SqlClient
 
                 case TdsEnums.SQLMONEY:
                     {
-                        TdsParserExtensions.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(10, metatype.TDSType, metatype.PropBytes, stateObj);
                         WriteCurrency((decimal)value, 8, stateObj);
                         break;
                     }
 
                 case TdsEnums.SQLNUMERICN:
                     {
-                        TdsParserExtensions.WriteSqlVariantHeader(21, metatype.TDSType, metatype.PropBytes, stateObj);
+                        TdsSqlWriterExtension.WriteSqlVariantHeader(21, metatype.TDSType, metatype.PropBytes, stateObj);
                         stateObj.WriteByte(metatype.Precision); //propbytes: precision
                         stateObj.WriteByte((byte)((decimal.GetBits((decimal)value)[3] & 0x00ff0000) >> 0x10)); // propbytes: scale
                         TdsParserExtensions.WriteDecimal((decimal)value, stateObj);
@@ -5016,13 +5021,13 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLTIME:
-                    TdsParserExtensions.WriteSqlVariantHeader(8, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(8, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte(metatype.Scale); //propbytes: scale
                     TdsParserExtensions.WriteTime((TimeSpan)value, metatype.Scale, 5, stateObj);
                     break;
 
                 case TdsEnums.SQLDATETIMEOFFSET:
-                    TdsParserExtensions.WriteSqlVariantHeader(13, metatype.TDSType, metatype.PropBytes, stateObj);
+                    TdsSqlWriterExtension.WriteSqlVariantHeader(13, metatype.TDSType, metatype.PropBytes, stateObj);
                     stateObj.WriteByte(metatype.Scale); //propbytes: scale
                     TdsParserExtensions.WriteDateTimeOffset((DateTimeOffset)value, metatype.Scale, 10, stateObj);
                     break;
@@ -5317,26 +5322,26 @@ namespace Microsoft.Data.SqlClient
                 TdsParserExtensions.WriteInt(marsHeaderSize, stateObj);
                 WriteMarsHeaderData(stateObj, _currentTransaction, _retainedTransactionId);
 
-                TdsParserExtensions.WriteShort((short)request, stateObj); // write TransactionManager Request type
+                TdsParserExtensions.WriteShort(stateObj, (short)request); // write TransactionManager Request type
 
                 bool returnReader = false;
 
                 switch (request)
                 {
                     case TdsEnums.TransactionManagerRequestType.GetDTCAddress:
-                        TdsParserExtensions.WriteShort(0, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, 0);
 
                         returnReader = true;
                         break;
                     case TdsEnums.TransactionManagerRequestType.Propagate:
                         if (null != buffer)
                         {
-                            TdsParserExtensions.WriteShort(buffer.Length, stateObj);
+                            TdsParserExtensions.WriteShort(stateObj, buffer.Length);
                             stateObj.WriteByteArray(buffer, buffer.Length, 0);
                         }
                         else
                         {
-                            TdsParserExtensions.WriteShort(0, stateObj);
+                            TdsParserExtensions.WriteShort(stateObj, 0);
                         }
                         break;
                     case TdsEnums.TransactionManagerRequestType.Begin:
@@ -5705,19 +5710,19 @@ namespace Microsoft.Data.SqlClient
                             {
                                 // Perf optimization for 2000 and later,
                                 Debug.Assert(rpcext.ProcID < 255, "rpcExec:ProcID can't be larger than 255");
-                                TdsParserExtensions.WriteShort(0xffff, stateObj);
-                                TdsParserExtensions.WriteShort((short)(rpcext.ProcID), stateObj);
+                                TdsParserExtensions.WriteShort(stateObj, 0xffff);
+                                TdsParserExtensions.WriteShort(stateObj, (short)(rpcext.ProcID));
                             }
                             else
                             {
                                 Debug.Assert(!string.IsNullOrEmpty(rpcext.rpcName), "must have an RPC name");
                                 tempLen = rpcext.rpcName.Length;
-                                TdsParserExtensions.WriteShort(tempLen, stateObj);
+                                TdsParserExtensions.WriteShort(stateObj, tempLen);
                                 TdsParserExtensions.WriteString(rpcext.rpcName, tempLen, 0, stateObj);
                             }
 
                             // Options
-                            TdsParserExtensions.WriteShort((short)rpcext.options, stateObj);
+                            TdsParserExtensions.WriteShort(stateObj, (short)rpcext.options);
 
                             byte[] enclavePackage = cmd.enclavePackage != null ? cmd.enclavePackage.EnclavePackageBytes : null;
                             WriteEnclaveInfo(stateObj, enclavePackage);
@@ -5776,7 +5781,7 @@ namespace Microsoft.Data.SqlClient
                                 WriteSmiParameter(param, i, 0 != (options & TdsEnums.RPC_PARAM_DEFAULT), stateObj, 
                                     enableOptimizedParameterBinding, isAdvancedTraceOn,
                                     _is2008,
-                                    _connHandler.DefaultCollation,
+                                    _connHandler.CollationInfo.DefaultCollation,
                                     ObjectID);
                                 continue;
                             }
@@ -6019,7 +6024,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         if (isSqlVal)
                         {
-                            serializedValue = TdsParserExtensions.SerializeUnencryptedSqlValue(value, mt, actualSize, param.Offset, param.NormalizationRuleVersion, stateObj, Connection.DefaultEncoding);
+                            serializedValue = TdsParserExtensions.SerializeUnencryptedSqlValue(value, mt, actualSize, param.Offset, param.NormalizationRuleVersion, stateObj, Connection.CollationInfo.DefaultEncoding);
                         }
                         else
                         {
@@ -6033,7 +6038,7 @@ namespace Microsoft.Data.SqlClient
                                 isDataFeed, 
                                 param.NormalizationRuleVersion, 
                                 stateObj, 
-                                Connection.DefaultEncoding);
+                                Connection.CollationInfo.DefaultEncoding);
                         }
 
                         Debug.Assert(serializedValue != null, "serializedValue should not be null in TdsExecuteRPC.");
@@ -6117,13 +6122,13 @@ namespace Microsoft.Data.SqlClient
                         s = (string)value;
                     }
 
-                    codePageByteSize = GetEncodingCharLength(s, actualSize, param.Offset, Connection.DefaultEncoding, Connection.DefaultEncoding,
+                    codePageByteSize = GetEncodingCharLength(s, actualSize, param.Offset, Connection.CollationInfo.DefaultEncoding, Connection.CollationInfo.DefaultEncoding,
                         ThrowUnsupportedCollationEncountered);
                 }
 
                 if (mt.IsPlp)
                 {
-                    TdsParserExtensions.WriteShort(TdsEnums.SQL_USHORTVARMAXLEN, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, TdsEnums.SQL_USHORTVARMAXLEN);
                 }
                 else
                 {
@@ -6242,7 +6247,7 @@ namespace Microsoft.Data.SqlClient
                 else if (mt.IsPlp)
                 {
                     if (mt.SqlDbType != SqlDbType.Xml)
-                        TdsParserExtensions.WriteShort(TdsEnums.SQL_USHORTVARMAXLEN, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, TdsEnums.SQL_USHORTVARMAXLEN);
                 }
                 else if ((!mt.IsVarTime) && (mt.SqlDbType != SqlDbType.Date))
                 {   // Time, Date, DateTime2, DateTimeoffset do not have the size written out
@@ -6314,12 +6319,12 @@ namespace Microsoft.Data.SqlClient
                     if (!string.IsNullOrEmpty(param.XmlSchemaCollectionName))
                     {
                         tempLen = (param.XmlSchemaCollectionName).Length;
-                        TdsParserExtensions.WriteShort((short)(tempLen), stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, (short)(tempLen));
                         TdsParserExtensions.WriteString(param.XmlSchemaCollectionName, tempLen, 0, stateObj);
                     }
                     else
                     {
-                        TdsParserExtensions.WriteShort(0, stateObj);       // No xml schema collection name
+                        TdsParserExtensions.WriteShort(stateObj, 0);       // No xml schema collection name
                     }
                 }
                 else
@@ -6330,8 +6335,8 @@ namespace Microsoft.Data.SqlClient
             else if (mt.IsCharType)
             {
                 // if it is not supplied, simply write out our default collation, otherwise, write out the one attached to the parameter
-                SqlCollation outCollation = (param.Collation != null) ? param.Collation : _connHandler.DefaultCollation;
-                Debug.Assert(_connHandler.DefaultCollation != null, "_defaultCollation is null!");
+                SqlCollation outCollation = (param.Collation != null) ? param.Collation : _connHandler.CollationInfo.DefaultCollation;
+                Debug.Assert(_connHandler.CollationInfo.DefaultCollation != null, "_defaultCollation is null!");
 
                 TdsParserExtensions.WriteUnsignedInt(outCollation._info, stateObj);
                 stateObj.WriteByte(outCollation._sortId);
@@ -6349,7 +6354,7 @@ namespace Microsoft.Data.SqlClient
                 if (isSqlVal)
                 {
                     writeParamTask = WriteSqlValue(value, mt, actualSize, codePageByteSize, param.Offset, stateObj,
-                        Connection.DefaultEncoding);
+                        Connection.CollationInfo.DefaultEncoding);
                 }
                 else
                 {
@@ -6361,7 +6366,7 @@ namespace Microsoft.Data.SqlClient
                         isParameterEncrypted ? 0 : param.Offset, 
                         stateObj, isParameterEncrypted ? 0 : param.Size, isDataFeed,
                         _asyncWrite,
-                        Connection.DefaultEncoding);
+                        Connection.CollationInfo.DefaultEncoding);
                 }
             }
 
@@ -6412,13 +6417,13 @@ namespace Microsoft.Data.SqlClient
                 if (enclavePackage != null)
                 {
                     //EnclavePackage Length
-                    TdsParserExtensions.WriteShort((short)enclavePackage.Length, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, (short)enclavePackage.Length);
                     stateObj.WriteByteArray(enclavePackage, enclavePackage.Length, 0);
                 }
                 else
                 {
                     //EnclavePackage Length
-                    TdsParserExtensions.WriteShort((short)0, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, (short)0);
                 }
             }
         }
@@ -6711,7 +6716,7 @@ namespace Microsoft.Data.SqlClient
                     break;
                 case SqlDbType.Timestamp:
                     stateObj.WriteByte(TdsEnums.SQLBIGBINARY);
-                    TdsParserExtensions.WriteShort(checked((int)metaData.MaxLength), stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, checked((int)metaData.MaxLength));
                     break;
                 case SqlDbType.TinyInt:
                     stateObj.WriteByte(TdsEnums.SQLINTN);
@@ -6907,10 +6912,10 @@ namespace Microsoft.Data.SqlClient
             if (0 < columnList.Count)
             {
                 stateObj.WriteByte(TdsEnums.TVP_ORDER_UNIQUE_TOKEN);
-                TdsParserExtensions.WriteShort(columnList.Count, stateObj);
+                TdsParserExtensions.WriteShort(stateObj, columnList.Count);
                 foreach (TdsOrderUnique column in columnList)
                 {
-                    TdsParserExtensions.WriteShort(column.ColumnOrdinal, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, column.ColumnOrdinal);
                     stateObj.WriteByte(column.Flags);
                 }
             }
@@ -6925,8 +6930,8 @@ namespace Microsoft.Data.SqlClient
                 throw ADP.ClosedConnectionError();
             }
             stateObj.WriteByte(TdsEnums.SQLDONE);
-            TdsParserExtensions.WriteShort(0, stateObj);
-            TdsParserExtensions.WriteShort(0, stateObj);
+            TdsParserExtensions.WriteShort(stateObj, 0);
+            TdsParserExtensions.WriteShort(stateObj, 0);
             TdsParserExtensions.WriteInt(0, stateObj);
 
             stateObj.HasPendingData = true;
@@ -7003,14 +7008,14 @@ namespace Microsoft.Data.SqlClient
             if (metadataCollection.cekTable == null ||
                 !_connHandler.ShouldEncryptValuesForBulkCopy())
             {
-                TdsParserExtensions.WriteShort(0x00, stateObj);
+                TdsParserExtensions.WriteShort(stateObj, 0x00);
                 return;
             }
 
             SqlTceCipherInfoTable cekTable = metadataCollection.cekTable;
             ushort count = (ushort)cekTable.Size;
 
-            TdsParserExtensions.WriteShort(count, stateObj);
+            TdsParserExtensions.WriteShort(stateObj, count);
 
             WriteEncryptionEntries(ref cekTable, stateObj);
         }
@@ -7069,7 +7074,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             // Write the ordinal
-            TdsParserExtensions.WriteShort(md.cipherMD.CekTableOrdinal, stateObj);
+            TdsParserExtensions.WriteShort(stateObj, md.cipherMD.CekTableOrdinal);
 
             // Write UserType and TYPEINFO
             WriteTceUserTypeAndTypeInfo(md.baseTI, stateObj);
@@ -7100,7 +7105,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             stateObj.WriteByte(TdsEnums.SQLCOLMETADATA);
-            TdsParserExtensions.WriteShort(count, stateObj);
+            TdsParserExtensions.WriteShort(stateObj, count);
 
             // Write CEK table - 0 count
             WriteCekTable(metadataCollection, stateObj);
@@ -7129,7 +7134,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     }
 
-                    TdsParserExtensions.WriteShort(flags, stateObj); // write the flags
+                    TdsParserExtensions.WriteShort(stateObj, flags); // write the flags
 
 
                     switch (md.type)
@@ -7169,7 +7174,7 @@ namespace Microsoft.Data.SqlClient
 
                     if (md.metaType.IsLong && !md.metaType.IsPlp)
                     {
-                        TdsParserExtensions.WriteShort(md.tableName.Length, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, md.tableName.Length);
                         TdsParserExtensions.WriteString(md.tableName, stateObj);
                     }
 
@@ -7207,10 +7212,10 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(!isSqlType || value is INullable, "isSqlType is true, but value can not be type cast to an INullable");
             Debug.Assert(!isDataFeed ^ value is DataFeed, "Incorrect value for isDataFeed");
 
-            Encoding saveEncoding = Connection.DefaultEncoding;
-            SqlCollation saveCollation = Connection.DefaultCollation;
-            int saveCodePage = Connection.DefaultCodePage;
-            int saveLCID = Connection.DefaultLCID;
+            Encoding saveEncoding = Connection.CollationInfo.DefaultEncoding;
+            SqlCollation saveCollation = Connection.CollationInfo.DefaultCollation;
+            int saveCodePage = Connection.CollationInfo.DefaultCodePage;
+            int saveLCID = Connection.CollationInfo.DefaultLCID;
             Task resultTask = null;
             Task internalWriteTask = null;
 
@@ -7222,20 +7227,20 @@ namespace Microsoft.Data.SqlClient
             {
                 if (metadata.encoding != null)
                 {
-                    Connection.DefaultEncoding = metadata.encoding;
+                    Connection.CollationInfo.DefaultEncoding = metadata.encoding;
                 }
                 if (metadata.collation != null)
                 {
                     // Replace encoding if it is UTF8
                     if (metadata.collation.IsUTF8)
                     {
-                        Connection.DefaultEncoding = Encoding.UTF8;
+                        Connection.CollationInfo.DefaultEncoding = Encoding.UTF8;
                     }
 
-                    Connection.DefaultCollation = metadata.collation;
-                    Connection.DefaultLCID = Connection.DefaultCollation.LCID;
+                    Connection.CollationInfo.DefaultCollation = metadata.collation;
+                    Connection.CollationInfo.DefaultLCID = Connection.CollationInfo.DefaultCollation.LCID;
                 }
-                Connection.DefaultCodePage = metadata.codePage;
+                Connection.CollationInfo.DefaultCodePage = metadata.codePage;
 
                 MetaType metatype = metadata.metaType;
                 int ccb = 0;
@@ -7250,7 +7255,7 @@ namespace Microsoft.Data.SqlClient
                     }
                     else if (!metatype.IsFixed && !metatype.IsLong && !metatype.IsVarTime)
                     {
-                        TdsParserExtensions.WriteShort(TdsEnums.VARNULL, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, TdsEnums.VARNULL);
                     }
                     else
                     {
@@ -7275,7 +7280,7 @@ namespace Microsoft.Data.SqlClient
                         case TdsEnums.SQLBIGCHAR:
                         case TdsEnums.SQLBIGVARCHAR:
                         case TdsEnums.SQLTEXT:
-                            if (null == Connection.DefaultEncoding)
+                            if (null == Connection.CollationInfo.DefaultEncoding)
                             {
                                 parser.ThrowUnsupportedCollationEncountered(null); // stateObject only when reading
                             }
@@ -7291,7 +7296,7 @@ namespace Microsoft.Data.SqlClient
                             }
 
                             ccb = stringValue.Length;
-                            ccbStringBytes = Connection.DefaultEncoding.GetByteCount(stringValue);
+                            ccbStringBytes = Connection.CollationInfo.DefaultEncoding.GetByteCount(stringValue);
                             break;
                         case TdsEnums.SQLNCHAR:
                         case TdsEnums.SQLNVARCHAR:
@@ -7355,13 +7360,13 @@ namespace Microsoft.Data.SqlClient
                     internalWriteTask = WriteSqlValue(value, metatype, ccb, ccbStringBytes, 
                         0, 
                         stateObj, 
-                        Connection.DefaultEncoding);
+                        Connection.CollationInfo.DefaultEncoding);
                 }
                 else if (metatype.SqlDbType != SqlDbType.Udt || metatype.IsLong)
                 {
                     internalWriteTask = WriteValue(value, metatype, metadata.scale, 
                         ccb, ccbStringBytes, 0, stateObj, metadata.length, isDataFeed,
-                        _asyncWrite, Connection.DefaultEncoding);
+                        _asyncWrite, Connection.CollationInfo.DefaultEncoding);
                     if ((internalWriteTask == null) && (_asyncWrite))
                     {
                         internalWriteTask = stateObj.WaitForAccumulatedWrites();
@@ -7370,7 +7375,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(ccb, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, ccb);
                     internalWriteTask = stateObj.WriteByteArray((byte[])value, ccb, 0);
                 }
 
@@ -7390,10 +7395,10 @@ namespace Microsoft.Data.SqlClient
             {
                 if (internalWriteTask == null)
                 {
-                    Connection.DefaultEncoding = saveEncoding;
-                    Connection.DefaultCollation = saveCollation;
-                    Connection.DefaultCodePage = saveCodePage;
-                    Connection.DefaultLCID = saveLCID;
+                    Connection.CollationInfo.DefaultEncoding = saveEncoding;
+                    Connection.CollationInfo.DefaultCollation = saveCollation;
+                    Connection.CollationInfo.DefaultCodePage = saveCodePage;
+                    Connection.CollationInfo.DefaultLCID = saveLCID;
                 }
             }
             return resultTask;
@@ -7405,10 +7410,10 @@ namespace Microsoft.Data.SqlClient
         {
             return internalWriteTask.ContinueWith<Task>(t =>
             {
-                Connection.DefaultEncoding = saveEncoding;
-                Connection.DefaultCollation = saveCollation;
-                Connection.DefaultCodePage = saveCodePage;
-                Connection.DefaultLCID = saveLCID;
+                Connection.CollationInfo.DefaultEncoding = saveEncoding;
+                Connection.CollationInfo.DefaultCollation = saveCollation;
+                Connection.CollationInfo.DefaultCodePage = saveCodePage;
+                Connection.CollationInfo.DefaultLCID = saveLCID;
                 return t;
             }, TaskScheduler.Default).Unwrap();
         }
@@ -7424,7 +7429,7 @@ namespace Microsoft.Data.SqlClient
 
             // We may need to update the mars header length if mars header is changed in the future
 
-            TdsParserExtensions.WriteShort(TdsEnums.HEADERTYPE_MARS, stateObj);
+            TdsParserExtensions.WriteShort(stateObj, TdsEnums.HEADERTYPE_MARS);
 
             if (null != transaction && SqlInternalTransaction.NullTransactionId != transaction.TransactionId)
             {
@@ -7511,12 +7516,12 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(-1 <= timeout, "Timeout");
 
             SqlClientEventSource.Log.TryNotificationTraceEvent("<sc.TdsParser.WriteQueryNotificationHeader|DEP> NotificationRequest: userData: '{0}', options: '{1}', timeout: '{2}'", notificationRequest.UserData, notificationRequest.Options, notificationRequest.Timeout);
-            TdsParserExtensions.WriteShort(TdsEnums.HEADERTYPE_QNOTIFICATION, stateObj);      // Query notifications Type
+            TdsParserExtensions.WriteShort(stateObj, TdsEnums.HEADERTYPE_QNOTIFICATION);      // Query notifications Type
 
-            TdsParserExtensions.WriteShort(callbackId.Length * 2, stateObj); // Length in bytes
+            TdsParserExtensions.WriteShort(stateObj, callbackId.Length * 2); // Length in bytes
             TdsParserExtensions.WriteString(callbackId, stateObj);
 
-            TdsParserExtensions.WriteShort(service.Length * 2, stateObj); // Length in bytes
+            TdsParserExtensions.WriteShort(stateObj, service.Length * 2); // Length in bytes
             TdsParserExtensions.WriteString(service, stateObj);
             if (timeout > 0)
                 TdsParserExtensions.WriteInt(timeout, stateObj);
@@ -7530,7 +7535,7 @@ namespace Microsoft.Data.SqlClient
 
             ActivityCorrelator.ActivityId actId = ActivityCorrelator.Current;
 
-            TdsParserExtensions.WriteShort(TdsEnums.HEADERTYPE_TRACE, stateObj);      // Trace Header Type
+            TdsParserExtensions.WriteShort(stateObj, TdsEnums.HEADERTYPE_TRACE);      // Trace Header Type
 
             stateObj.WriteByteArray(actId.Id.ToByteArray(), GUID_SIZE, 0); // Id (Guid)
             TdsParserExtensions.WriteUnsignedInt(actId.Sequence, stateObj); // sequence number
@@ -7634,7 +7639,7 @@ namespace Microsoft.Data.SqlClient
                         break;
 
                     case 2:
-                        TdsParserExtensions.WriteShort(length, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, length);
                         break;
 
                     case 4:
@@ -7644,7 +7649,7 @@ namespace Microsoft.Data.SqlClient
                     case 8:
                         // In the metadata case we write 0xffff for partial length prefixed types.
                         //  For actual data length preceding data, WriteDataLength should be used.
-                        TdsParserExtensions.WriteShort(TdsEnums.SQL_USHORTVARMAXLEN, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, TdsEnums.SQL_USHORTVARMAXLEN);
                         break;
                 } // end switch
             }
@@ -7811,7 +7816,7 @@ namespace Microsoft.Data.SqlClient
                         stateObj.WriteByte(((SqlByte)value).Value);
                     else
                         if (type.FixedLength == 2)
-                        TdsParserExtensions.WriteShort(((SqlInt16)value).Value, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, ((SqlInt16)value).Value);
                     else
                             if (type.FixedLength == 4)
                         TdsParserExtensions.WriteInt(((SqlInt32)value).Value, stateObj);
@@ -7853,7 +7858,7 @@ namespace Microsoft.Data.SqlClient
                         if (IsBOMNeeded(type, value))
                         {
                             TdsParserExtensions.WriteInt(actualLength + 2, stateObj);               // chunk length
-                            TdsParserExtensions.WriteShort(TdsEnums.XMLUNICODEBOM, stateObj);
+                            TdsParserExtensions.WriteShort(stateObj, TdsEnums.XMLUNICODEBOM);
                         }
                         else
                         {
@@ -7889,8 +7894,8 @@ namespace Microsoft.Data.SqlClient
                         if (0 > dt.DayTicks || dt.DayTicks > ushort.MaxValue)
                             throw SQL.SmallDateTimeOverflow(dt.ToString());
 
-                        TdsParserExtensions.WriteShort(dt.DayTicks, stateObj);
-                        TdsParserExtensions.WriteShort(dt.TimeTicks / SqlDateTime.SQLTicksPerMinute, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, dt.DayTicks);
+                        TdsParserExtensions.WriteShort(stateObj, dt.TimeTicks / SqlDateTime.SQLTicksPerMinute);
                     }
                     else
                     {
@@ -8451,7 +8456,7 @@ namespace Microsoft.Data.SqlClient
                     if (type.FixedLength == 1)
                         stateObj.WriteByte((byte)value);
                     else if (type.FixedLength == 2)
-                        TdsParserExtensions.WriteShort((short)value, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, (short)value);
                     else if (type.FixedLength == 4)
                         TdsParserExtensions.WriteInt((int)value, stateObj);
                     else
@@ -8528,7 +8533,7 @@ namespace Microsoft.Data.SqlClient
                                 if (IsBOMNeeded(type, value))
                                 {
                                     TdsParserExtensions.WriteInt(actualLength + 2, stateObj);               // chunk length
-                                    TdsParserExtensions.WriteShort(TdsEnums.XMLUNICODEBOM, stateObj);
+                                    TdsParserExtensions.WriteShort(stateObj, TdsEnums.XMLUNICODEBOM);
                                 }
                                 else
                                 {
@@ -8562,8 +8567,8 @@ namespace Microsoft.Data.SqlClient
                         if (0 > dt.days || dt.days > ushort.MaxValue)
                             throw SQL.SmallDateTimeOverflow(MetaType.ToDateTime(dt.days, dt.time, 4).ToString(CultureInfo.InvariantCulture));
 
-                        TdsParserExtensions.WriteShort(dt.days, stateObj);
-                        TdsParserExtensions.WriteShort(dt.time, stateObj);
+                        TdsParserExtensions.WriteShort(stateObj, dt.days);
+                        TdsParserExtensions.WriteShort(stateObj, dt.time);
                     }
                     else
                     {
@@ -8628,14 +8633,14 @@ namespace Microsoft.Data.SqlClient
             // If there is not task already, simply write the encryption metadata synchronously.
             if (terminatedWriteTask == null)
             {
-                WriteEncryptionMetadata(columnEncryptionParameterInfo, stateObj, _connHandler.DefaultCollation);
+                WriteEncryptionMetadata(columnEncryptionParameterInfo, stateObj, _connHandler.CollationInfo.DefaultCollation);
                 return null;
             }
             else
             {
                 // Otherwise, create a continuation task to write the encryption metadata after the previous write completes.
                 return AsyncHelper.CreateContinuationTask<SqlColumnEncryptionInputParameterInfo, TdsParserStateObject, SqlCollation>(terminatedWriteTask,
-                    WriteEncryptionMetadata, columnEncryptionParameterInfo, stateObj, _connHandler.DefaultCollation,
+                    WriteEncryptionMetadata, columnEncryptionParameterInfo, stateObj, _connHandler.CollationInfo.DefaultCollation,
                     connectionToDoom: _connHandler);
             }
         }
@@ -8707,11 +8712,11 @@ namespace Microsoft.Data.SqlClient
             { // non-long but variable length column, must be a BIG* type: 2 byte length
                 if (isNull)
                 {
-                    TdsParserExtensions.WriteShort(TdsEnums.VARNULL, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, TdsEnums.VARNULL);
                 }
                 else
                 {
-                    TdsParserExtensions.WriteShort(size, stateObj);
+                    TdsParserExtensions.WriteShort(stateObj, size);
                 }
             }
             else
@@ -8953,10 +8958,10 @@ namespace Microsoft.Data.SqlClient
                            _state,
                            _server,
                            _fResetConnection ? bool.TrueString : bool.FalseString,
-                           null == Connection.DefaultCollation ? "(null)" : Connection.DefaultCollation.TraceString(),
-                           Connection.DefaultCodePage,
-                           Connection.DefaultLCID,
-                           TraceObjectClass(Connection.DefaultEncoding),
+                           null == Connection.CollationInfo.DefaultCollation ? "(null)" : Connection.CollationInfo.DefaultCollation.TraceString(),
+                           Connection.CollationInfo.DefaultCodePage,
+                           Connection.CollationInfo.DefaultLCID,
+                           TraceObjectClass(Connection.CollationInfo.DefaultEncoding),
                            _encryptionOption,
                            null == _currentTransaction ? "(null)" : _currentTransaction.TraceString(),
                            null == _pendingTransaction ? "(null)" : _pendingTransaction.TraceString(),

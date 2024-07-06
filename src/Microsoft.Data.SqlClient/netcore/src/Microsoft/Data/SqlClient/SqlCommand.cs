@@ -5756,7 +5756,7 @@ namespace Microsoft.Data.SqlClient
                                     stateObj, 
                                     rec.NormalizationRuleVersion,
                                     parser.ThrowUnsupportedCollationEncountered,
-                                    parser.Connection.DefaultEncoding);
+                                    parser.Connection.CollationInfo.DefaultEncoding);
                                 thisParam.SetSqlBuffer(buffer);
                             }
                         }
@@ -6489,7 +6489,7 @@ namespace Microsoft.Data.SqlClient
                                 sqlParam.GetActualSize(),
                                 sqlParam.Offset,
                                 null,
-                                parser.Connection.DefaultEncoding,
+                                parser.Connection.CollationInfo.DefaultEncoding,
                                 parser.ThrowUnsupportedCollationEncountered);
                             // if actual number of bytes is greater than the user given number of chars, use actual bytes
                             if (actualBytes > size)
