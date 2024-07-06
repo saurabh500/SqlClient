@@ -1253,7 +1253,9 @@ namespace Microsoft.Data.SqlClient
         }
 
         // Fires a single InfoMessageEvent
-        private void FireInfoMessageEvent(SqlConnection connection, SqlCommand command, TdsParserStateObject stateObj, SqlError error)
+        private static void FireInfoMessageEvent(SqlConnection connection, SqlCommand command, TdsParserStateObject stateObj, SqlError error,
+            TdsParserState _state, 
+            SqlInternalConnectionTds _connHandler)
         {
             string serverVersion = null;
 
@@ -1290,7 +1292,7 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal void RollbackOrphanedAPITransactions()
+        internal static void RollbackOrphanedAPITransactions(SqlInternalTransaction CurrentTransaction)
         {
             // Any active, non-distributed transaction must be rolled back.
             SqlInternalTransaction currentTransaction = CurrentTransaction;
@@ -1329,7 +1331,9 @@ namespace Microsoft.Data.SqlClient
             breakConnection &= (TdsParserState.Closed != _state);
             if (breakConnection)
             {
-                if ((_state == TdsParserState.OpenNotLoggedIn) && (_connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) && (temp.Count == 1) && ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT)))
+                if ((_state == TdsParserState.OpenNotLoggedIn) &&
+                    (_connHandler.ConnectionOptions.MultiSubnetFailover || _loginWithFailover) && (temp.Count == 1) && 
+                    ((temp[0].Number == TdsEnums.TIMEOUT_EXPIRED) || (temp[0].Number == TdsEnums.SNI_WAIT_TIMEOUT)))
                 {
                     // For Multisubnet Failover we slice the timeout to make reconnecting faster (with the assumption that the server will not failover instantaneously)
                     // However, when timeout occurs we need to not doom the internal connection and also to mark the TdsParser as closed such that the login will be will retried
@@ -1667,15 +1671,17 @@ namespace Microsoft.Data.SqlClient
 
 
 
-        internal bool Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+        internal bool Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, 
+            BulkCopySimpleResultSet bulkCopyHandler, 
+            TdsParserStateObject stateObj,
+            SqlInternalConnectionTds _connHandler)
         {
             bool syncOverAsync = stateObj._syncOverAsync;
             try
             {
                 stateObj._syncOverAsync = true;
-
-                bool dataReady;
-                bool result = TryRun(runBehavior, cmdHandler, dataStream, bulkCopyHandler, stateObj, out dataReady);
+                bool result = TryRun(runBehavior, cmdHandler, dataStream, bulkCopyHandler, stateObj, _connHandler,
+                    out bool dataReady);
                 Debug.Assert(result == true, "Should never return false when _syncOverAsync is set");
                 return dataReady;
             }
@@ -1687,7 +1693,13 @@ namespace Microsoft.Data.SqlClient
 
         
         // Main parse loop for the top-level tds tokens, calls back into the I*Handler interfaces
-        internal bool TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, out bool dataReady)
+        internal bool TryRun(RunBehavior runBehavior, 
+            SqlCommand cmdHandler, 
+            SqlDataReader dataStream, 
+            BulkCopySimpleResultSet bulkCopyHandler, 
+            TdsParserStateObject stateObj,
+            SqlInternalConnectionTds connectionHandler,
+            out bool dataReady)
         {
             Debug.Assert((SniContext.Undefined != stateObj.SniContext) &&       // SniContext must not be Undefined
                 ((stateObj._attentionSent) || ((SniContext.Snix_Execute != stateObj.SniContext) && (SniContext.Snix_SendRows != stateObj.SniContext))),  // SniContext should not be Execute or SendRows unless attention was sent (and, therefore, we are looking for an ACK)
@@ -1719,8 +1731,8 @@ namespace Microsoft.Data.SqlClient
                     if (RunBehavior.Clean != (RunBehavior.Clean & runBehavior))
                     {
                         SqlConnection connection = null;
-                        if (_connHandler != null)
-                            connection = _connHandler.Connection; // SqlInternalConnection holds the user connection object as a weak ref
+                        if (connectionHandler != null)
+                            connection = connectionHandler.Connection; // SqlInternalConnection holds the user connection object as a weak ref
                         // We are omitting checks for error.Class in the code below (see processing of INFO) since we know (and assert) that error class
                         // error.Class < TdsEnums.MIN_ERROR_CLASS for info message.
                         // Also we know that TdsEnums.MIN_ERROR_CLASS<TdsEnums.MAX_USER_CORRECTABLE_ERROR_CLASS
@@ -1728,7 +1740,7 @@ namespace Microsoft.Data.SqlClient
                         {
                             foreach (SqlError error in stateObj._pendingInfoEvents)
                             {
-                                FireInfoMessageEvent(connection, cmdHandler, stateObj, error);
+                                FireInfoMessageEvent(connection, cmdHandler, stateObj, error, _state, connectionHandler);
                             }
                         }
                         else
@@ -1750,7 +1762,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     Debug.Fail($"unexpected token; token = {token,-2:X2}");
                     _state = TdsParserState.Broken;
-                    _connHandler.BreakConnection();
+                    connectionHandler.BreakConnection();
                     SqlClientEventSource.Log.TryTraceEvent("<sc.TdsParser.Run|ERR> Potential multi-threaded misuse of connection, unexpected TDS token found {0}", ObjectID);
                     throw SQL.ParsingError();
                 }
@@ -1771,8 +1783,7 @@ namespace Microsoft.Data.SqlClient
                                 stateObj.HasReceivedError = true; // Keep track of the fact error token was received - for Done processing.
                             }
 
-                            SqlError error;
-                            if (!TryProcessError(token, stateObj, cmdHandler, out error))
+                            if (!TdsParser.TryProcessError(token, stateObj, cmdHandler, out SqlError error, _server))
                             {
                                 return false;
                             }
@@ -1793,15 +1804,15 @@ namespace Microsoft.Data.SqlClient
                                 // If FireInfoMessageEventOnUserErrors is true, we have to fire event without waiting.
                                 // Otherwise we can go ahead and add it to errors/warnings collection.
                                 SqlConnection connection = null;
-                                if (_connHandler != null)
-                                    connection = _connHandler.Connection; // SqlInternalConnection holds the user connection object as a weak ref
+                                if (connectionHandler != null)
+                                    connection = connectionHandler.Connection; // SqlInternalConnection holds the user connection object as a weak ref
 
                                 if ((connection != null) &&
                                     (connection.FireInfoMessageEventOnUserErrors == true) &&
                                     (error.Class <= TdsEnums.MAX_USER_CORRECTABLE_ERROR_CLASS))
                                 {
                                     // Fire SqlInfoMessage here
-                                    FireInfoMessageEvent(connection, cmdHandler, stateObj, error);
+                                    TdsParser.FireInfoMessageEvent(connection, cmdHandler, stateObj, error, _state, connectionHandler);
                                 }
                                 else
                                 {
@@ -1854,7 +1865,7 @@ namespace Microsoft.Data.SqlClient
                             if (null != dataStream)
                             {
                                 _SqlMetaDataSet metaDataSet;
-                                if (!TryProcessColInfo(dataStream.MetaData, dataStream, stateObj, out metaDataSet))
+                                if (!TdsParser.TryProcessColInfo(dataStream.MetaData, dataStream, stateObj, out metaDataSet))
                                 {
                                     return false;
                                 }
@@ -1915,9 +1926,14 @@ namespace Microsoft.Data.SqlClient
                             // ENVCHANGE must be processed synchronously (since it can modify the state of many objects)
                             stateObj._syncOverAsync = true;
 
-                            if (!TryProcessEnvChange(tokenLength, stateObj, _physicalStateObj, out SqlEnvChange env, ref _defaultCodePage, 
-                                ref _defaultLCID, ref _defaultEncoding,
-                                _connHandler,
+                            if (!TdsParser.TryProcessEnvChange(tokenLength, 
+                                stateObj, 
+                                _physicalStateObj, 
+                                out SqlEnvChange env, 
+                                ref _defaultCodePage, 
+                                ref _defaultLCID, 
+                                ref _defaultEncoding,
+                                connectionHandler,
                                 ref _defaultCollation,
                                 ref _cachedCollation,
                                 this))
@@ -1927,7 +1943,7 @@ namespace Microsoft.Data.SqlClient
 
                             while (env != null)
                             {
-                                if (!this.Connection.IgnoreEnvChange)
+                                if (!connectionHandler.IgnoreEnvChange)
                                 {
                                     switch (env._type)
                                     {
@@ -1949,7 +1965,7 @@ namespace Microsoft.Data.SqlClient
                                             else
                                             {
                                                 TransactionType transactionType = (TdsEnums.ENV_BEGINTRAN == env._type) ? TransactionType.LocalFromTSQL : TransactionType.Distributed;
-                                                _currentTransaction = new SqlInternalTransaction(_connHandler, transactionType, null, env._newLongValue);
+                                                _currentTransaction = new SqlInternalTransaction(connectionHandler, transactionType, null, env._newLongValue);
                                             }
                                             if (null != _statistics && !_statisticsIsInTransaction)
                                             {
@@ -2003,7 +2019,7 @@ namespace Microsoft.Data.SqlClient
                                             break;
 
                                         default:
-                                            _connHandler.OnEnvChange(env);
+                                            connectionHandler.OnEnvChange(env);
                                             break;
                                     }
                                 }
@@ -2023,12 +2039,12 @@ namespace Microsoft.Data.SqlClient
                                 return false;
                             }
 
-                            _connHandler.OnLoginAck(ack);
+                            connectionHandler.OnLoginAck(ack);
                             break;
                         }
                     case TdsEnums.SQLFEATUREEXTACK:
                         {
-                            if (!TdsParserExtensions.TryProcessFeatureExtAck(stateObj, _connHandler, FQDNforDNSCache, IsColumnEncryptionSupported, TceVersionSupported, EnclaveType))
+                            if (!TdsParserExtensions.TryProcessFeatureExtAck(stateObj, connectionHandler, FQDNforDNSCache, IsColumnEncryptionSupported, TceVersionSupported, EnclaveType))
                             {
                                 return false;
                             }
@@ -2036,19 +2052,19 @@ namespace Microsoft.Data.SqlClient
                         }
                     case TdsEnums.SQLFEDAUTHINFO:
                         {
-                            _connHandler._federatedAuthenticationInfoReceived = true;
+                            connectionHandler._federatedAuthenticationInfoReceived = true;
                             SqlFedAuthInfo info;
 
                             if (!TdsParserExtensions.TryProcessFedAuthInfo(stateObj, tokenLength, out info))
                             {
                                 return false;
                             }
-                            _connHandler.OnFedAuthInfo(info);
+                            connectionHandler.OnFedAuthInfo(info);
                             break;
                         }
                     case TdsEnums.SQLSESSIONSTATE:
                         {
-                            if (!TdsParserExtensions.TryProcessSessionState(stateObj, tokenLength, _connHandler))
+                            if (!TdsParserExtensions.TryProcessSessionState(stateObj, tokenLength, connectionHandler))
                             {
                                 return false;
                             }
@@ -2060,7 +2076,7 @@ namespace Microsoft.Data.SqlClient
                             {
                                 _SqlMetaDataSet metadata;
                                 if (!TdsParserExtensions.TryProcessMetaData(tokenLength, stateObj, out metadata, cmdHandler?.ColumnEncryptionSetting ?? SqlCommandColumnEncryptionSetting.UseConnectionSetting, 
-                                    IsColumnEncryptionSupported, _connHandler, ref _cachedCollation, _defaultCodePage, _defaultEncoding, ThrowUnsupportedCollationEncountered))
+                                    IsColumnEncryptionSupported, connectionHandler, ref _cachedCollation, _defaultCodePage, _defaultEncoding, ThrowUnsupportedCollationEncountered))
                                 {
                                     return false;
                                 }
@@ -2089,16 +2105,18 @@ namespace Microsoft.Data.SqlClient
                                 }
                                 Debug.Assert(TdsEnums.SQLDATACLASSIFICATION == dataClassificationToken);
 
-                                SensitivityClassification sensitivityClassification;
-                                if (!TryProcessDataClassification(stateObj, out sensitivityClassification))
+                                if (!TryProcessDataClassification(
+                                    stateObj, 
+                                    out SensitivityClassification sensitivityClassification, 
+                                    DataClassificationVersion))
                                 {
                                     return false;
                                 }
-                                if (null != dataStream && !dataStream.TrySetSensitivityClassification(sensitivityClassification))
+                                if (dataStream != null)
                                 {
-                                    return false;
+                                    dataStream.SensitivityClassification = sensitivityClassification;
                                 }
-
+                                
                                 // update peekedToken
                                 if (!stateObj.TryPeekByte(out peekedToken))
                                 {
@@ -2108,7 +2126,8 @@ namespace Microsoft.Data.SqlClient
 
                             if (null != dataStream)
                             {
-                                if (!dataStream.TrySetMetaData(stateObj._cleanupMetaData, (TdsEnums.SQLTABNAME == peekedToken || TdsEnums.SQLCOLINFO == peekedToken)))
+                                if (!dataStream.TrySetMetaData(stateObj._cleanupMetaData, 
+                                    (TdsEnums.SQLTABNAME == peekedToken || TdsEnums.SQLCOLINFO == peekedToken)))
                                 {
                                     return false;
                                 }
@@ -2675,11 +2694,7 @@ namespace Microsoft.Data.SqlClient
         
 
         
-        
-
-        
-
-        private bool TryReadByteString(TdsParserStateObject stateObj, out string value)
+        internal static bool TryReadByteString(TdsParserStateObject stateObj, out string value)
         {
             value = string.Empty;
 
@@ -2697,17 +2712,17 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryReadSensitivityLabel(TdsParserStateObject stateObj, out string label, out string id)
+        private static bool TryReadSensitivityLabel(TdsParserStateObject stateObj, out string label, out string id)
         {
             label = string.Empty;
             id = string.Empty;
 
-            if (!TryReadByteString(stateObj, out label))
+            if (!TdsParser.TryReadByteString(stateObj, out label))
             {
                 return false;
             }
 
-            if (!TryReadByteString(stateObj, out id))
+            if (!TdsParser.TryReadByteString(stateObj, out id))
             {
                 return false;
             }
@@ -2715,7 +2730,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryReadSensitivityInformationType(TdsParserStateObject stateObj, out string informationType, out string id)
+        private static bool TryReadSensitivityInformationType(TdsParserStateObject stateObj, out string informationType, out string id)
         {
             informationType = string.Empty;
             id = string.Empty;
@@ -2733,7 +2748,9 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryProcessDataClassification(TdsParserStateObject stateObj, out SensitivityClassification sensitivityClassification)
+        private static bool TryProcessDataClassification(TdsParserStateObject stateObj,
+            out SensitivityClassification sensitivityClassification,
+            int DataClassificationVersion)
         {
             if (DataClassificationVersion == 0)
             {
@@ -2977,7 +2994,7 @@ namespace Microsoft.Data.SqlClient
 
         
 
-        internal bool TryProcessError(byte token, TdsParserStateObject stateObj, SqlCommand command, out SqlError error)
+        internal static bool TryProcessError(byte token, TdsParserStateObject stateObj, SqlCommand command, out SqlError error, string _server)
         {
             ushort shortLen;
             byte byteLen;
@@ -3379,7 +3396,7 @@ namespace Microsoft.Data.SqlClient
                         }
                     }
                 }
-                Run(RunBehavior.Clean, null, null, null, stateObj);
+                Run(RunBehavior.Clean, null, null, null, stateObj, _connHandler);
             }
             catch
             {
@@ -3512,7 +3529,7 @@ namespace Microsoft.Data.SqlClient
 
         
         // augments current metadata with table and key information
-        private bool TryProcessColInfo(_SqlMetaDataSet columns, SqlDataReader reader, TdsParserStateObject stateObj, out _SqlMetaDataSet metaData)
+        private static bool TryProcessColInfo(_SqlMetaDataSet columns, SqlDataReader reader, TdsParserStateObject stateObj, out _SqlMetaDataSet metaData)
         {
             Debug.Assert(columns != null && columns.Length > 0, "no metadata available!");
 
@@ -5127,7 +5144,7 @@ namespace Microsoft.Data.SqlClient
             try
             {
                 // Call run loop to process looking for attention ack.
-                Run(RunBehavior.Attention, null, null, null, stateObj);
+                Run(RunBehavior.Attention, null, null, null, stateObj, _connHandler);
             }
             catch (Exception e)
             {
@@ -5408,7 +5425,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    Run(RunBehavior.UntilDone, null, null, null, stateObj);
+                    Run(RunBehavior.UntilDone, null, null, null, stateObj, _connHandler);
                 }
 
                 // If the retained ID is no longer valid (because we are enlisting in null or a new transaction) then it should be cleared

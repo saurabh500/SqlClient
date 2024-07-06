@@ -992,7 +992,7 @@ namespace Microsoft.Data.SqlClient
 
 
                         bool ignored;
-                        if (!parser.TryRun(RunBehavior.Clean, _command, this, null, stateObj, out ignored))
+                        if (!parser.TryRun(RunBehavior.Clean, _command, this, null, stateObj, parser.Connection, out ignored))
                         {
                             return false;
                         }
@@ -1144,7 +1144,7 @@ namespace Microsoft.Data.SqlClient
                     throw SQL.ConnectionDoomed();
                 }
                 bool ignored;
-                if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out ignored))
+                if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out ignored))
                 {
                     return false;
                 }
@@ -3190,7 +3190,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     bool ignored;
-                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out ignored))
+                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out ignored))
                     {
                         moreResults = false;
                         return false;
@@ -3259,7 +3259,7 @@ namespace Microsoft.Data.SqlClient
                         }
 
                         bool ignored;
-                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out ignored))
+                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out ignored))
                         {
                             moreRows = false;
                             return false;
@@ -3551,7 +3551,7 @@ namespace Microsoft.Data.SqlClient
                                     if (_altRowStatus != ALTROWSTATUS.AltRow)
                                     {
                                         // if this is an ordinary row we let the run method consume the ROW token
-                                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out _sharedState._dataReady))
+                                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out _sharedState._dataReady))
                                         {
                                             more = false;
                                             return false;
@@ -3604,7 +3604,7 @@ namespace Microsoft.Data.SqlClient
                                 // read the rest of the rows, if any
                                 while (_stateObj.HasPendingData && !_sharedState._dataReady)
                                 {
-                                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out _sharedState._dataReady))
+                                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out _sharedState._dataReady))
                                     {
                                         more = false;
                                         return false;
@@ -4130,7 +4130,7 @@ namespace Microsoft.Data.SqlClient
                     Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");
 
                     // must execute this one synchronously as we can't retry
-                    parser.Run(RunBehavior.UntilDone, _command, this, null, stateObj);
+                    parser.Run(RunBehavior.UntilDone, _command, this, null, stateObj, parser.Connection);
                 }
                 _resetOptionsString = null;
             }
@@ -4158,7 +4158,7 @@ namespace Microsoft.Data.SqlClient
                 if (TdsEnums.SQLORDER == b)
                 {
                     bool ignored;
-                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, out ignored))
+                    if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, this, null, _stateObj, _parser.Connection, out ignored))
                     {
                         return false;
                     }
@@ -4173,7 +4173,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         _stateObj._accumulateInfoEvents = true;
                         bool ignored;
-                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, null, null, _stateObj, out ignored))
+                        if (!_parser.TryRun(RunBehavior.ReturnImmediately, _command, null, null, _stateObj, _parser.Connection, out ignored))
                         {
                             return false;
                         }
@@ -4208,7 +4208,7 @@ namespace Microsoft.Data.SqlClient
             _browseModeInfoConsumed = false;
         }
 
-        internal bool TrySetSensitivityClassification(SensitivityClassification sensitivityClassification)
+        internal bool SetSensitivityClassification(SensitivityClassification sensitivityClassification)
         {
             SensitivityClassification = sensitivityClassification;
             return true;
@@ -4248,7 +4248,7 @@ namespace Microsoft.Data.SqlClient
                         if (b == TdsEnums.SQLORDER)
                         {                     //  same logic as SetAltMetaDataSet
                             bool ignored;
-                            if (!_parser.TryRun(RunBehavior.ReturnImmediately, null, null, null, _stateObj, out ignored))
+                            if (!_parser.TryRun(RunBehavior.ReturnImmediately, null, null, null, _stateObj, _parser.Connection, out ignored))
                             {
                                 return false;
                             }
@@ -4266,7 +4266,7 @@ namespace Microsoft.Data.SqlClient
                             {
                                 _stateObj._accumulateInfoEvents = true;
                                 bool ignored;
-                                if (!_parser.TryRun(RunBehavior.ReturnImmediately, null, null, null, _stateObj, out ignored))
+                                if (!_parser.TryRun(RunBehavior.ReturnImmediately, null, null, null, _stateObj, _parser.Connection, out ignored))
                                 {
                                     return false;
                                 }

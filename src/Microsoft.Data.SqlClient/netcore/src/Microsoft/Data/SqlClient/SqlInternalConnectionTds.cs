@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -679,47 +678,16 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        internal SqlConnectionPoolGroupProviderInfo PoolGroupProviderInfo
-        {
-            get
-            {
-                return _poolGroupProviderInfo;
-            }
-        }
+        internal SqlConnectionPoolGroupProviderInfo PoolGroupProviderInfo => _poolGroupProviderInfo;
+            
+        protected override bool ReadyToPrepareTransaction => (null == FindLiveReader(null)); // can't prepare with a live data reader...
 
-        protected override bool ReadyToPrepareTransaction
-        {
-            get
-            {
-                bool result = (null == FindLiveReader(null)); // can't prepare with a live data reader...
-                return result;
-            }
-        }
-
-        public override string ServerVersion
-        {
-            get
-            {
-                return (string.Format("{0:00}.{1:00}.{2:0000}", _loginAck.majorVersion,
+        public override string ServerVersion => (string.Format("{0:00}.{1:00}.{2:0000}", _loginAck.majorVersion,
                        (short)_loginAck.minorVersion, _loginAck.buildNum));
-            }
-        }
-
-        public int ServerProcessId
-        {
-            get
-            {
-                return Parser._physicalStateObj._spid;
-            }
-        }
-
-        protected override bool UnbindOnTransactionCompletion
-        {
-            get
-            {
-                return false;
-            }
-        }
+            
+        public int ServerProcessId => Parser._physicalStateObj._spid;
+            
+        protected override bool UnbindOnTransactionCompletion => false;
 
         /// <summary>
         /// Validates if federated authentication is used, Access Token used by this connection is active for the value of 'accessTokenExpirationBufferTime'.
@@ -736,7 +704,7 @@ namespace Microsoft.Data.SqlClient
             database = SqlConnection.FixupDatabaseTransactionName(database);
             Task executeTask = _parser.TdsExecuteSQLBatch("use " + database, ConnectionOptions.ConnectTimeout, null, _parser._physicalStateObj, sync: true);
             Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");
-            _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj);
+            _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj, _parser.Connection);
         }
 
         public override void Dispose()
@@ -800,7 +768,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 Debug.Assert(!parser._physicalStateObj.HasPendingData, "Should not have a busy physicalStateObject at this point!");
 
-                parser.RollbackOrphanedAPITransactions();
+                TdsParser.RollbackOrphanedAPITransactions(CurrentTransaction);
             }
         }
 
@@ -1186,7 +1154,7 @@ namespace Microsoft.Data.SqlClient
 
         private void CompleteLogin(bool enlistOK)
         {
-            _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj);
+            _parser.Run(RunBehavior.UntilDone, null, null, null, _parser._physicalStateObj, _parser.Connection);
 
             if (RoutingInfo == null)
             {

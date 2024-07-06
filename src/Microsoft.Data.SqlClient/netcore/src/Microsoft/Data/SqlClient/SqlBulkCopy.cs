@@ -1313,7 +1313,7 @@ namespace Microsoft.Data.SqlClient
             internalConnection.ThreadHasParserLockForClose = true;
             try
             {
-                _parser.Run(RunBehavior.UntilDone, null, null, bulkCopyHandler, _stateObj);
+                _parser.Run(RunBehavior.UntilDone, null, null, bulkCopyHandler, _stateObj, _parser.Connection);
             }
             finally
             {
@@ -1330,7 +1330,7 @@ namespace Microsoft.Data.SqlClient
             internalConnection.ThreadHasParserLockForClose = true;
             try
             {
-                _parser.Run(RunBehavior.UntilDone, null, null, bulkCopyHandler, _stateObj);
+                _parser.Run(RunBehavior.UntilDone, null, null, bulkCopyHandler, _stateObj, _parser.Connection);
             }
             finally
             {

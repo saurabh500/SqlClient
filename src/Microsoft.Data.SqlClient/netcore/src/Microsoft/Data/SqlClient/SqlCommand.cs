@@ -1607,7 +1607,7 @@ namespace Microsoft.Data.SqlClient
                         bool dataReady;
                         Debug.Assert(_stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
                         bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone, this, null, null, _stateObj,
-                            out dataReady);
+                            _stateObj.Parser.Connection, out dataReady);
                         if (!result)
                         {
                             throw SQL.SynchronousCallMayNotPend();
@@ -3681,7 +3681,8 @@ namespace Microsoft.Data.SqlClient
                 {
                     bool dataReady;
                     Debug.Assert(_stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-                    bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone, this, null, null, _stateObj, out dataReady);
+                    bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone, 
+                        this, null, null, _stateObj, _stateObj.Parser.Connection, out dataReady);
                     if (!result)
                     { throw SQL.SynchronousCallMayNotPend(); }
                 }
@@ -4957,7 +4958,17 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private SqlDataReader RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, bool returnStream, bool isAsync, int timeout, out Task task, bool asyncWrite, bool inRetry, SqlDataReader ds = null, bool describeParameterEncryptionRequest = false)
+        private SqlDataReader RunExecuteReaderTds(
+            CommandBehavior cmdBehavior, 
+            RunBehavior runBehavior, 
+            bool returnStream, 
+            bool isAsync, 
+            int timeout, 
+            out Task task, 
+            bool asyncWrite, 
+            bool inRetry, 
+            SqlDataReader ds = null,
+            bool describeParameterEncryptionRequest = false)
         {
             Debug.Assert(!asyncWrite || isAsync, "AsyncWrite should be always accompanied by Async");
 
@@ -5067,9 +5078,9 @@ namespace Microsoft.Data.SqlClient
                         writeTask = _stateObj.Parser.TdsExecuteSQLBatch(text, timeout, this.Notification, _stateObj, sync: !asyncWrite);
                     }
                 }
-                else if (System.Data.CommandType.Text == this.CommandType)
+                else if (System.Data.CommandType.Text == CommandType)
                 {
-                    if (this.IsDirty)
+                    if (IsDirty)
                     {
                         Debug.Assert(_cachedMetaData == null || !_dirty, "dirty query should not have cached metadata!"); // can have cached metadata if dirty because of parameters
                         //
@@ -5135,7 +5146,10 @@ namespace Microsoft.Data.SqlClient
                         Task executeTask = _stateObj.Parser.TdsExecuteSQLBatch(optionSettings, timeout, this.Notification, _stateObj, sync: true);
                         Debug.Assert(executeTask == null, "Shouldn't get a task when doing sync writes");
                         Debug.Assert(_stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-                        bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone, this, null, null, _stateObj, out bool dataReady);
+                        bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone,
+                            this, 
+                            null, null, _stateObj,
+                            _stateObj.Parser.Connection, out bool dataReady);
                         if (!result)
                         { throw SQL.SynchronousCallMayNotPend(); }
                         // and turn OFF when the ds exhausts the stream on Close()
@@ -5144,7 +5158,14 @@ namespace Microsoft.Data.SqlClient
 
                     // execute sp
                     Debug.Assert(_rpcArrayOf1[0] == rpc);
-                    writeTask = _stateObj.Parser.TdsExecuteRPC(this, _rpcArrayOf1, timeout, inSchema, this.Notification, _stateObj, CommandType.StoredProcedure == CommandType, sync: !asyncWrite);
+                    writeTask = _stateObj.Parser.TdsExecuteRPC(this, 
+                        _rpcArrayOf1, 
+                        timeout, 
+                        inSchema, 
+                        this.Notification, 
+                        _stateObj, 
+                        CommandType.StoredProcedure == CommandType, 
+                        sync: !asyncWrite);
                 }
 
                 Debug.Assert(writeTask == null || isAsync, "Returned task in sync mode");
@@ -5154,7 +5175,10 @@ namespace Microsoft.Data.SqlClient
                     decrementAsyncCountOnFailure = false;
                     if (writeTask != null)
                     {
-                        task = RunExecuteReaderTdsSetupContinuation(runBehavior, ds, optionSettings, writeTask);
+                        task = RunExecuteReaderTdsSetupContinuation(runBehavior, 
+                            ds, 
+                            optionSettings, 
+                            writeTask);
                     }
                     else
                     {
@@ -5164,7 +5188,12 @@ namespace Microsoft.Data.SqlClient
                 else
                 {
                     // Always execute - even if no reader!
-                    FinishExecuteReader(ds, runBehavior, optionSettings, isInternal: false, forDescribeParameterEncryption: false, shouldCacheForAlwaysEncrypted: !describeParameterEncryptionRequest);
+                    FinishExecuteReader(ds, 
+                        runBehavior, 
+                        optionSettings, 
+                        isInternal: false, 
+                        forDescribeParameterEncryption: false, 
+                        shouldCacheForAlwaysEncrypted: !describeParameterEncryptionRequest);
                 }
             }
             catch (Exception e)
@@ -5295,7 +5324,8 @@ namespace Microsoft.Data.SqlClient
                 {
                     bool dataReady;
                     Debug.Assert(_stateObj._syncOverAsync, "Should not attempt pends in a synchronous call");
-                    bool result = _stateObj.Parser.TryRun(RunBehavior.UntilDone, this, ds, null, _stateObj, out dataReady);
+                    bool result = _stateObj.Parser.TryRun(
+                        RunBehavior.UntilDone, this, ds, null, _stateObj, _stateObj.Parser.Connection, out dataReady);
                     if (!result)
                     { throw SQL.SynchronousCallMayNotPend(); }
                 }
