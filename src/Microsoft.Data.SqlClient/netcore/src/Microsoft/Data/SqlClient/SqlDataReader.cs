@@ -436,7 +436,7 @@ namespace Microsoft.Data.SqlClient
             stateObj.Owner = this;
             _stateObj = stateObj;
             _parser = stateObj.Parser;
-            _defaultLCID = _parser.DefaultLCID;
+            _defaultLCID = _parser.Connection.DefaultLCID;
         }
 
 #if NET6_0_OR_GREATER
@@ -3877,7 +3877,7 @@ namespace Microsoft.Data.SqlClient
                                 TdsParserExtensions.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
                                     columnMetaData,
                                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
-                                    _parser.Connection);
+                                    _parser.Connection?.ConnectionOptions ?? null);
                             }
                         }
                         else
@@ -3931,7 +3931,7 @@ namespace Microsoft.Data.SqlClient
                         TdsParserExtensions.GetNullSqlValue(_data[_sharedState._nextColumnDataToRead],
                                 columnMetaData,
                                 _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
-                                _parser.Connection);
+                                _parser.Connection?.ConnectionOptions ?? null);
 
                         if (!readHeaderOnly)
                         {

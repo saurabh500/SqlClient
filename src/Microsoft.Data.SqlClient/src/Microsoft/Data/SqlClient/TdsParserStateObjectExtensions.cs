@@ -3072,9 +3072,10 @@ namespace Microsoft.Data.SqlClient
         /// Determines if a column value should be transparently decrypted (based on SqlCommand and Connection String settings).
         /// </summary>
         /// <returns>true if the value should be transparently decrypted, false otherwise</returns>
-        internal static bool ShouldHonorTceForRead(SqlCommandColumnEncryptionSetting columnEncryptionSetting, SqlInternalConnectionTds connection)
+        internal static bool ShouldHonorTceForRead(SqlCommandColumnEncryptionSetting columnEncryptionSetting,
+            SqlConnectionString connectionOptions)
         {
-            // Command leve setting trumps all
+            // Command level setting trumps all
             switch (columnEncryptionSetting)
             {
                 case SqlCommandColumnEncryptionSetting.Disabled:
@@ -3087,17 +3088,21 @@ namespace Microsoft.Data.SqlClient
                     // Check connection level setting!
                     Debug.Assert(SqlCommandColumnEncryptionSetting.UseConnectionSetting == columnEncryptionSetting,
                         "Unexpected value for command level override");
-                    return (connection != null && connection.ConnectionOptions != null && connection.ConnectionOptions.ColumnEncryptionSetting == SqlConnectionColumnEncryptionSetting.Enabled);
+                    return (connectionOptions != null 
+                        && connectionOptions.ColumnEncryptionSetting == SqlConnectionColumnEncryptionSetting.Enabled);
             }
         }
 
-        internal static object GetNullSqlValue(SqlBuffer nullVal, SqlMetaDataPriv md, SqlCommandColumnEncryptionSetting columnEncryptionSetting, SqlInternalConnectionTds connection)
+        internal static SqlBuffer GetNullSqlValue(SqlBuffer nullVal,
+            SqlMetaDataPriv md,
+            SqlCommandColumnEncryptionSetting columnEncryptionSetting,
+            SqlConnectionString connectionOptions)
         {
             SqlDbType type = md.type;
 
             if (type == SqlDbType.VarBinary && // if its a varbinary
                 md.isEncrypted &&// and encrypted
-                ShouldHonorTceForRead(columnEncryptionSetting, connection))
+                ShouldHonorTceForRead(columnEncryptionSetting, connectionOptions))
             {
                 type = md.baseTI.type; // the use the actual (plaintext) type
             }

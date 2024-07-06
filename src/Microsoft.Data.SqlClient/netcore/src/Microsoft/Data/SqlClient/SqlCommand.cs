@@ -5773,7 +5773,7 @@ namespace Microsoft.Data.SqlClient
                         // Note 2: We will be coming down this code path only if the Command Setting is set to use TCE.
                         // We pass the command setting as TCE enabled in the below call for this reason.
                         SqlBuffer buff = new SqlBuffer();
-                        TdsParserExtensions.GetNullSqlValue(buff, rec, SqlCommandColumnEncryptionSetting.Enabled, parser.Connection);
+                        TdsParserExtensions.GetNullSqlValue(buff, rec, SqlCommandColumnEncryptionSetting.Enabled, parser.Connection?.ConnectionOptions ?? null);
                         thisParam.SetSqlBuffer(buff);
                     }
                 }

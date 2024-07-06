@@ -252,7 +252,7 @@ namespace Microsoft.Data.SqlClient
             {
                 if (null == _encoder)
                 {
-                    _encoder = _stateObj.Parser._defaultEncoding.GetEncoder();
+                    _encoder = _stateObj.Parser.Connection.DefaultEncoding.GetEncoder();
                 }
                 byte[] bytes = new byte[_encoder.GetByteCount(buffer, bufferOffset, length, false)];
                 _encoder.GetBytes(buffer, bufferOffset, length, bytes, 0, false);
@@ -350,12 +350,12 @@ namespace Microsoft.Data.SqlClient
                 // Optimize for common case of writing entire string
                 if (offset == 0 && value.Length <= length)
                 {
-                    bytes = _stateObj.Parser._defaultEncoding.GetBytes(value);
+                    bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value);
                 }
                 else
                 {
                     char[] chars = value.ToCharArray(offset, length);
-                    bytes = _stateObj.Parser._defaultEncoding.GetBytes(chars);
+                    bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(chars);
                 }
                 SetBytes(0, bytes, 0, bytes.Length);
                 SetBytesLength(bytes.Length);
@@ -372,11 +372,11 @@ namespace Microsoft.Data.SqlClient
                     // Optimize for common case of writing entire string
                     if (offset == 0 && value.Length <= length)
                     {
-                        bytes = _stateObj.Parser._defaultEncoding.GetBytes(value);
+                        bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value);
                     }
                     else
                     {
-                        bytes = _stateObj.Parser._defaultEncoding.GetBytes(value.ToCharArray(offset, length));
+                        bytes = _stateObj.Parser.Connection.DefaultEncoding.GetBytes(value.ToCharArray(offset, length));
                     }
                     TdsParserExtensions.WriteSqlVariantHeader(9 + bytes.Length, TdsEnums.SQLBIGVARCHAR, 7, _stateObj);
                     TdsParserExtensions.WriteUnsignedInt(collation._info, _stateObj); // propbytes: collation.Info

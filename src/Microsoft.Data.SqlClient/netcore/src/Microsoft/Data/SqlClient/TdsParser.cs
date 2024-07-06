@@ -3272,7 +3272,7 @@ namespace Microsoft.Data.SqlClient
 
             if (isNull)
             {
-                TdsParserExtensions.GetNullSqlValue(rec.value, rec, SqlCommandColumnEncryptionSetting.Disabled, connectionHandler);
+                TdsParserExtensions.GetNullSqlValue(rec.value, rec, SqlCommandColumnEncryptionSetting.Disabled, connectionHandler?.ConnectionOptions ?? null);
             }
             else
             {
@@ -3671,7 +3671,8 @@ namespace Microsoft.Data.SqlClient
 
                 if (isNull)
                 {
-                    TdsParserExtensions.GetNullSqlValue(data, md, SqlCommandColumnEncryptionSetting.Disabled /*Column Encryption Disabled for Bulk Copy*/, _connHandler);
+                    TdsParserExtensions.GetNullSqlValue(data, md, SqlCommandColumnEncryptionSetting.Disabled /*Column Encryption Disabled for Bulk Copy*/, 
+                        _connHandler?.ConnectionOptions ?? null);
                     buffer[map[i]] = data.SqlValue;
                 }
                 else
