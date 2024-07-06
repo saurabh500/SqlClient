@@ -3742,9 +3742,14 @@ namespace Microsoft.Data.SqlClient
             {
                 _SqlMetaData columnMetaData = _metaData[_sharedState._nextColumnDataToRead];
 
-                if (!_parser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead], columnMetaData, (int)_sharedState._columnDataBytesRemaining, _stateObj,
+                if (!TdsParser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead], columnMetaData, (int)_sharedState._columnDataBytesRemaining, _stateObj,
                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
-                    columnMetaData.column))
+                    columnMetaData.column,
+                    _parser.Connection,
+                    _parser.ThrowUnsupportedCollationEncountered,
+                    _parser._defaultEncoding,
+                    ref _parser._cachedCollation
+                    ))
                 { // will read UDTs as VARBINARY.
                     return false;
                 }
@@ -3880,9 +3885,16 @@ namespace Microsoft.Data.SqlClient
                             {
                                 // If we're in sequential mode try to read the data and then if it succeeds update shared
                                 // state so there are no remaining bytes and advance the next column to read
-                                if (!_parser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead], columnMetaData, (int)dataLength, _stateObj,
+                                if (!TdsParser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead],
+                                    columnMetaData,
+                                    (int)dataLength,
+                                    _stateObj,
                                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
-                                    columnMetaData.column))
+                                    columnMetaData.column,
+                                    _parser.Connection,
+                                    _parser.ThrowUnsupportedCollationEncountered,
+                                    _parser._defaultEncoding,
+                                    ref _parser._cachedCollation))
                                 { // will read UDTs as VARBINARY.
                                     return false;
                                 }
@@ -3934,9 +3946,17 @@ namespace Microsoft.Data.SqlClient
                             // If we're not in sequential access mode, we have to
                             // save the data we skip over so that the consumer
                             // can read it out of order
-                            if (!_parser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead], columnMetaData, (int)dataLength, _stateObj,
+                            if (!TdsParser.TryReadSqlValue(_data[_sharedState._nextColumnDataToRead],
+                                columnMetaData,
+                                (int)dataLength,
+                                _stateObj,
                                 _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
-                                columnMetaData.column, _command))
+                                columnMetaData.column,
+                                _parser.Connection,
+                                throwOnCollationNotFound: _parser.ThrowUnsupportedCollationEncountered,
+                                defaultEncoding: _parser._defaultEncoding,
+                                ref _parser._cachedCollation,
+                                command: _command))
                             { // will read UDTs as VARBINARY.
                                 return false;
                             }

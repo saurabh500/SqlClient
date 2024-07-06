@@ -6939,7 +6939,7 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLXMLTYPE:
                     // We store SqlCachedBuffer here, so that we can return either SqlBinary, SqlString or SqlXmlReader.
                     SqlCachedBuffer sqlBuf;
-                    if (!SqlCachedBuffer.TryCreate(md, this, stateObj, out sqlBuf))
+                    if (!SqlCachedBuffer.TryCreate(md, stateObj, out sqlBuf))
                     {
                         return false;
                     }

@@ -5750,7 +5750,13 @@ namespace Microsoft.Data.SqlClient
                             {
                                 // Denormalize the value and convert it to the parameter type.
                                 SqlBuffer buffer = new SqlBuffer();
-                                parser.DeserializeUnencryptedValue(buffer, unencryptedBytes, rec, stateObj, rec.NormalizationRuleVersion);
+                                TdsParser.DeserializeUnencryptedValue(buffer,
+                                    unencryptedBytes, 
+                                    rec, 
+                                    stateObj, 
+                                    rec.NormalizationRuleVersion,
+                                    parser.ThrowUnsupportedCollationEncountered,
+                                    parser._defaultEncoding);
                                 thisParam.SetSqlBuffer(buffer);
                             }
                         }

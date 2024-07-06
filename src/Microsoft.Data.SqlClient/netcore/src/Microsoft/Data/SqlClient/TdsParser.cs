@@ -194,7 +194,7 @@ namespace Microsoft.Data.SqlClient
         /// </summary>
         internal int DataClassificationVersion { get; set; }
 
-        private SqlCollation _cachedCollation;
+        public SqlCollation _cachedCollation;
 
         internal TdsParser(bool MARS, bool fAsynchronous)
         {
@@ -2197,14 +2197,16 @@ namespace Microsoft.Data.SqlClient
                     case TdsEnums.SQLRETURNVALUE:
                         {
                             SqlReturnValue returnValue;
-                            if (!TryProcessReturnValue(tokenLength, stateObj, out returnValue, cmdHandler?.ColumnEncryptionSetting ?? SqlCommandColumnEncryptionSetting.UseConnectionSetting))
+                            if (!TryProcessReturnValue(tokenLength,
+                                stateObj,
+                                out returnValue,
+                                cmdHandler?.ColumnEncryptionSetting ?? SqlCommandColumnEncryptionSetting.UseConnectionSetting,
+                                IsColumnEncryptionSupported, ref _cachedCollation, _defaultCodePage, _defaultEncoding, _connHandler,
+                                ThrowUnsupportedCollationEncountered))
                             {
                                 return false;
                             }
-                            if (cmdHandler != null)
-                            {
-                                cmdHandler.OnReturnValue(returnValue, stateObj);
-                            }
+                            cmdHandler?.OnReturnValue(returnValue, stateObj);
                             break;
                         }
                     case TdsEnums.SQLSSPI:
@@ -2382,7 +2384,7 @@ namespace Microsoft.Data.SqlClient
             out SqlEnvChange sqlEnvChange,
             ref int _defaultCodePage,
             ref int _defaultLCID,
-            ref Encoding _defaultEncoding,
+            ref Encoding defaultEncoding,
             SqlInternalConnectionTds _connHandler,
             ref SqlCollation _defaultCollation,
             ref SqlCollation _cachedCollation,
@@ -2435,7 +2437,7 @@ namespace Microsoft.Data.SqlClient
                         if (env._newValue == TdsEnums.DEFAULT_ENGLISH_CODE_PAGE_STRING)
                         {
                             _defaultCodePage = TdsEnums.DEFAULT_ENGLISH_CODE_PAGE_VALUE;
-                            _defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
+                            defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
                         }
                         else
                         {
@@ -2444,7 +2446,7 @@ namespace Microsoft.Data.SqlClient
                             string stringCodePage = env._newValue.Substring(TdsEnums.CHARSET_CODE_PAGE_OFFSET);
 
                             _defaultCodePage = int.Parse(stringCodePage, NumberStyles.Integer, CultureInfo.InvariantCulture);
-                            _defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
+                            defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
                         }
 
                         break;
@@ -2514,7 +2516,7 @@ namespace Microsoft.Data.SqlClient
                             // UTF8 collation
                             if (env._newCollation.IsUTF8)
                             {
-                                _defaultEncoding = Encoding.UTF8;
+                                defaultEncoding = Encoding.UTF8;
                             }
                             else
                             {
@@ -2522,7 +2524,7 @@ namespace Microsoft.Data.SqlClient
                                 if (newCodePage != _defaultCodePage)
                                 {
                                     _defaultCodePage = newCodePage;
-                                    _defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
+                                    defaultEncoding = System.Text.Encoding.GetEncoding(_defaultCodePage);
                                 }
                             }
                             _defaultLCID = env._newCollation.LCID;
@@ -2865,7 +2867,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryProcessResColSrcs(TdsParserStateObject stateObj, int tokenLength)
+        private static bool TryProcessResColSrcs(TdsParserStateObject stateObj, int tokenLength)
         {
             if (!stateObj.TrySkipBytes(tokenLength))
             {
@@ -3076,7 +3078,16 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        internal bool TryProcessReturnValue(int length, TdsParserStateObject stateObj, out SqlReturnValue returnValue, SqlCommandColumnEncryptionSetting columnEncryptionSetting)
+        internal static bool TryProcessReturnValue(int length, 
+            TdsParserStateObject stateObj, 
+            out SqlReturnValue returnValue, 
+            SqlCommandColumnEncryptionSetting columnEncryptionSetting,
+            bool IsColumnEncryptionSupported,
+            ref SqlCollation cachedCollation,
+            int _defaultCodePage,
+            Encoding defaultEncoding,
+            SqlInternalConnectionTds connectionHandler,
+            Action<TdsParserStateObject> ThrowUnsupportedCollationEncountered)
         {
             returnValue = null;
             SqlReturnValue rec = new SqlReturnValue();
@@ -3261,7 +3272,7 @@ namespace Microsoft.Data.SqlClient
             else if (rec.metaType.IsCharType)
             {
                 // read the collation for 8.x servers
-                if (!TdsParserExtensions.TryProcessCollation(stateObj, out rec.collation, ref _cachedCollation))
+                if (!TdsParserExtensions.TryProcessCollation(stateObj, out rec.collation, ref cachedCollation))
                 {
                     return false;
                 }
@@ -3279,7 +3290,7 @@ namespace Microsoft.Data.SqlClient
                     if (codePage == _defaultCodePage)
                     {
                         rec.codePage = _defaultCodePage;
-                        rec.encoding = _defaultEncoding;
+                        rec.encoding = defaultEncoding;
                     }
                     else
                     {
@@ -3293,7 +3304,7 @@ namespace Microsoft.Data.SqlClient
             if (IsColumnEncryptionSupported && rec.isEncrypted)
             {
                 if (!TdsParserExtensions.TryProcessTceCryptoMetadata(stateObj, rec, cipherTable: null, columnEncryptionSetting: columnEncryptionSetting, 
-                    isReturnValue: true, _connHandler, _cachedCollation, _defaultCodePage, _defaultEncoding, ThrowUnsupportedCollationEncountered))
+                    isReturnValue: true, connectionHandler, cachedCollation, _defaultCodePage, defaultEncoding, ThrowUnsupportedCollationEncountered))
                 {
                     return false;
                 }
@@ -3319,13 +3330,21 @@ namespace Microsoft.Data.SqlClient
 
             if (isNull)
             {
-                TdsParserExtensions.GetNullSqlValue(rec.value, rec, SqlCommandColumnEncryptionSetting.Disabled, _connHandler);
+                TdsParserExtensions.GetNullSqlValue(rec.value, rec, SqlCommandColumnEncryptionSetting.Disabled, connectionHandler);
             }
             else
             {
                 // We should never do any decryption here, so pass disabled as the command encryption override.
                 // We only read the binary value and decryption will be performed by OnReturnValue().
-                if (!TryReadSqlValue(rec.value, rec, intlen, stateObj, SqlCommandColumnEncryptionSetting.Disabled, columnName: null /*Not used*/))
+                if (!TryReadSqlValue(rec.value, 
+                    rec, 
+                    intlen, 
+                    stateObj, 
+                    SqlCommandColumnEncryptionSetting.Disabled, columnName: null /*Not used*/,
+                    connectionHandler,
+                    ThrowUnsupportedCollationEncountered,
+                    defaultEncoding,
+                    ref cachedCollation))
                 {
                     return false;
                 }
@@ -3334,10 +3353,6 @@ namespace Microsoft.Data.SqlClient
             returnValue = rec;
             return true;
         }
-
-        
-        
-
 
         internal void DrainData(TdsParserStateObject stateObj)
         {
@@ -3613,7 +3628,7 @@ namespace Microsoft.Data.SqlClient
             return TryProcessColumnHeaderNoNBC(col, stateObj, out isNull, out length);
         }
 
-        private bool TryProcessColumnHeaderNoNBC(SqlMetaDataPriv col, TdsParserStateObject stateObj, out bool isNull, out ulong length)
+        private static bool TryProcessColumnHeaderNoNBC(SqlMetaDataPriv col, TdsParserStateObject stateObj, out bool isNull, out ulong length)
         {
             if (col.metaType.IsLong && !col.metaType.IsPlp)
             {
@@ -3728,7 +3743,13 @@ namespace Microsoft.Data.SqlClient
                     // We only read up to 2Gb. Throw if data is larger. Very large data
                     // should be read in chunks in sequential read mode
                     // For Plp columns, we may have gotten only the length of the first chunk
-                    if (!TryReadSqlValue(data, md, md.metaType.IsPlp ? (Int32.MaxValue) : (int)len, stateObj, SqlCommandColumnEncryptionSetting.Disabled /*Column Encryption Disabled for Bulk Copy*/, md.column))
+                    if (!TryReadSqlValue(data, 
+                        md, 
+                        md.metaType.IsPlp ? (Int32.MaxValue) : (int)len, 
+                        stateObj, 
+                        SqlCommandColumnEncryptionSetting.Disabled /*Column Encryption Disabled for Bulk Copy*/, 
+                        md.column,
+                        _connHandler, ThrowUnsupportedCollationEncountered, _defaultEncoding, ref _cachedCollation))
                     {
                         return false;
                     }
@@ -3745,7 +3766,10 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        private bool TryReadSqlStringValue(SqlBuffer value, byte type, int length, Encoding encoding, bool isPlp, TdsParserStateObject stateObj)
+        private static bool TryReadSqlStringValue(SqlBuffer value, byte type, int length, Encoding encoding, 
+            bool isPlp, 
+            TdsParserStateObject stateObj,
+            Encoding defaultEncoding)
         {
             switch (type)
             {
@@ -3760,7 +3784,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         // if hitting 7.0 server, encoding will be null in metadata for columns or return values since
                         // 7.0 has no support for multiple code pages in data - single code page support only
-                        encoding = _defaultEncoding;
+                        encoding = defaultEncoding;
                     }
                     string stringValue;
                     if (!stateObj.TryReadStringWithEncoding(length, encoding, isPlp, out stringValue))
@@ -3833,7 +3857,13 @@ namespace Microsoft.Data.SqlClient
         /// <summary>
         /// Deserializes the unencrypted bytes into a value based on the target type info.
         /// </summary>
-        internal bool DeserializeUnencryptedValue(SqlBuffer value, byte[] unencryptedBytes, SqlMetaDataPriv md, TdsParserStateObject stateObj, byte normalizationVersion)
+        internal static bool DeserializeUnencryptedValue(SqlBuffer value, 
+            byte[] unencryptedBytes,
+            SqlMetaDataPriv md,
+            TdsParserStateObject stateObj,
+            byte normalizationVersion,
+            Action<TdsParserStateObject> ThrowUnsupportedCollationEncountered,
+            Encoding defaultEncoding)
         {
             if (normalizationVersion != 0x01)
             {
@@ -4037,7 +4067,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (null == encoding)
                         {
-                            encoding = _defaultEncoding;
+                            encoding = defaultEncoding;
                         }
 
                         if (null == encoding)
@@ -4111,7 +4141,17 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal bool TryReadSqlValue(SqlBuffer value, SqlMetaDataPriv md, int length, TdsParserStateObject stateObj, SqlCommandColumnEncryptionSetting columnEncryptionOverride, string columnName, SqlCommand command = null)
+        internal static bool TryReadSqlValue(SqlBuffer value, 
+            SqlMetaDataPriv md, 
+            int length, 
+            TdsParserStateObject stateObj, 
+            SqlCommandColumnEncryptionSetting columnEncryptionOverride, 
+            string columnName,
+            SqlInternalConnectionTds _connHandler,
+            Action<TdsParserStateObject> throwOnCollationNotFound,
+            Encoding defaultEncoding,
+            ref SqlCollation _cachedCollation,
+            SqlCommand command = null)
         {
             bool isPlp = md.metaType.IsPlp;
             byte tdsType = md.tdsType;
@@ -4178,7 +4218,8 @@ namespace Microsoft.Data.SqlClient
 
                             if (unencryptedBytes != null)
                             {
-                                DeserializeUnencryptedValue(value, unencryptedBytes, md, stateObj, md.NormalizationRuleVersion);
+                                DeserializeUnencryptedValue(value, unencryptedBytes, md, stateObj, md.NormalizationRuleVersion, throwOnCollationNotFound,
+                                    defaultEncoding);
                             }
                         }
                         catch (Exception e)
@@ -4211,7 +4252,7 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLNCHAR:
                 case TdsEnums.SQLNVARCHAR:
                 case TdsEnums.SQLNTEXT:
-                    if (!TryReadSqlStringValue(value, tdsType, length, md.encoding, isPlp, stateObj))
+                    if (!TryReadSqlStringValue(value, tdsType, length, md.encoding, isPlp, stateObj, defaultEncoding))
                     {
                         return false;
                     }
@@ -4220,7 +4261,7 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLXMLTYPE:
                     // We store SqlCachedBuffer here, so that we can return either SqlBinary, SqlString or SqlXmlReader.
                     SqlCachedBuffer sqlBuf;
-                    if (!SqlCachedBuffer.TryCreate(md, this, stateObj, out sqlBuf))
+                    if (!SqlCachedBuffer.TryCreate(md, stateObj, out sqlBuf))
                     {
                         return false;
                     }
@@ -4240,7 +4281,8 @@ namespace Microsoft.Data.SqlClient
 
                 default:
                     Debug.Assert(!isPlp, "ReadSqlValue calling ReadSqlValueInternal with plp data");
-                    if (!TryReadSqlValueInternal(value, tdsType, length, stateObj))
+                    if (!TryReadSqlValueInternal(value, tdsType, length, stateObj,
+                         ref _cachedCollation, defaultEncoding, throwOnCollationNotFound))
                     {
                         return false;
                     }
@@ -4251,7 +4293,7 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        private bool TryReadSqlDateTime(SqlBuffer value, byte tdsType, int length, byte scale, TdsParserStateObject stateObj)
+        private static bool TryReadSqlDateTime(SqlBuffer value, byte tdsType, int length, byte scale, TdsParserStateObject stateObj)
         {
             Span<byte> datetimeBuffer = ((uint)length <= 16) ? stackalloc byte[16] : new byte[length];
 
@@ -4290,7 +4332,13 @@ namespace Microsoft.Data.SqlClient
             return true;
         }
 
-        internal bool TryReadSqlValueInternal(SqlBuffer value, byte tdsType, int length, TdsParserStateObject stateObj)
+        internal static bool TryReadSqlValueInternal(SqlBuffer value, 
+            byte tdsType, 
+            int length, 
+            TdsParserStateObject stateObj,
+            ref SqlCollation _cachedCollation,
+            Encoding defaultEncoding,
+            Action<TdsParserStateObject> ThrowUnsupportedCollationException)
         {
             switch (tdsType)
             {
@@ -4502,7 +4550,8 @@ namespace Microsoft.Data.SqlClient
                     }
 
                 case TdsEnums.SQLVARIANT:
-                    if (!TryReadSqlVariant(value, length, stateObj))
+                    if (!TryReadSqlVariant(value, length, stateObj, ref _cachedCollation, ThrowUnsupportedCollationException,
+                         defaultEncoding))
                     {
                         return false;
                     }
@@ -4527,7 +4576,12 @@ namespace Microsoft.Data.SqlClient
         //      BYTE[] Properties
         //      BYTE[] DataVal
         // }
-        internal bool TryReadSqlVariant(SqlBuffer value, int lenTotal, TdsParserStateObject stateObj)
+        internal static bool TryReadSqlVariant(SqlBuffer value,
+            int lenTotal,
+            TdsParserStateObject stateObj,
+            ref SqlCollation _cachedCollation,
+            Action<TdsParserStateObject> ThrowUnsupportedCollationEncountered,
+            Encoding defaultEncoding)
         {
             // get the SQLVariant type
             byte type;
@@ -4569,7 +4623,14 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLDATETIME:
                 case TdsEnums.SQLDATETIM4:
                 case TdsEnums.SQLUNIQUEID:
-                    if (!TryReadSqlValueInternal(value, type, lenData, stateObj))
+                    if (!TryReadSqlValueInternal(
+                        value, 
+                        type, 
+                        lenData, 
+                        stateObj, 
+                        ref _cachedCollation, 
+                        defaultEncoding, 
+                        ThrowUnsupportedCollationEncountered))
                     {
                         return false;
                     }
@@ -4658,7 +4719,8 @@ namespace Microsoft.Data.SqlClient
                         }
 
                         Encoding encoding = Encoding.GetEncoding(TdsParserExtensions.GetCodePage(collation, stateObj, ThrowUnsupportedCollationEncountered));
-                        if (!TryReadSqlStringValue(value, type, lenData, encoding, false, stateObj))
+                        if (!TryReadSqlStringValue(value, type, lenData, encoding, false, stateObj, 
+                            defaultEncoding))
                         {
                             return false;
                         }
@@ -5114,7 +5176,7 @@ namespace Microsoft.Data.SqlClient
                     ThrowUnsupportedCollationEncountered(null);
                 }
 
-                encoding = _defaultEncoding;
+                encoding = defaultEncoding;
             }
 
             char[] charData = value.ToCharArray(charOffset, numChars);
@@ -7716,7 +7778,7 @@ namespace Microsoft.Data.SqlClient
             int codePageByteSize, 
             int offset, 
             TdsParserStateObject stateObj,
-            Encoding _defaultEncoding)
+            Encoding defaultEncoding)
         {
             Debug.Assert(((type.NullableType == TdsEnums.SQLXMLTYPE) ||
                    (value is INullable && !((INullable)value).IsNull)),
@@ -7820,12 +7882,12 @@ namespace Microsoft.Data.SqlClient
                     {
                         string sch = new string(((SqlChars)value).Value);
 
-                        return TdsParserExtensions.WriteEncodingChar(sch, actualLength, offset, _defaultEncoding, stateObj, _defaultEncoding, canAccumulate: false);
+                        return TdsParserExtensions.WriteEncodingChar(sch, actualLength, offset, defaultEncoding, stateObj, defaultEncoding, canAccumulate: false);
                     }
                     else
                     {
                         Debug.Assert(value is SqlString);
-                        return TdsParserExtensions.WriteEncodingChar(((SqlString)value).Value, actualLength, offset, _defaultEncoding, stateObj, _defaultEncoding, canAccumulate: false);
+                        return TdsParserExtensions.WriteEncodingChar(((SqlString)value).Value, actualLength, offset, defaultEncoding, stateObj, defaultEncoding, canAccumulate: false);
                     }
 
 
@@ -8911,7 +8973,7 @@ namespace Microsoft.Data.SqlClient
                                        + "         _defaultCollation = {5}\n\t"
                                        + "         _defaultCodePage = {6}\n\t"
                                        + "         _defaultLCID = {7}\n\t"
-                                       + "         _defaultEncoding = {8}\n\t"
+                                       + "         defaultEncoding = {8}\n\t"
                                        + "         _encryptionOption = {9}\n\t"
                                        + "         _currentTransaction = {10}\n\t"
                                        + "         _pendingTransaction = {11}\n\t"
