@@ -39,7 +39,7 @@ namespace Microsoft.Data.SqlClient
 
         // SQLStatistics support
         internal SqlStatistics _statistics;
-        private bool _collectstats;
+        private bool _statisticsEnabled;
 
         private bool _fireInfoMessageEventOnUserErrors; // False by default
 
@@ -457,7 +457,7 @@ namespace Microsoft.Data.SqlClient
         {
             get
             {
-                return (_collectstats);
+                return (_statisticsEnabled);
             }
             set
             {
@@ -494,7 +494,7 @@ namespace Microsoft.Data.SqlClient
                             }
                         }
                     }
-                    _collectstats = value;
+                    _statisticsEnabled = value;
                 }
             }
         }

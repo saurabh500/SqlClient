@@ -2261,8 +2261,13 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                cch = (long)TdsParserExtensions.ReadPlpAnsiChars(ref buffer, bufferIndex, length, _metaData[i], _stateObj,
-                    _parser._defaultEncoding, _parser.ThrowUnsupportedCollationEncountered);
+                cch = (long)TdsParserExtensions.ReadPlpAnsiChars(ref buffer, 
+                    bufferIndex, 
+                    length, 
+                    _metaData[i], 
+                    _stateObj,
+                    _parser.Connection.DefaultEncoding, 
+                    _parser.ThrowUnsupportedCollationEncountered);
                 _columnDataBytesRead += cch << 1;
             }
             _columnDataCharsRead += cch;
@@ -3745,10 +3750,7 @@ namespace Microsoft.Data.SqlClient
                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
                     columnMetaData.column,
                     _parser.Connection,
-                    _parser.ThrowUnsupportedCollationEncountered,
-                    _parser._defaultEncoding,
-                    ref _parser._cachedCollation
-                    ))
+                    _parser.ThrowUnsupportedCollationEncountered))
                 { // will read UDTs as VARBINARY.
                     return false;
                 }
@@ -3891,9 +3893,7 @@ namespace Microsoft.Data.SqlClient
                                     _command != null ? _command.ColumnEncryptionSetting : SqlCommandColumnEncryptionSetting.UseConnectionSetting,
                                     columnMetaData.column,
                                     _parser.Connection,
-                                    _parser.ThrowUnsupportedCollationEncountered,
-                                    _parser._defaultEncoding,
-                                    ref _parser._cachedCollation))
+                                    _parser.ThrowUnsupportedCollationEncountered))
                                 { // will read UDTs as VARBINARY.
                                     return false;
                                 }
@@ -3953,8 +3953,6 @@ namespace Microsoft.Data.SqlClient
                                 columnMetaData.column,
                                 _parser.Connection,
                                 throwOnCollationNotFound: _parser.ThrowUnsupportedCollationEncountered,
-                                defaultEncoding: _parser._defaultEncoding,
-                                ref _parser._cachedCollation,
                                 command: _command))
                             { // will read UDTs as VARBINARY.
                                 return false;

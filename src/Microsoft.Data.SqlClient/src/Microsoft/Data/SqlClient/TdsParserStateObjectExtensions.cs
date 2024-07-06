@@ -1321,7 +1321,13 @@ namespace Microsoft.Data.SqlClient
         /// Encrypts a column value (for SqlBulkCopy)
         /// </summary>
         /// <returns></returns>
-        internal static object EncryptColumnValue(object value, SqlMetaDataPriv metadata, string column, TdsParserStateObject stateObj, bool isDataFeed, bool isSqlType, TdsParser parser,
+        internal static object EncryptColumnValue(object value,
+            SqlMetaDataPriv metadata,
+            string column,
+            TdsParserStateObject stateObj,
+            bool isDataFeed,
+            bool isSqlType,
+            TdsParser parser,
             SqlInternalConnectionTds _connHandler)
         {
             Debug.Assert(parser.IsColumnEncryptionSupported, "Server doesn't support encryption, yet we received encryption metadata");
@@ -1362,13 +1368,13 @@ namespace Microsoft.Data.SqlClient
                 case TdsEnums.SQLBIGCHAR:
                 case TdsEnums.SQLBIGVARCHAR:
                 case TdsEnums.SQLTEXT:
-                    if (null == parser._defaultEncoding)
+                    if (null == _connHandler.DefaultEncoding)
                     {
                         parser.ThrowUnsupportedCollationEncountered(null); // stateObject only when reading
                     }
 
                     string stringValue = (isSqlType) ? ((SqlString)value).Value : (string)value;
-                    actualLengthInBytes = parser._defaultEncoding.GetByteCount(stringValue);
+                    actualLengthInBytes = _connHandler.DefaultEncoding.GetByteCount(stringValue);
 
                     // If the string length is > max length, then use the max length (see comments above)
                     if (metadata.baseTI.length > 0 &&
@@ -1406,7 +1412,7 @@ namespace Microsoft.Data.SqlClient
                                             offset: 0,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
                                             stateObj: stateObj,
-                                            defaultEncoding: parser._defaultEncoding);
+                                            defaultEncoding: parser.Connection.DefaultEncoding);
             }
             else
             {
@@ -1418,7 +1424,7 @@ namespace Microsoft.Data.SqlClient
                                             isDataFeed: isDataFeed,
                                             normalizationVersion: metadata.cipherMD.NormalizationRuleVersion,
                                             stateObj: stateObj,
-                                            defaultEncoding: parser._defaultEncoding);
+                                            defaultEncoding: parser.Connection.DefaultEncoding);
             }
 
             Debug.Assert(serializedValue != null, "serializedValue should not be null in TdsExecuteRPC.");
@@ -1768,11 +1774,8 @@ namespace Microsoft.Data.SqlClient
         }
 
         internal static bool TryProcessFeatureExtAck(TdsParserStateObject stateObj, 
-            SqlInternalConnectionTds _connHandler, 
-            string FQDNforDNSCache, 
-            bool IsColumnEncryptionSupported, 
-            int TceVersionSupported, 
-            string EnclaveType)
+            SqlInternalConnectionTds connectionHandler, 
+            string FQDNforDNSCache)
         {
             // read feature ID
             byte featureId;
@@ -1797,67 +1800,70 @@ namespace Microsoft.Data.SqlClient
                             return false;
                         }
                     }
-                    _connHandler.HandleFeatureExtensionAcknowledgement(featureId, data);
+                    connectionHandler.HandleFeatureExtensionAcknowledgement(featureId, data);
                 }
             } while (featureId != TdsEnums.FEATUREEXT_TERMINATOR);
 
             // Write to DNS Cache or clean up DNS Cache for TCP protocol
             bool ret = false;
-            if (!_connHandler.Features.SqlDnsCaching.IsAcknowledged)
+            if (!connectionHandler.Features.SqlDnsCaching.IsAcknowledged)
             {
                 ret = SQLFallbackDNSCache.Instance.DeleteDNSInfo(FQDNforDNSCache);
             }
 
-            if (_connHandler.Features.SqlDnsCaching.IsAcknowledged && _connHandler.pendingSQLDNSObject != null
-                    && !SQLFallbackDNSCache.Instance.IsDuplicate(_connHandler.pendingSQLDNSObject))
+            if (connectionHandler.Features.SqlDnsCaching.IsAcknowledged 
+                && connectionHandler.pendingSQLDNSObject != null
+                && !SQLFallbackDNSCache.Instance.IsDuplicate(connectionHandler.pendingSQLDNSObject))
             {
-                ret = SQLFallbackDNSCache.Instance.AddDNSInfo(_connHandler.pendingSQLDNSObject);
-                _connHandler.pendingSQLDNSObject = null;
+                ret = SQLFallbackDNSCache.Instance.AddDNSInfo(connectionHandler.pendingSQLDNSObject);
+                connectionHandler.pendingSQLDNSObject = null;
             }
 
             // Check if column encryption was on and feature wasn't acknowledged and we aren't going to be routed to another server.
-            if (_connHandler.RoutingInfo == null
-                && _connHandler.ConnectionOptions.ColumnEncryptionSetting == SqlConnectionColumnEncryptionSetting.Enabled
-                && !IsColumnEncryptionSupported)
+            if (connectionHandler.RoutingInfo == null
+                && connectionHandler.ConnectionOptions.ColumnEncryptionSetting == SqlConnectionColumnEncryptionSetting.Enabled
+                && !connectionHandler.Features.ColumnEncryption.IsAcknowledged)
             {
                 throw SQL.TceNotSupported();
             }
 
             // Check if server does not support Enclave Computations and we aren't going to be routed to another server.
-            if (_connHandler.RoutingInfo == null)
+            if (connectionHandler.RoutingInfo == null)
             {
-                SqlConnectionAttestationProtocol attestationProtocol = _connHandler.ConnectionOptions.AttestationProtocol;
+                SqlConnectionAttestationProtocol attestationProtocol = connectionHandler.ConnectionOptions.AttestationProtocol;
 
-                if (TceVersionSupported < TdsEnums.MIN_TCE_VERSION_WITH_ENCLAVE_SUPPORT)
+                if (connectionHandler.Features.ColumnEncryption.FeatureVersion < TdsEnums.MIN_TCE_VERSION_WITH_ENCLAVE_SUPPORT)
                 {
                     // Check if enclave attestation url was specified and server does not support enclave computations and we aren't going to be routed to another server.
-                    if (!string.IsNullOrWhiteSpace(_connHandler.ConnectionOptions.EnclaveAttestationUrl) && attestationProtocol != SqlConnectionAttestationProtocol.NotSpecified)
+                    if (!string.IsNullOrWhiteSpace(connectionHandler.ConnectionOptions.EnclaveAttestationUrl)
+                        && attestationProtocol != SqlConnectionAttestationProtocol.NotSpecified)
                     {
                         throw SQL.EnclaveComputationsNotSupported();
                     }
-                    else if (!string.IsNullOrWhiteSpace(_connHandler.ConnectionOptions.EnclaveAttestationUrl))
+                    else if (!string.IsNullOrWhiteSpace(connectionHandler.ConnectionOptions.EnclaveAttestationUrl))
                     {
                         throw SQL.AttestationURLNotSupported();
                     }
-                    else if (_connHandler.ConnectionOptions.AttestationProtocol != SqlConnectionAttestationProtocol.NotSpecified)
+                    else if (connectionHandler.ConnectionOptions.AttestationProtocol != SqlConnectionAttestationProtocol.NotSpecified)
                     {
                         throw SQL.AttestationProtocolNotSupported();
                     }
                 }
 
                 // Check if enclave attestation url was specified and server does not return an enclave type and we aren't going to be routed to another server.
-                if (!string.IsNullOrWhiteSpace(_connHandler.ConnectionOptions.EnclaveAttestationUrl) || attestationProtocol == SqlConnectionAttestationProtocol.None)
+                if (!string.IsNullOrWhiteSpace(connectionHandler.ConnectionOptions.EnclaveAttestationUrl) || attestationProtocol == SqlConnectionAttestationProtocol.None)
                 {
-                    if (string.IsNullOrWhiteSpace(EnclaveType))
+                    if (string.IsNullOrWhiteSpace(connectionHandler.Features.ColumnEncryption.EnclaveType))
                     {
                         throw SQL.EnclaveTypeNotReturned();
                     }
                     else
                     {
                         // Check if the attestation protocol is specified and supports the enclave type.
-                        if (SqlConnectionAttestationProtocol.NotSpecified != attestationProtocol && !IsValidAttestationProtocol(attestationProtocol, EnclaveType))
+                        if (SqlConnectionAttestationProtocol.NotSpecified != attestationProtocol 
+                            && !IsValidAttestationProtocol(attestationProtocol, connectionHandler.Features.ColumnEncryption.EnclaveType))
                         {
-                            throw SQL.AttestationProtocolNotSupportEnclaveType(attestationProtocol.ToString(), EnclaveType);
+                            throw SQL.AttestationProtocolNotSupportEnclaveType(attestationProtocol.ToString(), connectionHandler.Features.ColumnEncryption.EnclaveType);
                         }
                     }
                 }
@@ -1908,7 +1914,9 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        internal static bool TryProcessSessionState(TdsParserStateObject stateObj, int length, SqlInternalConnectionTds _connHandler)
+        internal static bool TryProcessSessionState(TdsParserStateObject stateObj, 
+            int length, 
+            SqlInternalConnectionTds _connHandler)
         {
             SessionData sdata = _connHandler._currentSessionData;
             if (length < 5)
@@ -1965,7 +1973,12 @@ namespace Microsoft.Data.SqlClient
                     if (sdata._delta[stateId] == null)
                     {
                         buffer = new byte[stateLen];
-                        sdata._delta[stateId] = new SessionStateRecord { _version = seqNum, _dataLength = stateLen, _data = buffer, _recoverable = recoverable };
+                        sdata._delta[stateId] = new SessionStateRecord { 
+                            _version = seqNum, 
+                            _dataLength = stateLen, 
+                            _data = buffer, 
+                            _recoverable = recoverable 
+                        };
                         sdata._deltaDirty = true;
                         if (!recoverable)
                         {
@@ -2166,8 +2179,7 @@ namespace Microsoft.Data.SqlClient
         }
 
         internal static bool TryProcessCollation(TdsParserStateObject stateObj, 
-            out SqlCollation collation, 
-            ref SqlCollation cachedCollation)
+            out SqlCollation collation)
         {
             if (!stateObj.TryReadUInt32(out uint info))
             {
@@ -2180,14 +2192,14 @@ namespace Microsoft.Data.SqlClient
                 return false;
             }
 
-            if (SqlCollation.Equals(cachedCollation, info, sortId))
+            if (SqlCollation.Equals(stateObj.CachedCollation, info, sortId))
             {
-                collation = cachedCollation;
+                collation = stateObj.CachedCollation;
             }
             else
             {
                 collation = new SqlCollation(info, sortId);
-                cachedCollation = collation;
+                stateObj.CachedCollation = collation;
             }
 
             return true;
@@ -2199,7 +2211,6 @@ namespace Microsoft.Data.SqlClient
             SqlCommandColumnEncryptionSetting columnEncryptionSetting,
             bool isReturnValue,
             SqlInternalConnectionTds connectionHandler,
-            SqlCollation cachedCollation, int defaultCodePage, Encoding defaultEncoding,
             Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
         {
             Debug.Assert(isReturnValue == (cipherTable == null), "Ciphertable is not set iff this is a return value");
@@ -2232,7 +2243,7 @@ namespace Microsoft.Data.SqlClient
 
             // Read the base TypeInfo
             col.baseTI = new SqlMetaDataPriv();
-            if (!TryProcessTypeInfo(stateObj, col.baseTI, userType, cachedCollation, defaultCodePage, defaultEncoding, throwOnUnsupportedCollationAction))
+            if (!TryProcessTypeInfo(stateObj, col.baseTI, userType, connectionHandler.DefaultCodePage, connectionHandler.DefaultEncoding, throwOnUnsupportedCollationAction))
             {
                 return false;
             }
@@ -2372,7 +2383,8 @@ namespace Microsoft.Data.SqlClient
         }
 
         private static bool TryProcessTypeInfo(TdsParserStateObject stateObj, 
-            SqlMetaDataPriv col, UInt32 userType, SqlCollation cachedCollation, int _defaultCodePage, Encoding _defaultEncoding,
+            SqlMetaDataPriv col, UInt32 userType,
+            int _defaultCodePage, Encoding _defaultEncoding,
             Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
@@ -2521,7 +2533,7 @@ namespace Microsoft.Data.SqlClient
             // read the collation for 7.x servers
             if (col.metaType.IsCharType && (tdsType != TdsEnums.SQLXMLTYPE))
             {
-                if (!TdsParserExtensions.TryProcessCollation(stateObj, out col.collation, ref cachedCollation))
+                if (!TdsParserExtensions.TryProcessCollation(stateObj, out col.collation))
                 {
                     return false;
                 }
@@ -2556,11 +2568,7 @@ namespace Microsoft.Data.SqlClient
             SqlTceCipherInfoTable cipherTable, 
             bool fColMD, 
             SqlCommandColumnEncryptionSetting columnEncryptionSetting, 
-            bool IsColumnEncryptionSupported,
             SqlInternalConnectionTds connectionHandler, 
-            ref SqlCollation cachedCollation,
-            int _defaultCodePage, 
-            Encoding defaultEncoding, 
             Action<TdsParserStateObject> unsupportedCollationAction)
         {
             byte byteLen;
@@ -2588,7 +2596,7 @@ namespace Microsoft.Data.SqlClient
             {
                 return false;
             }
-
+            bool IsColumnEncryptionSupported = connectionHandler.Features.ColumnEncryption.IsAcknowledged;
             col.IsColumnSet = (TdsEnums.IsColumnSet == (flags & TdsEnums.IsColumnSet));
 
             if (fColMD && IsColumnEncryptionSupported)
@@ -2597,7 +2605,12 @@ namespace Microsoft.Data.SqlClient
             }
 
             // Read TypeInfo
-            if (!TryProcessTypeInfo(stateObj, col, userType, cachedCollation, _defaultCodePage, defaultEncoding, unsupportedCollationAction))
+            if (!TryProcessTypeInfo(stateObj, 
+                col, 
+                userType, 
+                connectionHandler.DefaultCodePage, 
+                connectionHandler.DefaultEncoding,
+                unsupportedCollationAction))
             {
                 return false;
             }
@@ -2616,8 +2629,13 @@ namespace Microsoft.Data.SqlClient
             if (fColMD && IsColumnEncryptionSupported && col.isEncrypted)
             {
                 // If the column is encrypted, we should have a valid cipherTable
-                if (cipherTable != null && !TryProcessTceCryptoMetadata(stateObj, col, cipherTable, columnEncryptionSetting, isReturnValue: false, connectionHandler, cachedCollation,
-                    _defaultCodePage, defaultEncoding, unsupportedCollationAction))
+                if (cipherTable != null && !TryProcessTceCryptoMetadata(stateObj, 
+                    col, 
+                    cipherTable, 
+                    columnEncryptionSetting, 
+                    isReturnValue: false, 
+                    connectionHandler,
+                    unsupportedCollationAction))
                 {
                     return false;
                 }
@@ -2891,11 +2909,15 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        internal static bool TryProcessMetaData(int cColumns, TdsParserStateObject stateObj, out _SqlMetaDataSet metaData, SqlCommandColumnEncryptionSetting columnEncryptionSetting, bool IsColumnEncryptionSupported,
-            SqlInternalConnectionTds connectionHandler, ref SqlCollation cachedCollation,
-            int defaultCodePage, Encoding defaultEncoding, Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
+        internal static bool TryProcessMetaData(int cColumns,
+            TdsParserStateObject stateObj,
+            out _SqlMetaDataSet metaData,
+            SqlCommandColumnEncryptionSetting columnEncryptionSetting,
+            SqlInternalConnectionTds connectionHandler,
+            Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
         {
             Debug.Assert(cColumns > 0, "should have at least 1 column in metadata!");
+            bool IsColumnEncryptionSupported = connectionHandler.Features.ColumnEncryption.IsAcknowledged;
 
             // Read the cipher info table first
             SqlTceCipherInfoTable cipherTable = null;
@@ -2912,8 +2934,9 @@ namespace Microsoft.Data.SqlClient
             _SqlMetaDataSet newMetaData = new _SqlMetaDataSet(cColumns, cipherTable);
             for (int i = 0; i < cColumns; i++)
             {
-                if (!TdsParserExtensions.TryCommonProcessMetaData(stateObj, newMetaData[i], cipherTable, fColMD: true, columnEncryptionSetting: columnEncryptionSetting, IsColumnEncryptionSupported,
-                    connectionHandler, ref cachedCollation, defaultCodePage, defaultEncoding, throwOnUnsupportedCollationAction))
+                if (!TdsParserExtensions.TryCommonProcessMetaData(stateObj, newMetaData[i],
+                    cipherTable, fColMD: true, columnEncryptionSetting: columnEncryptionSetting,
+                    connectionHandler, throwOnUnsupportedCollationAction))
                 {
                     metaData = null;
                     return false;

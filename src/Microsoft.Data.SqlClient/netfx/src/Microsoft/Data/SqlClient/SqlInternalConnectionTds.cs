@@ -150,6 +150,17 @@ namespace Microsoft.Data.SqlClient
         internal bool _cleanSQLDNSCaching = false;
         private bool _serverSupportsDNSCaching = false;
 
+
+        public int DefaultCodePage { get; internal set; }
+        public int DefaultLCID { get; internal set; }
+        public SqlCollation DefaultCollation { get; internal set; }
+
+        /// <summary>
+        /// For the character data.
+        /// This is set during login while processing env change tokens.
+        /// </summary>
+        internal Encoding DefaultEncoding { get; set; }
+
         internal SqlNegotiatedFeatures Features { get; } = new SqlNegotiatedFeatures();
 
         /// <summary>

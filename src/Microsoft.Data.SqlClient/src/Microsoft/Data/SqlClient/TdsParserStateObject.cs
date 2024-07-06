@@ -28,6 +28,7 @@ namespace Microsoft.Data.SqlClient
     {
         private static int s_objectTypeCount; // EventSource counter
         internal readonly int _objectID = Interlocked.Increment(ref s_objectTypeCount);
+        internal SqlCollation CachedCollation { get; set; }
 
         [Flags]
         internal enum SnapshottedStateFlags : byte

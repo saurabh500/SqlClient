@@ -141,8 +141,10 @@ namespace Microsoft.Data.SqlClient
                     ? ADP.MaxBufferAccessTokenExpiry : ConnectionOptions.ConnectTimeout;
             }
         }
-
+        
         internal SqlNegotiatedFeatures Features { get; } = new SqlNegotiatedFeatures();
+
+        
 
         internal SQLDNSInfo pendingSQLDNSObject = null;
         
@@ -2775,6 +2777,16 @@ namespace Microsoft.Data.SqlClient
                 // else This thread didn't own the parser lock and doesn't claim to own it, so do nothing
             }
         }
+
+        public int DefaultCodePage { get; internal set; }
+        public int DefaultLCID { get; internal set; }
+        public SqlCollation DefaultCollation { get; internal set; }
+
+        /// <summary>
+        /// For the character data.
+        /// This is set during login while processing env change tokens.
+        /// </summary>
+        internal Encoding DefaultEncoding { get; set; }
 
         internal override bool TryReplaceConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource<DbConnectionInternal> retry, DbConnectionOptions userOptions)
         {
