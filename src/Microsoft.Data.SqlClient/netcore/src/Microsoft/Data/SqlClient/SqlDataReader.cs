@@ -2262,7 +2262,8 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                cch = (long)TdsParserExtensions.ReadPlpAnsiChars(ref buffer, bufferIndex, length, _metaData[i], _stateObj, _parser._defaultEncoding, _parser);
+                cch = (long)TdsParserExtensions.ReadPlpAnsiChars(ref buffer, bufferIndex, length, _metaData[i], _stateObj,
+                    _parser._defaultEncoding, _parser.ThrowUnsupportedCollationEncountered);
                 _columnDataBytesRead += cch << 1;
             }
             _columnDataCharsRead += cch;

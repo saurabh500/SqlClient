@@ -18,7 +18,7 @@ using Microsoft.Data.SqlTypes;
 namespace Microsoft.Data.SqlClient
 {
 
-    internal partial class TdsParserExtensions
+    internal static class TdsParserExtensions
     {
         private const string enableTruncateSwitch = "Switch.Microsoft.Data.SqlClient.TruncateScaledDecimal"; // for applications that need to maintain backwards compatibility with the previous behavior
 
@@ -1304,7 +1304,7 @@ namespace Microsoft.Data.SqlClient
         /// Determines if a column value should be encrypted when using BulkCopy (based on connectionstring setting).
         /// </summary>
         /// <returns></returns>
-        internal static bool ShouldEncryptValuesForBulkCopy(SqlInternalConnectionTds connectionHandler)
+        internal static bool ShouldEncryptValuesForBulkCopy(this SqlInternalConnectionTds connectionHandler)
         {
             if (null != connectionHandler &&
                 null != connectionHandler.ConnectionOptions &&
@@ -3299,7 +3299,8 @@ namespace Microsoft.Data.SqlClient
         }
 
 
-        internal static int ReadPlpAnsiChars(ref char[] buff, int offst, int len, SqlMetaDataPriv metadata, TdsParserStateObject stateObj, Encoding defaultEncoding, TdsParser parser)
+        internal static int ReadPlpAnsiChars(ref char[] buff, int offst, int len, SqlMetaDataPriv metadata, TdsParserStateObject stateObj, Encoding defaultEncoding, 
+            Action<TdsParserStateObject> throwOnUnsupportedCollationAction)
         {
             int charsRead = 0;
             int charsLeft = 0;
@@ -3336,7 +3337,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     if (null == defaultEncoding)
                     {
-                        parser.ThrowUnsupportedCollationEncountered(stateObj);
+                        throwOnUnsupportedCollationAction(stateObj);
                     }
 
                     enc = defaultEncoding;

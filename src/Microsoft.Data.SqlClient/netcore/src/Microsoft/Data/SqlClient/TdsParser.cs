@@ -5149,12 +5149,13 @@ namespace Microsoft.Data.SqlClient
             Debug.Assert(!stateObj._attentionSent, "Invalid attentionSent state at end of ProcessAttention");
         }
 
-        
+
         /// <summary>
         /// Send the access token to the server.
         /// </summary>
         /// <param name="fedAuthToken">Type encapsulating a Federated Authentication access token.</param>
-        internal void SendFedAuthToken(SqlFedAuthToken fedAuthToken)
+        /// <param name="_physicalStateObj"></param>
+        internal static void SendFedAuthToken(SqlFedAuthToken fedAuthToken, TdsParserStateObject _physicalStateObj)
         {
             Debug.Assert(fedAuthToken != null, "fedAuthToken cannot be null");
             Debug.Assert(fedAuthToken.accessToken != null, "fedAuthToken.accessToken cannot be null");
@@ -5176,8 +5177,6 @@ namespace Microsoft.Data.SqlClient
             _physicalStateObj.WritePacket(TdsEnums.HARDFLUSH);
             _physicalStateObj.HasPendingData = true;
             _physicalStateObj._messageStatus = 0;
-
-            _connHandler._federatedAuthenticationRequested = true;
         }
 
         internal byte[] GetDTCAddress(int timeout, TdsParserStateObject stateObj)
@@ -6916,7 +6915,7 @@ namespace Microsoft.Data.SqlClient
             SqlInternalConnectionTds connectionHandler,
             SqlCommand command = null)
         {
-            if (IsColumnEncryptionSupported && TdsParserExtensions.ShouldEncryptValuesForBulkCopy(connectionHandler))
+            if (IsColumnEncryptionSupported && connectionHandler.ShouldEncryptValuesForBulkCopy())
             {
                 for (int col = 0; col < metadataCollection.Length; col++)
                 {
@@ -6974,7 +6973,7 @@ namespace Microsoft.Data.SqlClient
             //     was enabled and server supports it!
             // OR if encryption was disabled in connection options
             if (metadataCollection.cekTable == null ||
-                !TdsParserExtensions.ShouldEncryptValuesForBulkCopy(_connHandler))
+                !_connHandler.ShouldEncryptValuesForBulkCopy())
             {
                 TdsParserExtensions.WriteShort(0x00, stateObj);
                 return;

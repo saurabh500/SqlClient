@@ -2278,7 +2278,8 @@ namespace Microsoft.Data.SqlClient
             }
 
             Debug.Assert(_fedAuthToken != null && _fedAuthToken.accessToken != null, "fedAuthToken and fedAuthToken.accessToken cannot be null.");
-            _parser.SendFedAuthToken(_fedAuthToken);
+            TdsParser.SendFedAuthToken(_fedAuthToken, _parser._physicalStateObj);
+            _federatedAuthenticationRequested = true;
         }
 
         /// <summary>
