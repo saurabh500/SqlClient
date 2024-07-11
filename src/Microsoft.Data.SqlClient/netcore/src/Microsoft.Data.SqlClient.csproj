@@ -81,6 +81,9 @@
     <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlClient\SqlJson.cs">
       <Link>Microsoft\Data\SqlClient\SqlJson.cs</Link>
     </Compile>
+    <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlClient\SqlDbType2.cs">
+      <Link>Microsoft\Data\SqlClient\SqlDbType2.cs</Link>
+    </Compile>
     <Compile Include="$(CommonSourceRoot)Microsoft\Data\Common\BitConverterCompatible.cs">
       <Link>Microsoft\Data\Common\BitConverterCompatible.cs</Link>
     </Compile>

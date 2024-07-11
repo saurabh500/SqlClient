@@ -18,13 +18,23 @@ namespace Microsoft.Data.SqlClient
         /// Creates a new <see cref="SqlJson" /> instance, supplying the Json value from <see cref="string" /> .
         /// </summary>
         /// <param name="json">A Json string.</param>
-        public SqlJson(string json) { }
+        public SqlJson(string json) 
+        {
+            // TODO: Parse the json to make sure that it is a valid JSON. 
+            // Use the Utf8JsonReader to prevent allocations and parse the document.
+            // Store the string representation of this json object.
+
+        }
 
         /// <summary>
         /// Creates a <see cref="SqlJson" /> instance, from the Json represented by the <see cref="JsonDocument" /> .
         /// </summary>
         /// <param name="jsonDocument">A <see cref="JsonDocument"/> instance.</param>
-        public SqlJson(JsonDocument jsonDocument) { }
+        public SqlJson(JsonDocument jsonDocument) 
+        {
+            // TODO: This JSON document will be transmitted as a string to SQL server.
+            // No need to validate anything since a jsonDocument means a valid json structure.
+        }
 
         /// <summary>
         /// Indicated whether the instance represents a null <see cref="SqlJson" /> value.
