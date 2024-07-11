@@ -17,7 +17,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         {
             SqlParameter p = new SqlParameter();
             p.SqlValue = new DateTime(1200, 1, 1);
-            p.SqlDbType = SqlDbType.DateTime2;
+            p.SqlDbType = SqlDbType2.DateTime2;
 
             DateTime expectedValue = new DateTime(1200, 1, 1);
             Assert.True(p.Value.Equals(expectedValue), "FAILED: Value did not match expected DateTime value");
@@ -44,7 +44,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             using (SqlConnection conn = new SqlConnection(DataTestUtility.TCPConnectionString))
             {
                 conn.Open();
-                SqlParameter p = new SqlParameter("@p", SqlDbType.DateTimeOffset);
+                SqlParameter p = new SqlParameter("@p", SqlDbType2.DateTimeOffset);
                 p.Value = DBNull.Value;
                 p.Size = 27;
                 SqlCommand cmd = conn.CreateCommand();
@@ -107,12 +107,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         using (SqlCommand cmd2 = conn.CreateCommand())
                         {
                             cmd2.CommandText = tempTableInsert2;
-                            SqlParameter pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-                            SqlParameter p0 = cmd2.Parameters.Add("@p0", SqlDbType.DateTime);
-                            SqlParameter p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-                            SqlParameter p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
-                            SqlParameter p3 = cmd2.Parameters.Add("@p3", SqlDbType.DateTime2);
-                            SqlParameter p4 = cmd2.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+                            SqlParameter pi = cmd2.Parameters.Add("@pi", SqlDbType2.Int);
+                            SqlParameter p0 = cmd2.Parameters.Add("@p0", SqlDbType2.DateTime);
+                            SqlParameter p1 = cmd2.Parameters.Add("@p1", SqlDbType2.Date);
+                            SqlParameter p2 = cmd2.Parameters.Add("@p2", SqlDbType2.Time);
+                            SqlParameter p3 = cmd2.Parameters.Add("@p3", SqlDbType2.DateTime2);
+                            SqlParameter p4 = cmd2.Parameters.Add("@p4", SqlDbType2.DateTimeOffset);
                             pi.Value = DBNull.Value;
                             p0.Value = DBNull.Value;
                             p1.Value = DBNull.Value;
@@ -144,12 +144,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             Assert.True(scalarResult.Equals(1), string.Format("FAILED: Execute scalar returned unexpected result. Expected: {0}. Actual: {1}.", 1, scalarResult));
 
                             cmd2.Parameters.Clear();
-                            pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-                            p0 = cmd2.Parameters.Add("@p0", SqlDbType.DateTime);
-                            p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-                            p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
-                            p3 = cmd2.Parameters.Add("@p3", SqlDbType.DateTime2);
-                            p4 = cmd2.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+                            pi = cmd2.Parameters.Add("@pi", SqlDbType2.Int);
+                            p0 = cmd2.Parameters.Add("@p0", SqlDbType2.DateTime);
+                            p1 = cmd2.Parameters.Add("@p1", SqlDbType2.Date);
+                            p2 = cmd2.Parameters.Add("@p2", SqlDbType2.Time);
+                            p3 = cmd2.Parameters.Add("@p3", SqlDbType2.DateTime2);
+                            p4 = cmd2.Parameters.Add("@p4", SqlDbType2.DateTimeOffset);
                             pi.SqlValue = new SqlInt32(0);
                             p0.SqlValue = new SqlDateTime(1753, 1, 1, 0, 0, 0);
                             p1.SqlValue = new DateTime(1753, 1, 1, 0, 0, 0);
@@ -172,11 +172,11 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             {
                                 cmd3.CommandType = CommandType.StoredProcedure;
                                 cmd3.CommandText = procName;
-                                p0 = cmd3.Parameters.Add("@p0", SqlDbType.DateTime);
-                                p1 = cmd3.Parameters.Add("@p1", SqlDbType.Date);
-                                p2 = cmd3.Parameters.Add("@p2", SqlDbType.Time);
-                                p3 = cmd3.Parameters.Add("@p3", SqlDbType.DateTime2);
-                                p4 = cmd3.Parameters.Add("@p4", SqlDbType.DateTimeOffset);
+                                p0 = cmd3.Parameters.Add("@p0", SqlDbType2.DateTime);
+                                p1 = cmd3.Parameters.Add("@p1", SqlDbType2.Date);
+                                p2 = cmd3.Parameters.Add("@p2", SqlDbType2.Time);
+                                p3 = cmd3.Parameters.Add("@p3", SqlDbType2.DateTime2);
+                                p4 = cmd3.Parameters.Add("@p4", SqlDbType2.DateTimeOffset);
                                 p0.Direction = ParameterDirection.Output;
                                 p1.Direction = ParameterDirection.Output;
                                 p2.Direction = ParameterDirection.Output;
@@ -205,50 +205,50 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             Assert.True(p4.Value.Equals(DBNull.Value), "FAILED: SqlParameter p4 expected to be NULL");
 
                             // Date
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new TimeSpan(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", "1753-1-1", conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new TimeSpan(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", "1753-1-1", conn, tableName), "FAILED: Invalid param for Date SqlDbType");
 #if NET6_0_OR_GREATER
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new TimeOnly(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new TimeOnly(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
 #endif
 
                             // Time
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", "20:12:13.36", conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", "20:12:13.36", conn, tableName), "FAILED: Invalid param for Time SqlDbType");
 #if NET6_0_OR_GREATER
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", new TimeOnly(20, 12, 13, 360), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", new TimeOnly(20, 12, 13, 360), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
 #endif
 
                             // DateTime2
                             DateTime dt = DateTime.Parse("2000-12-31 23:59:59.997");
-                            Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new SqlDateTime(2000, 12, 31, 23, 59, 59, 997), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.DateTime2, "c3", new TimeSpan(), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTime2, "c3", "2000-12-31 23:59:59.997", conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.DateTime2, "c3", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.DateTime2, "c3", new SqlDateTime(2000, 12, 31, 23, 59, 59, 997), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTime2, "c3", new DateTime(2000, 12, 31, 23, 59, 59, 997, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.DateTime2, "c3", new TimeSpan(), conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTime2, "c3", "2000-12-31 23:59:59.997", conn, tableName), "FAILED: Invalid param for DateTime2 SqlDbType");
 
                             // DateTimeOffset
                             DateTimeOffset dto = DateTimeOffset.Parse("9999-12-31 23:59:59.997 +00:00");
-                            Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.DateTimeOffset, "c4", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", new DateTime(9999, 12, 31, 15, 59, 59, 997, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto.UtcDateTime, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", dto.LocalDateTime, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.DateTimeOffset, "c4", new TimeSpan(), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.DateTimeOffset, "c4", "9999-12-31 23:59:59.997 +00:00", conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTimeOffset, "c4", dto, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.DateTimeOffset, "c4", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTimeOffset, "c4", new DateTime(9999, 12, 31, 15, 59, 59, 997, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTimeOffset, "c4", dto.UtcDateTime, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTimeOffset, "c4", dto.LocalDateTime, conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.DateTimeOffset, "c4", new TimeSpan(), conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.DateTimeOffset, "c4", "9999-12-31 23:59:59.997 +00:00", conn, tableName), "FAILED: Invalid param for DateTimeOffset SqlDbType");
                         }
 
                         // Do the same thing as above except using DbType now
@@ -564,9 +564,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         using (SqlCommand cmd2 = conn.CreateCommand())
                         {
                             cmd2.CommandText = tempTableInsert2;
-                            SqlParameter pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-                            SqlParameter p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-                            SqlParameter p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
+                            SqlParameter pi = cmd2.Parameters.Add("@pi", SqlDbType2.Int);
+                            SqlParameter p1 = cmd2.Parameters.Add("@p1", SqlDbType2.Date);
+                            SqlParameter p2 = cmd2.Parameters.Add("@p2", SqlDbType2.Time);
                             pi.Value = DBNull.Value;
                             p1.Value = DBNull.Value;
                             p2.Value = DBNull.Value;
@@ -586,9 +586,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             Assert.True(scalarResult.Equals(1), string.Format("FAILED: Execute scalar returned unexpected result. Expected: {0}. Actual: {1}.", 1, scalarResult));
 
                             cmd2.Parameters.Clear();
-                            pi = cmd2.Parameters.Add("@pi", SqlDbType.Int);
-                            p1 = cmd2.Parameters.Add("@p1", SqlDbType.Date);
-                            p2 = cmd2.Parameters.Add("@p2", SqlDbType.Time);
+                            pi = cmd2.Parameters.Add("@pi", SqlDbType2.Int);
+                            p1 = cmd2.Parameters.Add("@p1", SqlDbType2.Date);
+                            p2 = cmd2.Parameters.Add("@p2", SqlDbType2.Time);
                             pi.SqlValue = new SqlInt32(0);
                             p1.SqlValue = new DateOnly(1753, 1, 1);
                             p2.SqlValue = new TimeOnly(20, 12, 13, 360);
@@ -606,8 +606,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             {
                                 cmd3.CommandType = CommandType.StoredProcedure;
                                 cmd3.CommandText = procName;
-                                p1 = cmd3.Parameters.Add("@p1", SqlDbType.Date);
-                                p2 = cmd3.Parameters.Add("@p2", SqlDbType.Time);
+                                p1 = cmd3.Parameters.Add("@p1", SqlDbType2.Date);
+                                p2 = cmd3.Parameters.Add("@p2", SqlDbType2.Time);
                                 p1.Direction = ParameterDirection.Output;
                                 p2.Direction = ParameterDirection.Output;
                                 p2.Scale = 7;
@@ -625,26 +625,26 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             Assert.True(p2.Value.Equals(DBNull.Value), "FAILED: SqlParameter p2 expected to be NULL");
 
                             // Date
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new TimeSpan(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", "1753-1-1", conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Date, "c1", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Date, "c1", new TimeOnly(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new TimeSpan(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", "1753-1-1", conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Date, "c1", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Date, "c1", new TimeOnly(), conn, tableName), "FAILED: Invalid param for Date SqlDbType");
 
                             // Time
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", "20:12:13.36", conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.False(IsValidParam(SqlDbType.Time, "c2", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
-                            Assert.True(IsValidParam(SqlDbType.Time, "c2", new TimeOnly(20, 12, 13, 360), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTimeOffset(1753, 1, 1, 0, 0, 0, TimeSpan.Zero), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new SqlDateTime(1753, 1, 1, 0, 0, 0), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Unspecified), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Local), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", TimeSpan.Parse("20:12:13.36"), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", "20:12:13.36", conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.False(IsValidParam(SqlDbType2.Time, "c2", new DateOnly(1753, 1, 1), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
+                            Assert.True(IsValidParam(SqlDbType2.Time, "c2", new TimeOnly(20, 12, 13, 360), conn, tableName), "FAILED: Invalid param for Time SqlDbType");
                         }
 
                         // Do the same thing as above except using DbType now

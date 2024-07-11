@@ -54,11 +54,11 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             DataTestUtility.AssertEqualsWithDescription("Parameter2", opc[1].ParameterName, "FAILED: Incorrect ParameterName");
 
             opc.Add(new SqlParameter(null, null));
-            opc.Add(null, SqlDbType.Int, 0, null);
+            opc.Add(null, SqlDbType2.Int, 0, null);
             DataTestUtility.AssertEqualsWithDescription("Parameter4", opc["Parameter4"].ParameterName, "FAILED: Incorrect ParameterName");
 
-            opc.Add(new SqlParameter("Parameter5", SqlDbType.NVarChar, 20));
-            opc.Add(new SqlParameter(null, SqlDbType.NVarChar, 20, "a"));
+            opc.Add(new SqlParameter("Parameter5", SqlDbType2.NVarChar, 20));
+            opc.Add(new SqlParameter(null, SqlDbType2.NVarChar, 20, "a"));
             opc.RemoveAt(opc[3].ParameterName);
             DataTestUtility.AssertEqualsWithDescription(-1, opc.IndexOf(null), "FAILED: Incorrect index for null value");
 
@@ -140,7 +140,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     CommandText = $"INSERT { cTableName } (BinValue) "
                 };
                 cmdInsert.CommandText += "Values(@BinValue)";
-                cmdInsert.Parameters.Add("@BinValue", SqlDbType.Binary, 16, "SourceBinValue");
+                cmdInsert.Parameters.Add("@BinValue", SqlDbType2.Binary, 16, "SourceBinValue");
 
                 var da = new SqlDataAdapter
                 {
@@ -169,12 +169,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 SelectCommand = new SqlCommand("SELECT CustomerID, ContactTitle FROM dbo.Customers WHERE ContactTitle = @ContactTitle", conn)
             };
-            var selectParam = new SqlParameter("@ContactTitle", SqlDbType.NVarChar, 30, ParameterDirection.Input, true, 0, 0, "ContactTitle", DataRowVersion.Current, "Owner");
+            var selectParam = new SqlParameter("@ContactTitle", SqlDbType2.NVarChar, 30, ParameterDirection.Input, true, 0, 0, "ContactTitle", DataRowVersion.Current, "Owner");
             adapter.SelectCommand.Parameters.Add(selectParam);
 
             adapter.UpdateCommand = new SqlCommand("UPDATE dbo.Customers SET ContactTitle = @ContactTitle WHERE CustomerID = @CustomerID", conn);
-            var titleParam = new SqlParameter("@ContactTitle", SqlDbType.NVarChar, 30, ParameterDirection.Input, true, 0, 0, "ContactTitle", DataRowVersion.Current, null);
-            var idParam = new SqlParameter("@CustomerID", SqlDbType.NChar, 5, ParameterDirection.Input, false, 0, 0, "CustomerID", DataRowVersion.Current, null);
+            var titleParam = new SqlParameter("@ContactTitle", SqlDbType2.NVarChar, 30, ParameterDirection.Input, true, 0, 0, "ContactTitle", DataRowVersion.Current, null);
+            var idParam = new SqlParameter("@CustomerID", SqlDbType2.NChar, 5, ParameterDirection.Input, false, 0, 0, "CustomerID", DataRowVersion.Current, null);
             adapter.UpdateCommand.Parameters.Add(titleParam);
             adapter.UpdateCommand.Parameters.Add(idParam);
 
@@ -343,7 +343,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     cmd.Parameters.Add(new SqlParameter
                     {
                         ParameterName = "@dates",
-                        SqlDbType = SqlDbType.Structured,
+                        SqlDbType = SqlDbType2.Structured,
                         TypeName = tableTypeName,
                         Value = dtTest,
                     });
@@ -487,7 +487,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 using (SqlCommand cmd = connection.CreateCommand())
                 {
-                    var p = new SqlParameter("@tvp", SqlDbType.Structured)
+                    var p = new SqlParameter("@tvp", SqlDbType2.Structured)
                     {
                         TypeName = $"dbo.{tableTypeName}"
                     };
@@ -838,8 +838,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             cm.CommandType = CommandType.Text;
             cm.CommandText = "select @id2 = @id;";
             cm.CommandTimeout = 2;
-            cm.Parameters.Add(new SqlParameter("@id", SqlDbType.UniqueIdentifier) { Value = expectedGuid });
-            cm.Parameters.Add(new SqlParameter("@id2", SqlDbType.UniqueIdentifier) { Direction = ParameterDirection.Output });
+            cm.Parameters.Add(new SqlParameter("@id", SqlDbType2.UniqueIdentifier) { Value = expectedGuid });
+            cm.Parameters.Add(new SqlParameter("@id2", SqlDbType2.UniqueIdentifier) { Direction = ParameterDirection.Output });
             try
             {
                 System.Threading.Tasks.Task<int> task = cm.ExecuteNonQueryAsync(cancellationToken.Token);

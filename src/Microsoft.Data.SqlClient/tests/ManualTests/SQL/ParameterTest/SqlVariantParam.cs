@@ -52,7 +52,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             cmd.CommandText = "select @p1 as f1";
             if (includeBaseType)
                 cmd.CommandText += ", sql_variant_property(@p1,'BaseType') as BaseType";
-            cmd.Parameters.Add("@p1", SqlDbType.Variant);
+            cmd.Parameters.Add("@p1", SqlDbType2.Variant);
             cmd.Parameters["@p1"].Value = paramValue;
             SqlDataReader dr = cmd.ExecuteReader(CommandBehavior.CloseConnection);
             return dr;
@@ -204,7 +204,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 // Send TVP using SqlMetaData.
                 SqlMetaData[] metadata = new SqlMetaData[1];
-                metadata[0] = new SqlMetaData("f1", SqlDbType.Variant);
+                metadata[0] = new SqlMetaData("f1", SqlDbType2.Variant);
                 SqlDataRecord[] record = new SqlDataRecord[1];
                 record[0] = new SqlDataRecord(metadata);
                 record[0].SetValue(0, paramValue);
@@ -213,7 +213,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 {
                     cmd.CommandText = "select f1, sql_variant_property(f1,'BaseType') as BaseType from @tvpParam";
                     SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", record);
-                    p.SqlDbType = SqlDbType.Structured;
+                    p.SqlDbType = SqlDbType2.Structured;
                     p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                     using SqlDataReader dr = cmd.ExecuteReader();
                     VerifyReader("SendVariantTvp[SqlMetaData]", dr, expectedTypeName, expectedBaseTypeName);
@@ -225,7 +225,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     using SqlCommand cmd = connTvp.CreateCommand();
                     cmd.CommandText = "select f1, sql_variant_property(f1,'BaseType') as BaseType from @tvpParam";
                     SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", dr);
-                    p.SqlDbType = SqlDbType.Structured;
+                    p.SqlDbType = SqlDbType2.Structured;
                     p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                     using SqlDataReader dr2 = cmd.ExecuteReader();
                     VerifyReader("SendVariantTvp[SqlDataReader]", dr2, expectedTypeName, expectedBaseTypeName);

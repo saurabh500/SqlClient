@@ -38,7 +38,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                     SqlCommand cmd2 = new SqlCommand(insertParamStr, conn);
 
-                    cmd2.Parameters.Add("@x", SqlDbType.Xml);
+                    cmd2.Parameters.Add("@x", SqlDbType2.Xml);
                     XmlReader xr = XmlReader.Create("data.xml");
                     cmd2.Parameters[0].Value = new SqlXml(xr);
                     cmd2.ExecuteNonQuery();
@@ -104,9 +104,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                     SqlCommand cmd2 = new SqlCommand(insertParamStr, conn);
 
-                    cmd2.Parameters.Add("@x", SqlDbType.VarChar);
-                    cmd2.Parameters.Add("@y", SqlDbType.NVarChar);
-                    cmd2.Parameters.Add("@z", SqlDbType.VarBinary);
+                    cmd2.Parameters.Add("@x", SqlDbType2.VarChar);
+                    cmd2.Parameters.Add("@y", SqlDbType2.NVarChar);
+                    cmd2.Parameters.Add("@z", SqlDbType2.VarBinary);
                     cmd2.Parameters[1].Value = "second line, Insert big, Insert Big, This is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second row";
                     cmd2.Parameters[1].Value += "This is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second row";
                     cmd2.Parameters[1].Value += "This is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second rowThis is the second row";

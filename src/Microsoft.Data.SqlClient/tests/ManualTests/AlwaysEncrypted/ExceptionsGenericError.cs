@@ -40,9 +40,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 using (SqlDataAdapter adapter = new SqlDataAdapter($"select c1 from {ExceptionGenericErrorFixture.encryptedTableName}", conn))
                 {
                     cmdInsert.CommandType = CommandType.StoredProcedure;
-                    cmdInsert.Parameters.Add("@c1", SqlDbType.Int, 4, "c1");
+                    cmdInsert.Parameters.Add("@c1", SqlDbType2.Int, 4, "c1");
                     cmdInsert.UpdatedRowSource = UpdateRowSource.None;
-                    cmdDelete.Parameters.Add("@c1", SqlDbType.Int, 4, "c1");
+                    cmdDelete.Parameters.Add("@c1", SqlDbType2.Int, 4, "c1");
                     cmdDelete.UpdatedRowSource = UpdateRowSource.None;
                     adapter.InsertCommand = cmdInsert;
                     adapter.DeleteCommand = cmdDelete;

@@ -22,7 +22,7 @@ namespace Microsoft.Data.SqlClient.Server
         private readonly bool _usesStringStorageForXml = false;
 
         private static readonly SmiMetaData s_maxNVarCharForXml = new SmiMetaData(
-            SqlDbType.NVarChar,
+            SqlDbType2.NVarChar,
             SmiMetaData.UnlimitedMaxLengthIndicator,
             SmiMetaData.DefaultNVarChar_NoCollation.Precision,
             SmiMetaData.DefaultNVarChar_NoCollation.Scale,
@@ -41,7 +41,7 @@ namespace Microsoft.Data.SqlClient.Server
         public virtual string GetDataTypeName(int ordinal)
         {
             SqlMetaData metaData = GetSqlMetaData(ordinal);
-            if (metaData.SqlDbType == SqlDbType.Udt)
+            if (metaData.SqlDbType == SqlDbType2.Udt)
             {
                 return metaData.UdtTypeName;
             }
@@ -137,7 +137,7 @@ namespace Microsoft.Data.SqlClient.Server
         public virtual string GetString(int ordinal)
         {
             SmiMetaData colMeta = GetSmiMetaData(ordinal);
-            if (_usesStringStorageForXml && colMeta.SqlDbType == SqlDbType.Xml)
+            if (_usesStringStorageForXml && colMeta.SqlDbType == SqlDbType2.Xml)
             {
                 return ValueUtilsSmi.GetString(_eventSink, _recordBuffer, ordinal, s_maxNVarCharForXml);
             }

@@ -39,7 +39,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // BigInt
             SteSimplePermutationGenerator type = new()
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.BigInt },
+                { SteAttributeKey.SqlDbType, SqlDbType2.BigInt },
                 { SteAttributeKey.Value, (long)0 },
                 { SteAttributeKey.Value, long.MaxValue },
                 { SteAttributeKey.Value, long.MinValue },
@@ -53,9 +53,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Binary types
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Binary },
-                { SteAttributeKey.SqlDbType, SqlDbType.VarBinary },
-                { SteAttributeKey.SqlDbType, SqlDbType.Image },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Binary },
+                { SteAttributeKey.SqlDbType, SqlDbType2.VarBinary },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Image },
                 { SteAttributeKey.MaxLength, 1 },    // a small value
                 { SteAttributeKey.MaxLength, 40 },   // Somewhere in the middle
                 { SteAttributeKey.MaxLength, 8000 }, // Couple values around maximum tds length
@@ -86,7 +86,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Byte
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.TinyInt },
+                { SteAttributeKey.SqlDbType, SqlDbType2.TinyInt },
                 { SteAttributeKey.Value, byte.MaxValue },
                 { SteAttributeKey.Value, byte.MinValue },
                 { SteAttributeKey.Value, null },
@@ -97,9 +97,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Character (ANSI)
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Char },
-                { SteAttributeKey.SqlDbType, SqlDbType.Text },
-                { SteAttributeKey.SqlDbType, SqlDbType.VarChar },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Char },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Text },
+                { SteAttributeKey.SqlDbType, SqlDbType2.VarChar },
                 { SteAttributeKey.MaxLength, 1 },
                 { SteAttributeKey.MaxLength, 30 },
                 { SteAttributeKey.MaxLength, 8000 },
@@ -120,9 +120,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Character (UNICODE)
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.NChar },
-                { SteAttributeKey.SqlDbType, SqlDbType.NText },
-                { SteAttributeKey.SqlDbType, SqlDbType.NVarChar },
+                { SteAttributeKey.SqlDbType, SqlDbType2.NChar },
+                { SteAttributeKey.SqlDbType, SqlDbType2.NText },
+                { SteAttributeKey.SqlDbType, SqlDbType2.NVarChar },
                 { SteAttributeKey.MaxLength, 1 },
                 { SteAttributeKey.MaxLength, 35 },
                 { SteAttributeKey.MaxLength, 4000 },
@@ -143,8 +143,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // DateTime
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.DateTime },
-                { SteAttributeKey.SqlDbType, SqlDbType.SmallDateTime },
+                { SteAttributeKey.SqlDbType, SqlDbType2.DateTime },
+                { SteAttributeKey.SqlDbType, SqlDbType2.SmallDateTime },
                 { SteAttributeKey.Value, new DateTime(1753, 1, 1) },
                 { SteAttributeKey.Value, new SqlDateTime(new DateTime(1753, 1, 1)) },  // min SqlDateTime
                 { SteAttributeKey.Value, null },
@@ -157,7 +157,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             //  values are commented out and other numbers substituted.
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Decimal },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Decimal },
                 { SteAttributeKey.Precision, (byte)38 },
                 { SteAttributeKey.Scale, (byte)0 },
                 { SteAttributeKey.Scale, (byte)10 },
@@ -173,7 +173,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Float
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Float },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Float },
                 { SteAttributeKey.Value, (double)0 },
                 { SteAttributeKey.Value, double.MaxValue },
                 { SteAttributeKey.Value, double.MinValue },
@@ -187,7 +187,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Int
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Int },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Int },
                 { SteAttributeKey.Value, (int)0 },
                 { SteAttributeKey.Value, int.MaxValue },
                 { SteAttributeKey.Value, int.MinValue },
@@ -201,8 +201,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Money types
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Money },
-                { SteAttributeKey.SqlDbType, SqlDbType.SmallMoney },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Money },
+                { SteAttributeKey.SqlDbType, SqlDbType2.SmallMoney },
                 { SteAttributeKey.Value, (decimal)0 },
                 { SteAttributeKey.Value, (decimal)unchecked(((long)0x8000000000000000L) / 10000) },
                 { SteAttributeKey.Value, (decimal)0x7FFFFFFFFFFFFFFFL / 10000 },
@@ -218,7 +218,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // Real
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.Real },
+                { SteAttributeKey.SqlDbType, SqlDbType2.Real },
                 { SteAttributeKey.Value, (float)0 },
                 { SteAttributeKey.Value, float.MaxValue },
                 { SteAttributeKey.Value, float.MinValue },
@@ -232,7 +232,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // SmallInt
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.SmallInt },
+                { SteAttributeKey.SqlDbType, SqlDbType2.SmallInt },
                 { SteAttributeKey.Value, (short)0 },
                 { SteAttributeKey.Value, short.MaxValue },
                 { SteAttributeKey.Value, short.MinValue },
@@ -246,7 +246,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             // UniqueIdentifier
             type = new SteSimplePermutationGenerator
             {
-                { SteAttributeKey.SqlDbType, SqlDbType.UniqueIdentifier },
+                { SteAttributeKey.SqlDbType, SqlDbType2.UniqueIdentifier },
                 { SteAttributeKey.Value, new Guid() },
                 { SteAttributeKey.Value, null },
                 { SteAttributeKey.Value, DBNull.Value }
@@ -259,7 +259,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             s_allTypesExceptUdts = new List<SteSimpleTypeBoundaries>(list).AsReadOnly();
 
             //type = new SteSimplePermutationGenerator();
-            //type.Add(SteAttributeKey.SqlDbType, SqlDbType.Udt);
+            //type.Add(SteAttributeKey.SqlDbType, SqlDbType2.Udt);
             //type.Add(SteAttributeKey.TypeName, "dbo.WeakAddress");
             //type.Add(SteAttributeKey.Type, typeof(WeakAddress));
             //type.Add(SteAttributeKey.Value, new WeakAddress("", ""));
@@ -421,7 +421,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 _rowCountColumn = new StePermutation();
                 if (0 <= _metaDataKeysOfInterest.IndexOf(SteAttributeKey.SqlDbType))
                 {
-                    _rowCountColumn.Add(SteAttributeKey.SqlDbType, SqlDbType.Int);
+                    _rowCountColumn.Add(SteAttributeKey.SqlDbType, SqlDbType2.Int);
                 }
 
                 Reset();
@@ -601,7 +601,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 StePermutation perm = new();
                 if (0 <= _metaDataKeysOfInterest.IndexOf(SteAttributeKey.SqlDbType))
                 {
-                    perm.Add(SteAttributeKey.SqlDbType, SqlDbType.Structured);
+                    perm.Add(SteAttributeKey.SqlDbType, SqlDbType2.Structured);
                 }
 
                 if (0 <= _metaDataKeysOfInterest.IndexOf(SteAttributeKey.MultiValued))

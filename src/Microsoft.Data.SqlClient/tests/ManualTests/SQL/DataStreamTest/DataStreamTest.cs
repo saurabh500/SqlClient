@@ -226,7 +226,7 @@ CREATE TABLE {tableName} (id INT, foo VARBINARY(MAX))
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.Int)).Value = 10255;
+                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType2.Int)).Value = 10255;
                     using (SqlDataReader r1 = cmd.ExecuteReader())
                     {
                         int numBatches = 0;
@@ -588,7 +588,7 @@ CREATE TABLE {tableName} (id INT, foo VARBINARY(MAX))
                 conn.Open();
                 using (SqlCommand cmd = new SqlCommand("select * from orders where orderid<@id", conn))
                 {
-                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType.Int)).Value = 10252;
+                    cmd.Parameters.Add(new SqlParameter("@id", SqlDbType2.Int)).Value = 10252;
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         // smaller buffer
@@ -1152,7 +1152,7 @@ CREATE TABLE {tableName} (id INT, foo VARBINARY(MAX))
                 {
                     cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where Title = @vm ";
 
-                    (cmd.Parameters.Add("@vm", SqlDbType.VarChar)).Value = new SqlChars("Vice President, Sales");
+                    (cmd.Parameters.Add("@vm", SqlDbType2.VarChar)).Value = new SqlChars("Vice President, Sales");
 
                     using (reader = cmd.ExecuteReader())
                     {
@@ -1169,7 +1169,7 @@ CREATE TABLE {tableName} (id INT, foo VARBINARY(MAX))
                     cmd.CommandText = "select EmployeeID, FirstName, LastName from Employees where EmployeeID = 2 and Convert(binary(5), Photo) = @bn ";
 
                     byte[] barr = new byte[5] { 0x15, 0x1c, 0x2F, 0x00, 0x02 };
-                    (cmd.Parameters.Add("@bn", SqlDbType.VarBinary)).Value = new SqlBytes(barr);
+                    (cmd.Parameters.Add("@bn", SqlDbType2.VarBinary)).Value = new SqlBytes(barr);
 
                     using (reader = cmd.ExecuteReader())
                     {

@@ -2003,15 +2003,15 @@ namespace Microsoft.Data.SqlClient
             XmlReader xr = null;
 
             SmiExtendedMetaData[] md = ds.GetInternalSmiMetaData();
-            bool isXmlCapable = (null != md && md.Length == 1 && (md[0].SqlDbType == SqlDbType.NText
-                                                         || md[0].SqlDbType == SqlDbType.NVarChar
-                                                         || md[0].SqlDbType == SqlDbType.Xml));
+            bool isXmlCapable = (null != md && md.Length == 1 && (md[0].SqlDbType == SqlDbType2.NText
+                                                         || md[0].SqlDbType == SqlDbType2.NVarChar
+                                                         || md[0].SqlDbType == SqlDbType2.Xml));
 
             if (isXmlCapable)
             {
                 try
                 {
-                    SqlStream sqlBuf = new SqlStream(ds, true /*addByteOrderMark*/, (md[0].SqlDbType == SqlDbType.Xml) ? false : true /*process all rows*/);
+                    SqlStream sqlBuf = new SqlStream(ds, true /*addByteOrderMark*/, (md[0].SqlDbType == SqlDbType2.Xml) ? false : true /*process all rows*/);
                     xr = sqlBuf.ToXmlReader(isAsync);
                 }
                 catch (Exception e)
@@ -3361,18 +3361,18 @@ namespace Microsoft.Data.SqlClient
             // 2) group number - parsed at the time we unquoted procedure name
             // 3) procedure schema - unquote user value
 
-            paramsCmd.Parameters.Add(new SqlParameter("@procedure_name", SqlDbType.NVarChar, 255));
+            paramsCmd.Parameters.Add(new SqlParameter("@procedure_name", SqlDbType2.NVarChar, 255));
             paramsCmd.Parameters[0].Value = UnquoteProcedureName(parsedSProc[3], out groupNumber); // ProcedureName is 4rd element in parsed array
 
             if (null != groupNumber)
             {
-                SqlParameter param = paramsCmd.Parameters.Add(new SqlParameter("@group_number", SqlDbType.Int));
+                SqlParameter param = paramsCmd.Parameters.Add(new SqlParameter("@group_number", SqlDbType2.Int));
                 param.Value = groupNumber;
             }
 
             if (!string.IsNullOrEmpty(parsedSProc[2]))
             { // SchemaName is 3rd element in parsed array
-                SqlParameter param = paramsCmd.Parameters.Add(new SqlParameter("@procedure_schema", SqlDbType.NVarChar, 255));
+                SqlParameter param = paramsCmd.Parameters.Add(new SqlParameter("@procedure_schema", SqlDbType2.NVarChar, 255));
                 param.Value = UnquoteProcedurePart(parsedSProc[2]);
             }
 
@@ -3404,17 +3404,17 @@ namespace Microsoft.Data.SqlClient
                         //  types for backward compatability.
                         switch (p.SqlDbType)
                         {
-                            case SqlDbType.Image:
-                            case SqlDbType.Timestamp:
-                                p.SqlDbType = SqlDbType.VarBinary;
+                            case SqlDbType2.Image:
+                            case SqlDbType2.Timestamp:
+                                p.SqlDbType = SqlDbType2.VarBinary;
                                 break;
 
-                            case SqlDbType.NText:
-                                p.SqlDbType = SqlDbType.NVarChar;
+                            case SqlDbType2.NText:
+                                p.SqlDbType = SqlDbType2.NVarChar;
                                 break;
 
-                            case SqlDbType.Text:
-                                p.SqlDbType = SqlDbType.VarChar;
+                            case SqlDbType2.Text:
+                                p.SqlDbType = SqlDbType2.VarChar;
                                 break;
 
                             default:
@@ -3438,9 +3438,9 @@ namespace Microsoft.Data.SqlClient
                         //  Should be fixed on the 2008 side, but would likely hold up the RI, and is safer to fix here.
                         //  If we can get the server-side fixed before shipping 2008, we can remove this mapping.
                         if (0 == size &&
-                                (p.SqlDbType == SqlDbType.NVarChar ||
-                                 p.SqlDbType == SqlDbType.VarBinary ||
-                                 p.SqlDbType == SqlDbType.VarChar))
+                                (p.SqlDbType == SqlDbType2.NVarChar ||
+                                 p.SqlDbType == SqlDbType2.VarBinary ||
+                                 p.SqlDbType == SqlDbType2.VarChar))
                         {
                             size = -1;
                         }
@@ -3450,14 +3450,14 @@ namespace Microsoft.Data.SqlClient
                     // direction
                     p.Direction = ParameterDirectionFromOleDbDirection((short)r[colNames[(int)ProcParamsColIndex.ParameterType]]);
 
-                    if (p.SqlDbType == SqlDbType.Decimal)
+                    if (p.SqlDbType == SqlDbType2.Decimal)
                     {
                         p.ScaleInternal = (byte)((short)r[colNames[(int)ProcParamsColIndex.NumericScale]] & 0xff);
                         p.PrecisionInternal = (byte)((short)r[colNames[(int)ProcParamsColIndex.NumericPrecision]] & 0xff);
                     }
 
                     // type name for Udt
-                    if (SqlDbType.Udt == p.SqlDbType)
+                    if (SqlDbType2.Udt == p.SqlDbType)
                     {
                         string udtTypeName;
                         if (useManagedDataType)
@@ -3476,7 +3476,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     // type name for Structured types (same as for Udt's except assign p.TypeName instead of p.UdtTypeName
-                    if (SqlDbType.Structured == p.SqlDbType)
+                    if (SqlDbType2.Structured == p.SqlDbType)
                     {
                         Debug.Assert(_activeConnection.Is2008OrNewer, "Invalid datatype token received from pre-2008 server");
 
@@ -3493,7 +3493,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     // XmlSchema name for Xml types
-                    if (SqlDbType.Xml == p.SqlDbType)
+                    if (SqlDbType2.Xml == p.SqlDbType)
                     {
                         object value;
 
@@ -4256,7 +4256,7 @@ namespace Microsoft.Data.SqlClient
         /// <returns></returns>
         private SqlParameter GetSqlParameterWithQueryText(string queryText)
         {
-            SqlParameter sqlParam = new SqlParameter(null, ((queryText.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText, queryText.Length);
+            SqlParameter sqlParam = new SqlParameter(null, ((queryText.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText, queryText.Length);
             sqlParam.Value = queryText;
 
             return sqlParam;
@@ -4284,7 +4284,7 @@ namespace Microsoft.Data.SqlClient
                 text = (string)originalRpcRequest.systemParams[0].Value;
                 //@tsql
                 SqlParameter tsqlParam = describeParameterEncryptionRequest.systemParams[0];
-                tsqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+                tsqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
                 tsqlParam.Value = text;
                 tsqlParam.Size = text.Length;
                 tsqlParam.Direction = ParameterDirection.Input;
@@ -4302,7 +4302,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     //@tsql
                     SqlParameter tsqlParam = describeParameterEncryptionRequest.systemParams[0];
-                    tsqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+                    tsqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
                     tsqlParam.Value = text;
                     tsqlParam.Size = text.Length;
                     tsqlParam.Direction = ParameterDirection.Input;
@@ -4379,7 +4379,7 @@ namespace Microsoft.Data.SqlClient
             //@parameters
 
             SqlParameter paramsParam = describeParameterEncryptionRequest.systemParams[1];
-            paramsParam.SqlDbType = ((parameterList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+            paramsParam.SqlDbType = ((parameterList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
             paramsParam.Size = parameterList.Length;
             paramsParam.Value = parameterList;
             paramsParam.Direction = ParameterDirection.Input;
@@ -4387,7 +4387,7 @@ namespace Microsoft.Data.SqlClient
             if (attestationParameters != null)
             {
                 SqlParameter attestationParametersParam = describeParameterEncryptionRequest.systemParams[2];
-                attestationParametersParam.SqlDbType = SqlDbType.VarBinary;
+                attestationParametersParam.SqlDbType = SqlDbType2.VarBinary;
                 attestationParametersParam.Size = attestationParameters.Length;
                 attestationParametersParam.Value = attestationParameters;
                 attestationParametersParam.Direction = ParameterDirection.Input;
@@ -5751,7 +5751,7 @@ namespace Microsoft.Data.SqlClient
                     object val = thisParam.Value;
 
                     //set the UDT value as typed object rather than bytes
-                    if (SqlDbType.Udt == thisParam.SqlDbType)
+                    if (SqlDbType2.Udt == thisParam.SqlDbType)
                     {
                         object data = null;
                         try
@@ -5793,7 +5793,7 @@ namespace Microsoft.Data.SqlClient
 
                     MetaType mt = MetaType.GetMetaTypeFromSqlDbType(rec.type, false);
 
-                    if (rec.type == SqlDbType.Decimal)
+                    if (rec.type == SqlDbType2.Decimal)
                     {
                         thisParam.ScaleInternal = rec.scale;
                         thisParam.PrecisionInternal = rec.precision;
@@ -5802,7 +5802,7 @@ namespace Microsoft.Data.SqlClient
                     {
                         thisParam.ScaleInternal = rec.scale;
                     }
-                    else if (rec.type == SqlDbType.Xml)
+                    else if (rec.type == SqlDbType2.Xml)
                     {
                         SqlCachedBuffer cachedBuffer = (thisParam.Value as SqlCachedBuffer);
                         if (null != cachedBuffer)
@@ -5982,7 +5982,7 @@ namespace Microsoft.Data.SqlClient
                         // Don't assume a default value exists for parameters in the case when
                         // the user is simply requesting schema.
                         // TVPs use DEFAULT and do not allow NULL, even for schema only.
-                        if (null == parameter.Value && (!inSchema || SqlDbType.Structured == parameter.SqlDbType))
+                        if (null == parameter.Value && (!inSchema || SqlDbType2.Structured == parameter.SqlDbType))
                         {
                             options |= TdsEnums.RPC_PARAM_DEFAULT;
                         }
@@ -6031,7 +6031,7 @@ namespace Microsoft.Data.SqlClient
 
             //@handle
             sqlParam = rpc.systemParams[0];
-            sqlParam.SqlDbType = SqlDbType.Int;
+            sqlParam.SqlDbType = SqlDbType2.Int;
             sqlParam.Value = _prepareHandle;
             sqlParam.Size = 4;
             sqlParam.Direction = ParameterDirection.InputOutput;
@@ -6040,7 +6040,7 @@ namespace Microsoft.Data.SqlClient
             //@batch_params
             string paramList = BuildParamList(_stateObj.Parser, _parameters);
             sqlParam = rpc.systemParams[1];
-            sqlParam.SqlDbType = ((paramList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+            sqlParam.SqlDbType = ((paramList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
             sqlParam.Value = paramList;
             sqlParam.Size = paramList.Length;
             sqlParam.Direction = ParameterDirection.Input;
@@ -6048,7 +6048,7 @@ namespace Microsoft.Data.SqlClient
             //@batch_text
             string text = GetCommandText(behavior);
             sqlParam = rpc.systemParams[2];
-            sqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+            sqlParam.SqlDbType = ((text.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
             sqlParam.Size = text.Length;
             sqlParam.Value = text;
             sqlParam.Direction = ParameterDirection.Input;
@@ -6152,7 +6152,7 @@ namespace Microsoft.Data.SqlClient
 
             //@handle
             SqlParameter sqlParam = rpc.systemParams[0];
-            sqlParam.SqlDbType = SqlDbType.Int;
+            sqlParam.SqlDbType = SqlDbType2.Int;
             sqlParam.Size = 4;
             sqlParam.Value = _prepareHandle;
             sqlParam.Direction = ParameterDirection.Input;
@@ -6194,7 +6194,7 @@ namespace Microsoft.Data.SqlClient
                 commandText = GetCommandText(behavior);
             }
             sqlParam = rpc.systemParams[0];
-            sqlParam.SqlDbType = ((commandText.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+            sqlParam.SqlDbType = ((commandText.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
             sqlParam.Size = commandText.Length;
             sqlParam.Value = commandText;
             sqlParam.Direction = ParameterDirection.Input;
@@ -6203,7 +6203,7 @@ namespace Microsoft.Data.SqlClient
             {
                 string paramList = BuildParamList(_stateObj.Parser, _batchRPCMode ? parameters : _parameters);
                 sqlParam = rpc.systemParams[1];
-                sqlParam.SqlDbType = ((paramList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText;
+                sqlParam.SqlDbType = ((paramList.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText;
                 sqlParam.Size = paramList.Length;
                 sqlParam.Value = paramList;
                 sqlParam.Direction = ParameterDirection.Input;
@@ -6234,7 +6234,7 @@ namespace Microsoft.Data.SqlClient
                 execStatement.Append(ParseAndQuoteIdentifier(storedProcedureName, false));
                 return new SqlParameter(
                     null,
-                    ((execStatement.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText,
+                    ((execStatement.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText,
                     execStatement.Length)
                 {
                     Value = execStatement.ToString()
@@ -6324,7 +6324,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             // Construct @tsql SqlParameter to be returned
-            SqlParameter tsqlParameter = new SqlParameter(null, ((execStatement.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType.NVarChar : SqlDbType.NText, execStatement.Length);
+            SqlParameter tsqlParameter = new SqlParameter(null, ((execStatement.Length << 1) <= TdsEnums.TYPE_SIZE_LIMIT) ? SqlDbType2.NVarChar : SqlDbType2.NText, execStatement.Length);
             tsqlParameter.Value = execStatement.ToString();
 
             return tsqlParameter;
@@ -6363,7 +6363,7 @@ namespace Microsoft.Data.SqlClient
                 // paragraph above doesn't seem to be correct. Server won't find the type
                 // if we don't provide a fully qualified name
                 paramList.Append(" ");
-                if (mt.SqlDbType == SqlDbType.Udt)
+                if (mt.SqlDbType == SqlDbType2.Udt)
                 {
                     string fullTypeName = sqlParam.UdtTypeName;
                     if (string.IsNullOrEmpty(fullTypeName))
@@ -6371,7 +6371,7 @@ namespace Microsoft.Data.SqlClient
 
                     paramList.Append(ParseAndQuoteIdentifier(fullTypeName, true /* is UdtTypeName */));
                 }
-                else if (mt.SqlDbType == SqlDbType.Structured)
+                else if (mt.SqlDbType == SqlDbType2.Structured)
                 {
                     string typeName = sqlParam.TypeName;
                     if (string.IsNullOrEmpty(typeName))
@@ -6397,7 +6397,7 @@ namespace Microsoft.Data.SqlClient
 
                 fAddSeparator = true;
 
-                if (mt.SqlDbType == SqlDbType.Decimal)
+                if (mt.SqlDbType == SqlDbType2.Decimal)
                 {
                     byte precision = sqlParam.GetActualPrecision();
                     byte scale = sqlParam.GetActualScale();
@@ -6422,7 +6422,7 @@ namespace Microsoft.Data.SqlClient
                     paramList.Append(scale);
                     paramList.Append(')');
                 }
-                else if (!mt.IsFixed && !mt.IsLong && mt.SqlDbType != SqlDbType.Timestamp && mt.SqlDbType != SqlDbType.Udt && SqlDbType.Structured != mt.SqlDbType)
+                else if (!mt.IsFixed && !mt.IsLong && mt.SqlDbType != SqlDbType2.Timestamp && mt.SqlDbType != SqlDbType2.Udt && SqlDbType2.Structured != mt.SqlDbType)
                 {
                     int size = sqlParam.Size;
 
@@ -6465,7 +6465,7 @@ namespace Microsoft.Data.SqlClient
                     paramList.Append(size);
                     paramList.Append(')');
                 }
-                else if (mt.IsPlp && (mt.SqlDbType != SqlDbType.Xml) && (mt.SqlDbType != SqlDbType.Udt) && (mt.SqlDbType != (SqlDbType)35))
+                else if (mt.IsPlp && (mt.SqlDbType != SqlDbType2.Xml) && (mt.SqlDbType != SqlDbType2.Udt) && (mt.SqlDbType != SqlDbType2.Json))
                 {
                     paramList.Append("(max) ");
                 }

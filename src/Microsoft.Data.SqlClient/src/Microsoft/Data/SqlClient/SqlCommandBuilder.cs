@@ -198,7 +198,7 @@ namespace Microsoft.Data.SqlClient
             p.SqlDbType = (SqlDbType)valueType;
             p.Offset = 0;
 
-            if ((p.SqlDbType == SqlDbType.Udt) && !p.SourceColumnNullMapping)
+            if ((p.SqlDbType == SqlDbType2.Udt) && !p.SourceColumnNullMapping)
             {
                 p.UdtTypeName = datarow["DataTypeName"] as string;
             }

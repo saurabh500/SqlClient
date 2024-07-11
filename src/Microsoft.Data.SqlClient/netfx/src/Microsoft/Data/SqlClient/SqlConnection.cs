@@ -2717,18 +2717,18 @@ namespace Microsoft.Data.SqlClient
             c.CommandType = CommandType.StoredProcedure;
 
             // context param
-            SqlParameter p = new SqlParameter(null, SqlDbType.VarChar, TdsEnums.SQLDEBUG_MODE_NAMES[option].Length);
+            SqlParameter p = new SqlParameter(null, SqlDbType2.VarChar, TdsEnums.SQLDEBUG_MODE_NAMES[option].Length);
             p.Value = TdsEnums.SQLDEBUG_MODE_NAMES[option];
             c.Parameters.Add(p);
 
             if (option == TdsEnums.SQLDEBUG_ON)
             {
                 // debug dll name
-                p = new SqlParameter(null, SqlDbType.VarChar, sdiDllName.Length);
+                p = new SqlParameter(null, SqlDbType2.VarChar, sdiDllName.Length);
                 p.Value = sdiDllName;
                 c.Parameters.Add(p);
                 // debug machine name
-                p = new SqlParameter(null, SqlDbType.VarChar, machineName.Length);
+                p = new SqlParameter(null, SqlDbType2.VarChar, machineName.Length);
                 p.Value = machineName;
                 c.Parameters.Add(p);
             }
@@ -2736,11 +2736,11 @@ namespace Microsoft.Data.SqlClient
             if (option != TdsEnums.SQLDEBUG_OFF)
             {
                 // client pid
-                p = new SqlParameter(null, SqlDbType.Int);
+                p = new SqlParameter(null, SqlDbType2.Int);
                 p.Value = pid;
                 c.Parameters.Add(p);
                 // dbgpid or tid
-                p = new SqlParameter(null, SqlDbType.Int);
+                p = new SqlParameter(null, SqlDbType2.Int);
                 p.Value = id;
                 c.Parameters.Add(p);
             }
@@ -2748,7 +2748,7 @@ namespace Microsoft.Data.SqlClient
             if (option == TdsEnums.SQLDEBUG_ON)
             {
                 // debug data
-                p = new SqlParameter(null, SqlDbType.VarBinary, (null != data) ? data.Length : 0);
+                p = new SqlParameter(null, SqlDbType2.VarBinary, (null != data) ? data.Length : 0);
                 p.Value = data;
                 c.Parameters.Add(p);
             }

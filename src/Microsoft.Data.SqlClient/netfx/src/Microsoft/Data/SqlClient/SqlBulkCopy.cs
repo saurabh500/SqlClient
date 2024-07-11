@@ -589,7 +589,7 @@ namespace Microsoft.Data.SqlClient
                 rejectColumn = false;
 
                 // Check for excluded types
-                if ((metadata.type == SqlDbType.Timestamp)
+                if ((metadata.type == SqlDbType2.Timestamp)
                     || ((metadata.IsIdentity) && !IsCopyOption(SqlBulkCopyOptions.KeepIdentity)))
                 {
                     // Remove metadata for excluded columns
@@ -621,11 +621,11 @@ namespace Microsoft.Data.SqlClient
                         }
 
                         // Some datatypes need special handling ...
-                        if (metadata.type == SqlDbType.Variant)
+                        if (metadata.type == SqlDbType2.Variant)
                         {
                             AppendColumnNameAndTypeName(updateBulkCommandText, metadata.column, "sql_variant");
                         }
-                        else if (metadata.type == SqlDbType.Udt)
+                        else if (metadata.type == SqlDbType2.Udt)
                         {
                             AppendColumnNameAndTypeName(updateBulkCommandText, metadata.column, "varbinary");
                         }
@@ -678,7 +678,7 @@ namespace Microsoft.Data.SqlClient
                                         }
                                         updateBulkCommandText.AppendFormat((IFormatProvider)null, "({0})", size);
                                     }
-                                    else if (metadata.metaType.IsPlp && metadata.metaType.SqlDbType != SqlDbType.Xml)
+                                    else if (metadata.metaType.IsPlp && metadata.metaType.SqlDbType != SqlDbType2.Xml)
                                     {
                                         // Partial length column prefix (max)
                                         updateBulkCommandText.Append("(max)");
@@ -698,12 +698,12 @@ namespace Microsoft.Data.SqlClient
                             bool shouldSendCollation;
                             switch (metadata.type)
                             {
-                                case SqlDbType.Char:
-                                case SqlDbType.NChar:
-                                case SqlDbType.VarChar:
-                                case SqlDbType.NVarChar:
-                                case SqlDbType.Text:
-                                case SqlDbType.NText:
+                                case SqlDbType2.Char:
+                                case SqlDbType2.NChar:
+                                case SqlDbType2.VarChar:
+                                case SqlDbType2.NVarChar:
+                                case SqlDbType2.Text:
+                                case SqlDbType2.NText:
                                     shouldSendCollation = true;
                                     break;
 
@@ -998,7 +998,7 @@ namespace Microsoft.Data.SqlClient
 
                             object value = _sqlDataReaderRowSource.GetValue(sourceOrdinal);
                             isNull = ((value == null) || (value == DBNull.Value));
-                            if ((!isNull) && (metadata.type == SqlDbType.Udt))
+                            if ((!isNull) && (metadata.type == SqlDbType2.Udt))
                             {
                                 var columnAsINullable = value as INullable;
                                 isNull = (columnAsINullable != null) && columnAsINullable.IsNull;
@@ -1262,18 +1262,18 @@ namespace Microsoft.Data.SqlClient
                     MetaType mtSource = _sqlDataReaderRowSource.MetaData[sourceOrdinal].metaType;
 
                     // There is no memory gain for non-sequential access for binary
-                    if ((metadata.type == SqlDbType.VarBinary) && (mtSource.IsBinType) && (mtSource.SqlDbType != SqlDbType.Timestamp) && _sqlDataReaderRowSource.IsCommandBehavior(CommandBehavior.SequentialAccess))
+                    if ((metadata.type == SqlDbType2.VarBinary) && (mtSource.IsBinType) && (mtSource.SqlDbType != SqlDbType2.Timestamp) && _sqlDataReaderRowSource.IsCommandBehavior(CommandBehavior.SequentialAccess))
                     {
                         isDataFeed = true;
                         method = ValueMethod.DataFeedStream;
                     }
                     // For text and XML there is memory gain from streaming on destination side even if reader is non-sequential
-                    else if (((metadata.type == SqlDbType.VarChar) || (metadata.type == SqlDbType.NVarChar)) && (mtSource.IsCharType) && (mtSource.SqlDbType != SqlDbType.Xml))
+                    else if (((metadata.type == SqlDbType2.VarChar) || (metadata.type == SqlDbType2.NVarChar)) && (mtSource.IsCharType) && (mtSource.SqlDbType != SqlDbType2.Xml))
                     {
                         isDataFeed = true;
                         method = ValueMethod.DataFeedText;
                     }
-                    else if ((metadata.type == SqlDbType.Xml) && (mtSource.SqlDbType == SqlDbType.Xml))
+                    else if ((metadata.type == SqlDbType2.Xml) && (mtSource.SqlDbType == SqlDbType2.Xml))
                     {
                         isDataFeed = true;
                         method = ValueMethod.DataFeedXml;
@@ -1286,12 +1286,12 @@ namespace Microsoft.Data.SqlClient
                 }
                 else if (_dbDataReaderRowSource != null)
                 {
-                    if (metadata.type == SqlDbType.VarBinary)
+                    if (metadata.type == SqlDbType2.VarBinary)
                     {
                         isDataFeed = true;
                         method = ValueMethod.DataFeedStream;
                     }
-                    else if ((metadata.type == SqlDbType.VarChar) || (metadata.type == SqlDbType.NVarChar))
+                    else if ((metadata.type == SqlDbType2.VarChar) || (metadata.type == SqlDbType2.NVarChar))
                     {
                         isDataFeed = true;
                         method = ValueMethod.DataFeedText;
@@ -2283,7 +2283,7 @@ namespace Microsoft.Data.SqlClient
 
             //write part
             Task writeTask = null;
-            if (metadata.type != SqlDbType.Variant)
+            if (metadata.type != SqlDbType2.Variant)
             {
                 //this is the most common path
                 writeTask = _parser.WriteBulkCopyValue(value, metadata, _stateObj, isSqlType, isDataFeed, isNull); //returns Task/Null

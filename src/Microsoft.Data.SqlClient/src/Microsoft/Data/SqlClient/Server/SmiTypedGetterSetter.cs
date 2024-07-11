@@ -43,7 +43,7 @@ namespace Microsoft.Data.SqlClient.Server
         }
 
         // Check what type current sql_variant value is
-        //      valid for SqlDbType.Variant
+        //      valid for SqlDbType2.Variant
         public virtual SmiMetaData GetVariantType(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -56,7 +56,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         public virtual bool GetBoolean(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -69,7 +69,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         public virtual byte GetByte(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -142,7 +142,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         public virtual short GetInt16(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -155,7 +155,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         public virtual int GetInt32(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -168,7 +168,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         public virtual long GetInt64(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -181,7 +181,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         public virtual float GetSingle(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -194,7 +194,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         public virtual double GetDouble(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -207,7 +207,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         public virtual SqlDecimal GetSqlDecimal(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -246,7 +246,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Time
+        // valid for SqlDbType2.Time
         public virtual TimeSpan GetTimeSpan(SmiEventSink sink, int ordinal)
         {
             if (!CanGet)
@@ -310,7 +310,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         public virtual void SetBoolean(SmiEventSink sink, int ordinal, bool value)
         {
             if (!CanSet)
@@ -323,7 +323,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         public virtual void SetByte(SmiEventSink sink, int ordinal, byte value)
         {
             if (!CanSet)
@@ -403,7 +403,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         public virtual void SetInt16(SmiEventSink sink, int ordinal, short value)
         {
             if (!CanSet)
@@ -416,7 +416,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         public virtual void SetInt32(SmiEventSink sink, int ordinal, int value)
         {
             if (!CanSet)
@@ -429,7 +429,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         public virtual void SetInt64(SmiEventSink sink, int ordinal, long value)
         {
             if (!CanSet)
@@ -442,7 +442,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         public virtual void SetSingle(SmiEventSink sink, int ordinal, float value)
         {
             if (!CanSet)
@@ -455,7 +455,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         public virtual void SetDouble(SmiEventSink sink, int ordinal, double value)
         {
             if (!CanSet)
@@ -468,7 +468,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         public virtual void SetSqlDecimal(SmiEventSink sink, int ordinal, SqlDecimal value)
         {
             if (!CanSet)
@@ -507,7 +507,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
         }
 
-        // valid for SqlDbType.Time
+        // valid for SqlDbType2.Time
         public virtual void SetTimeSpan(SmiEventSink sink, int ordinal, TimeSpan value)
         {
             if (!CanSet)

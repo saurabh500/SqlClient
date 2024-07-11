@@ -59,7 +59,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Null(p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -87,7 +87,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             Assert.Equal(new SqlDateTime(value), p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -116,7 +116,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.Date, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Date, p.SqlDbType);
             Assert.Equal(value, p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -144,7 +144,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.Time, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Time, p.SqlDbType);
             Assert.Equal(value, p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -172,7 +172,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Null(p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -199,7 +199,7 @@ namespace Microsoft.Data.SqlClient.Tests
             Assert.Equal(string.Empty, p.SourceColumn);
             Assert.False(p.SourceColumnNullMapping);
             Assert.Equal(DataRowVersion.Current, p.SourceVersion);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(SqlString.Null, p.SqlValue);
             Assert.Equal(string.Empty, p.TypeName);
             Assert.Equal(string.Empty, p.UdtTypeName);
@@ -217,36 +217,36 @@ namespace Microsoft.Data.SqlClient.Tests
         }
 
         [Theory]
-        [InlineData(SqlDbType.BigInt, DbType.Int64)]
-        [InlineData(SqlDbType.Binary, DbType.Binary)]
-        [InlineData(SqlDbType.Bit, DbType.Boolean)]
-        [InlineData(SqlDbType.Char, DbType.AnsiStringFixedLength)]
-        [InlineData(SqlDbType.Date, DbType.Date)]
-        [InlineData(SqlDbType.DateTime, DbType.DateTime)]
-        [InlineData(SqlDbType.DateTimeOffset, DbType.DateTimeOffset)]
-        [InlineData(SqlDbType.Decimal, DbType.Decimal)]
-        [InlineData(SqlDbType.Float, DbType.Double)]
-        [InlineData(SqlDbType.Image, DbType.Binary)]
-        [InlineData(SqlDbType.Int, DbType.Int32)]
-        [InlineData(SqlDbType.Money, DbType.Currency)]
-        [InlineData(SqlDbType.NChar, DbType.StringFixedLength)]
-        [InlineData(SqlDbType.NText, DbType.String)]
-        [InlineData(SqlDbType.NVarChar, DbType.String)]
-        [InlineData(SqlDbType.Real, DbType.Single)]
-        [InlineData(SqlDbType.SmallDateTime, DbType.DateTime)]
-        [InlineData(SqlDbType.SmallInt, DbType.Int16)]
-        [InlineData(SqlDbType.SmallMoney, DbType.Currency)]
-        [InlineData(SqlDbType.Structured, DbType.Object)]
-        [InlineData(SqlDbType.Text, DbType.AnsiString)]
-        [InlineData(SqlDbType.Time, DbType.Time)]
-        [InlineData(SqlDbType.Timestamp, DbType.Binary)]
-        [InlineData(SqlDbType.TinyInt, DbType.Byte)]
-        [InlineData(SqlDbType.Udt, DbType.Object)]
-        [InlineData(SqlDbType.UniqueIdentifier, DbType.Guid)]
-        [InlineData(SqlDbType.VarBinary, DbType.Binary)]
-        [InlineData(SqlDbType.VarChar, DbType.AnsiString)]
-        [InlineData(SqlDbType.Variant, DbType.Object)]
-        [InlineData(SqlDbType.Xml, DbType.Xml)]
+        [InlineData(SqlDbType2.BigInt, DbType.Int64)]
+        [InlineData(SqlDbType2.Binary, DbType.Binary)]
+        [InlineData(SqlDbType2.Bit, DbType.Boolean)]
+        [InlineData(SqlDbType2.Char, DbType.AnsiStringFixedLength)]
+        [InlineData(SqlDbType2.Date, DbType.Date)]
+        [InlineData(SqlDbType2.DateTime, DbType.DateTime)]
+        [InlineData(SqlDbType2.DateTimeOffset, DbType.DateTimeOffset)]
+        [InlineData(SqlDbType2.Decimal, DbType.Decimal)]
+        [InlineData(SqlDbType2.Float, DbType.Double)]
+        [InlineData(SqlDbType2.Image, DbType.Binary)]
+        [InlineData(SqlDbType2.Int, DbType.Int32)]
+        [InlineData(SqlDbType2.Money, DbType.Currency)]
+        [InlineData(SqlDbType2.NChar, DbType.StringFixedLength)]
+        [InlineData(SqlDbType2.NText, DbType.String)]
+        [InlineData(SqlDbType2.NVarChar, DbType.String)]
+        [InlineData(SqlDbType2.Real, DbType.Single)]
+        [InlineData(SqlDbType2.SmallDateTime, DbType.DateTime)]
+        [InlineData(SqlDbType2.SmallInt, DbType.Int16)]
+        [InlineData(SqlDbType2.SmallMoney, DbType.Currency)]
+        [InlineData(SqlDbType2.Structured, DbType.Object)]
+        [InlineData(SqlDbType2.Text, DbType.AnsiString)]
+        [InlineData(SqlDbType2.Time, DbType.Time)]
+        [InlineData(SqlDbType2.Timestamp, DbType.Binary)]
+        [InlineData(SqlDbType2.TinyInt, DbType.Byte)]
+        [InlineData(SqlDbType2.Udt, DbType.Object)]
+        [InlineData(SqlDbType2.UniqueIdentifier, DbType.Guid)]
+        [InlineData(SqlDbType2.VarBinary, DbType.Binary)]
+        [InlineData(SqlDbType2.VarChar, DbType.AnsiString)]
+        [InlineData(SqlDbType2.Variant, DbType.Object)]
+        [InlineData(SqlDbType2.Xml, DbType.Xml)]
         public void Constructor3_Types(SqlDbType sqlDbType, DbType dbType)
         {
             SqlParameter p = new SqlParameter("types", sqlDbType);
@@ -259,21 +259,21 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public void Constructor4()
         {
-            SqlParameter p = new SqlParameter("", SqlDbType.Bit, 1001);
+            SqlParameter p = new SqlParameter("", SqlDbType2.Bit, 1001);
             Assert.Equal(1001, p.Size);
         }
 
         [Fact]
         public void Constructor4_MaxSize()
         {
-            SqlParameter p = new SqlParameter("", SqlDbType.Bit, int.MaxValue);
+            SqlParameter p = new SqlParameter("", SqlDbType2.Bit, int.MaxValue);
             Assert.Equal(int.MaxValue, p.Size);
         }
 
         [Fact]
         public void Constructor4_MinSize()
         {
-            Assert.Throws<ArgumentException>(() => new SqlParameter("", SqlDbType.Image, int.MinValue));
+            Assert.Throws<ArgumentException>(() => new SqlParameter("", SqlDbType2.Image, int.MinValue));
         }
 
         [Theory]
@@ -282,7 +282,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [InlineData(" SourceColumn ", " SourceColumn ")]
         public void Constructor5(string value, string expected)
         {
-            SqlParameter p = new SqlParameter("", SqlDbType.Bit, int.MaxValue, value);
+            SqlParameter p = new SqlParameter("", SqlDbType2.Bit, int.MaxValue, value);
             Assert.Equal(expected, p.SourceColumn);
         }
 
@@ -293,7 +293,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [InlineData(ParameterDirection.ReturnValue, false, 99, 100, " Col ", " Col ", DataRowVersion.Proposed)]
         public void Constructor6(ParameterDirection parameterDirection, bool isNullable, byte precision, byte scale, string sourceColumn, string expectedSourceColumn, DataRowVersion dataRowVersion)
         {
-            SqlParameter p = new SqlParameter("", SqlDbType.Bit, int.MaxValue, parameterDirection, isNullable, precision, scale, sourceColumn, dataRowVersion, null);
+            SqlParameter p = new SqlParameter("", SqlDbType2.Bit, int.MaxValue, parameterDirection, isNullable, precision, scale, sourceColumn, dataRowVersion, null);
 
             Assert.Equal(parameterDirection, p.Direction);
             Assert.Equal(isNullable, p.IsNullable);
@@ -310,7 +310,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [InlineData(ParameterDirection.ReturnValue, 100, 99, " Source ", " Source ", DataRowVersion.Proposed, true, " aaa ", " aaa ", " bbb ", " bbb ", " ccc ", " ccc ")]
         public void Constructor7(ParameterDirection parameterDirection, byte precision, byte scale, string sourceColumn, string expectedSourceColumn, DataRowVersion dataRowVersion, bool sourceColumnNullMapping, string xmlSchemaCollectionDatabase, string expectedXmlSchemaCollectionDatabase, string xmlSchemaCollectionOwningSchema, string expectedXmlSchemaCollectionOwningSchema, string xmlSchemaCollectionName, string expectedXmlSchemaCollectionName)
         {
-            SqlParameter p = new SqlParameter("", SqlDbType.Bit, int.MaxValue, parameterDirection, precision, scale, sourceColumn, dataRowVersion, sourceColumnNullMapping, null, xmlSchemaCollectionDatabase, xmlSchemaCollectionOwningSchema, xmlSchemaCollectionName);
+            SqlParameter p = new SqlParameter("", SqlDbType2.Bit, int.MaxValue, parameterDirection, precision, scale, sourceColumn, dataRowVersion, sourceColumnNullMapping, null, xmlSchemaCollectionDatabase, xmlSchemaCollectionOwningSchema, xmlSchemaCollectionName);
 
             Assert.Equal(parameterDirection, p.Direction);
             Assert.Equal(precision, p.Precision);
@@ -339,7 +339,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.TinyInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, param.SqlDbType);
             Assert.Equal(DbType.Byte, param.DbType);
         }
 
@@ -350,7 +350,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.VarBinary, param.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, param.SqlDbType);
             Assert.Equal(DbType.Binary, param.DbType);
         }
 
@@ -362,14 +362,14 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter p = new SqlParameter();
             p.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(DbType.String, p.DbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter();
             p.Value = value;
             Assert.Equal(value, p.Value);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter();
@@ -381,19 +381,19 @@ namespace Microsoft.Data.SqlClient.Tests
             p = new SqlParameter("name", value);
             Assert.Equal(value, p.Value);
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter("name", 5);
             p.Value = value;
             Assert.Equal(value, p.Value);
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
-            p = new SqlParameter("name", SqlDbType.NVarChar);
+            p = new SqlParameter("name", SqlDbType2.NVarChar);
             p.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(value, p.Value);
         }
 
@@ -406,14 +406,14 @@ namespace Microsoft.Data.SqlClient.Tests
             SqlParameter p = new SqlParameter();
             p.Value = value;
             Assert.Equal(value, p.Value);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(DbType.String, p.DbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter();
             p.Value = value;
             Assert.Equal(value, p.Value);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter();
@@ -425,19 +425,19 @@ namespace Microsoft.Data.SqlClient.Tests
             p = new SqlParameter("name", value);
             Assert.Equal(value, p.Value);
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
             p = new SqlParameter("name", 5);
             p.Value = value;
             Assert.Equal(value, p.Value);
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(string_value, p.Value);
 
-            p = new SqlParameter("name", SqlDbType.NVarChar);
+            p = new SqlParameter("name", SqlDbType2.NVarChar);
             p.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(value, p.Value);
         }
 
@@ -451,19 +451,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = DateOnly.FromDateTime(DateTime.Now.Date);
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Date, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Date, param.SqlDbType);
             Assert.Equal(DbType.Date, param.DbType);
 
             value = DateOnly.FromDateTime(DateTime.Now.Date);
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Date, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Date, param.SqlDbType);
             Assert.Equal(DbType.Date, param.DbType);
 
             value = DateOnly.FromDateTime(new DateTime(1973, 8, 13));
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Date, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Date, param.SqlDbType);
             Assert.Equal(DbType.Date, param.DbType);
         }
 
@@ -476,19 +476,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = TimeOnly.FromDateTime(DateTime.Now);
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Time, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Time, param.SqlDbType);
             Assert.Equal(DbType.Time, param.DbType);
 
             value = TimeOnly.FromDateTime(DateTime.Now);
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Time, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Time, param.SqlDbType);
             Assert.Equal(DbType.Time, param.DbType);
 
             value = TimeOnly.FromDateTime(new DateTime(2022, 10, 22, 15, 27, 38));
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Time, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Time, param.SqlDbType);
             Assert.Equal(DbType.Time, param.DbType);
         }
 #endif
@@ -502,19 +502,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = DateTime.Now;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.DateTime, param.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, param.SqlDbType);
             Assert.Equal(DbType.DateTime, param.DbType);
 
             value = DateTime.Now;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.DateTime, param.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, param.SqlDbType);
             Assert.Equal(DbType.DateTime, param.DbType);
 
             value = new DateTime(1973, 8, 13);
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.DateTime, param.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, param.SqlDbType);
             Assert.Equal(DbType.DateTime, param.DbType);
         }
 
@@ -527,19 +527,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = decimal.MaxValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Decimal, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, param.SqlDbType);
             Assert.Equal(DbType.Decimal, param.DbType);
 
             value = decimal.MinValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Decimal, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, param.SqlDbType);
             Assert.Equal(DbType.Decimal, param.DbType);
 
             value = 214748.364m;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Decimal, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, param.SqlDbType);
             Assert.Equal(DbType.Decimal, param.DbType);
         }
 
@@ -552,19 +552,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = double.MaxValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Float, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, param.SqlDbType);
             Assert.Equal(DbType.Double, param.DbType);
 
             value = Double.MinValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Float, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, param.SqlDbType);
             Assert.Equal(DbType.Double, param.DbType);
 
             value = 0d;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Float, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, param.SqlDbType);
             Assert.Equal(DbType.Double, param.DbType);
         }
 
@@ -575,12 +575,12 @@ namespace Microsoft.Data.SqlClient.Tests
 
             param = new SqlParameter();
             param.Value = ByteEnum.A;
-            Assert.Equal(SqlDbType.TinyInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, param.SqlDbType);
             Assert.Equal(DbType.Byte, param.DbType);
 
             param = new SqlParameter();
             param.Value = Int64Enum.A;
-            Assert.Equal(SqlDbType.BigInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, param.SqlDbType);
             Assert.Equal(DbType.Int64, param.DbType);
         }
 
@@ -591,7 +591,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.UniqueIdentifier, param.SqlDbType);
+            Assert.Equal(SqlDbType2.UniqueIdentifier, param.SqlDbType);
             Assert.Equal(DbType.Guid, param.DbType);
         }
 
@@ -604,19 +604,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = short.MaxValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.SmallInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, param.SqlDbType);
             Assert.Equal(DbType.Int16, param.DbType);
 
             value = short.MinValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.SmallInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, param.SqlDbType);
             Assert.Equal(DbType.Int16, param.DbType);
 
             value = (short)0;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.SmallInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, param.SqlDbType);
             Assert.Equal(DbType.Int16, param.DbType);
         }
 
@@ -629,19 +629,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = int.MaxValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Int, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, param.SqlDbType);
             Assert.Equal(DbType.Int32, param.DbType);
 
             value = int.MinValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Int, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, param.SqlDbType);
             Assert.Equal(DbType.Int32, param.DbType);
 
             value = 0;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Int, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, param.SqlDbType);
             Assert.Equal(DbType.Int32, param.DbType);
         }
 
@@ -654,19 +654,19 @@ namespace Microsoft.Data.SqlClient.Tests
             value = long.MaxValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.BigInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, param.SqlDbType);
             Assert.Equal(DbType.Int64, param.DbType);
 
             value = long.MinValue;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.BigInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, param.SqlDbType);
             Assert.Equal(DbType.Int64, param.DbType);
 
             value = 0L;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.BigInt, param.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, param.SqlDbType);
             Assert.Equal(DbType.Int64, param.DbType);
         }
 
@@ -721,7 +721,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Variant, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Variant, param.SqlDbType);
             Assert.Equal(DbType.Object, param.DbType);
         }
 
@@ -732,7 +732,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Real, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Real, param.SqlDbType);
             Assert.Equal(DbType.Single, param.DbType);
         }
 
@@ -743,7 +743,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, param.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, param.SqlDbType);
             Assert.Equal(DbType.String, param.DbType);
         }
 
@@ -754,7 +754,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Time, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Time, param.SqlDbType);
             Assert.Equal(DbType.Time, param.DbType);
         }
 
@@ -765,7 +765,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             SqlParameter param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.DateTimeOffset, param.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTimeOffset, param.SqlDbType);
             Assert.Equal(DbType.DateTimeOffset, param.DbType);
         }
 
@@ -835,12 +835,12 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public void ParameterNullTest()
         {
-            SqlParameter param = new SqlParameter("param", SqlDbType.Decimal);
+            SqlParameter param = new SqlParameter("param", SqlDbType2.Decimal);
             Assert.Equal(0, param.Scale);
             param.Value = DBNull.Value;
             Assert.Equal(0, param.Scale);
 
-            param = new SqlParameter("param", SqlDbType.Int);
+            param = new SqlParameter("param", SqlDbType2.Int);
             Assert.Equal(0, param.Scale);
             param.Value = DBNull.Value;
             Assert.Equal(0, param.Scale);
@@ -856,52 +856,52 @@ namespace Microsoft.Data.SqlClient.Tests
             // If value is null or DBNull, then the current Type should be reset to NVarChar.
             p = new SqlParameter();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             p.Value = DBNull.Value;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             p.Value = 1;
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             p.Value = DBNull.Value;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             p.Value = new byte[] { 0x0a };
             Assert.Equal(DbType.Binary, p.DbType);
-            Assert.Equal(SqlDbType.VarBinary, p.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, p.SqlDbType);
             p.Value = null;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             p.Value = DateTime.Now;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.Value = null;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
 
             // If DbType is set, then the SqlDbType should not be
             // inferred from the value assigned.
             p = new SqlParameter();
             p.DbType = DbType.DateTime;
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.Value = 1;
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.Value = null;
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.Value = DBNull.Value;
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
 
             // If SqlDbType is set, then the DbType should not be
             // inferred from the value assigned.
             p = new SqlParameter();
-            p.SqlDbType = SqlDbType.VarBinary;
-            Assert.Equal(SqlDbType.VarBinary, p.SqlDbType);
+            p.SqlDbType = SqlDbType2.VarBinary;
+            Assert.Equal(SqlDbType2.VarBinary, p.SqlDbType);
             p.Value = 1;
-            Assert.Equal(SqlDbType.VarBinary, p.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, p.SqlDbType);
             p.Value = null;
-            Assert.Equal(SqlDbType.VarBinary, p.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, p.SqlDbType);
             p.Value = DBNull.Value;
-            Assert.Equal(SqlDbType.VarBinary, p.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, p.SqlDbType);
         }
 
         [Fact]
@@ -913,13 +913,13 @@ namespace Microsoft.Data.SqlClient.Tests
             value = false;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Bit, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, param.SqlDbType);
             Assert.Equal(DbType.Boolean, param.DbType);
 
             value = true;
             param = new SqlParameter();
             param.Value = value;
-            Assert.Equal(SqlDbType.Bit, param.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, param.SqlDbType);
             Assert.Equal(DbType.Boolean, param.DbType);
         }
 
@@ -956,81 +956,81 @@ namespace Microsoft.Data.SqlClient.Tests
             p = new SqlParameter("foo", 42);
             p.ResetDbType();
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             Assert.Equal(42, p.Value);
 
             p.DbType = DbType.DateTime;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.ResetDbType();
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
 
-            p = new SqlParameter("foo", SqlDbType.Int);
+            p = new SqlParameter("foo", SqlDbType2.Int);
             p.ResetDbType();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
 
-            p.SqlDbType = SqlDbType.DateTime;
+            p.SqlDbType = SqlDbType2.DateTime;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.ResetDbType();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
 
             p = new SqlParameter();
             p.Value = DateTime.MaxValue;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             p.Value = null;
             p.ResetDbType();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
 
-            p = new SqlParameter("foo", SqlDbType.VarChar);
+            p = new SqlParameter("foo", SqlDbType2.VarChar);
             p.Value = DateTime.MaxValue;
             p.ResetDbType();
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             Assert.Equal(DateTime.MaxValue, p.Value);
 
-            p = new SqlParameter("foo", SqlDbType.VarChar);
+            p = new SqlParameter("foo", SqlDbType2.VarChar);
             p.Value = DBNull.Value;
             p.ResetDbType();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(DBNull.Value, p.Value);
 
-            p = new SqlParameter("foo", SqlDbType.VarChar);
+            p = new SqlParameter("foo", SqlDbType2.VarChar);
             p.Value = null;
             p.ResetDbType();
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Null(p.Value);
         }
 
         [Theory]
-        [InlineData(DbType.AnsiString, SqlDbType.VarChar)]
-        [InlineData(DbType.AnsiStringFixedLength, SqlDbType.Char)]
-        [InlineData(DbType.Binary, SqlDbType.VarBinary)]
-        [InlineData(DbType.Boolean, SqlDbType.Bit)]
-        [InlineData(DbType.Byte, SqlDbType.TinyInt)]
-        [InlineData(DbType.Currency, SqlDbType.Money)]
-        [InlineData(DbType.Date, SqlDbType.Date)]
-        [InlineData(DbType.DateTime, SqlDbType.DateTime)]
-        [InlineData(DbType.DateTime2, SqlDbType.DateTime2)]
-        [InlineData(DbType.DateTimeOffset, SqlDbType.DateTimeOffset)]
-        [InlineData(DbType.Decimal, SqlDbType.Decimal)]
-        [InlineData(DbType.Double, SqlDbType.Float)]
-        [InlineData(DbType.Guid, SqlDbType.UniqueIdentifier)]
-        [InlineData(DbType.Int16, SqlDbType.SmallInt)]
-        [InlineData(DbType.Int32, SqlDbType.Int)]
-        [InlineData(DbType.Int64, SqlDbType.BigInt)]
-        [InlineData(DbType.Object, SqlDbType.Variant)]
-        [InlineData(DbType.Single, SqlDbType.Real)]
-        [InlineData(DbType.String, SqlDbType.NVarChar)]
-        [InlineData(DbType.Time, SqlDbType.Time)]
-        [InlineData(DbType.Xml, SqlDbType.Xml)]
+        [InlineData(DbType.AnsiString, SqlDbType2.VarChar)]
+        [InlineData(DbType.AnsiStringFixedLength, SqlDbType2.Char)]
+        [InlineData(DbType.Binary, SqlDbType2.VarBinary)]
+        [InlineData(DbType.Boolean, SqlDbType2.Bit)]
+        [InlineData(DbType.Byte, SqlDbType2.TinyInt)]
+        [InlineData(DbType.Currency, SqlDbType2.Money)]
+        [InlineData(DbType.Date, SqlDbType2.Date)]
+        [InlineData(DbType.DateTime, SqlDbType2.DateTime)]
+        [InlineData(DbType.DateTime2, SqlDbType2.DateTime2)]
+        [InlineData(DbType.DateTimeOffset, SqlDbType2.DateTimeOffset)]
+        [InlineData(DbType.Decimal, SqlDbType2.Decimal)]
+        [InlineData(DbType.Double, SqlDbType2.Float)]
+        [InlineData(DbType.Guid, SqlDbType2.UniqueIdentifier)]
+        [InlineData(DbType.Int16, SqlDbType2.SmallInt)]
+        [InlineData(DbType.Int32, SqlDbType2.Int)]
+        [InlineData(DbType.Int64, SqlDbType2.BigInt)]
+        [InlineData(DbType.Object, SqlDbType2.Variant)]
+        [InlineData(DbType.Single, SqlDbType2.Real)]
+        [InlineData(DbType.String, SqlDbType2.NVarChar)]
+        [InlineData(DbType.Time, SqlDbType2.Time)]
+        [InlineData(DbType.Xml, SqlDbType2.Xml)]
         public void Parameter_Supported(DbType dbType, SqlDbType sqlDbType)
         {
             var parameter = new SqlParameter();
@@ -1058,36 +1058,36 @@ namespace Microsoft.Data.SqlClient.Tests
 
             Assert.Equal(42, p1.Value);
             Assert.Equal(DbType.Int32, p1.DbType);
-            Assert.Equal(SqlDbType.Int, p1.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p1.SqlDbType);
 
             p1.ResetSqlDbType();
             Assert.Equal(DbType.Int32, p1.DbType);
-            Assert.Equal(SqlDbType.Int, p1.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p1.SqlDbType);
 
-            p1.SqlDbType = SqlDbType.DateTime;
+            p1.SqlDbType = SqlDbType2.DateTime;
             Assert.Equal(DbType.DateTime, p1.DbType);
-            Assert.Equal(SqlDbType.DateTime, p1.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p1.SqlDbType);
 
             p1.ResetSqlDbType();
             Assert.Equal(DbType.Int32, p1.DbType);
-            Assert.Equal(SqlDbType.Int, p1.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p1.SqlDbType);
 
-            SqlParameter p2 = new SqlParameter("foo", SqlDbType.Int);
+            SqlParameter p2 = new SqlParameter("foo", SqlDbType2.Int);
             Assert.Null(p2.Value);
             Assert.Equal(DbType.Int32, p2.DbType);
-            Assert.Equal(SqlDbType.Int, p2.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p2.SqlDbType);
 
             p2.ResetSqlDbType();
             Assert.Equal(DbType.String, p2.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p2.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p2.SqlDbType);
 
-            p2.SqlDbType = SqlDbType.DateTime;
+            p2.SqlDbType = SqlDbType2.DateTime;
             Assert.Equal(DbType.DateTime, p2.DbType);
-            Assert.Equal(SqlDbType.DateTime, p2.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p2.SqlDbType);
 
             p2.ResetSqlDbType();
             Assert.Equal(DbType.String, p2.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p2.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p2.SqlDbType);
         }
 
         [Fact]
@@ -1130,13 +1130,13 @@ namespace Microsoft.Data.SqlClient.Tests
         public void SqlDbTypeTest()
         {
             SqlParameter p = new SqlParameter("zipcode", 3510);
-            p.SqlDbType = SqlDbType.DateTime;
+            p.SqlDbType = SqlDbType2.DateTime;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             Assert.Equal(3510, p.Value);
-            p.SqlDbType = SqlDbType.VarChar;
+            p.SqlDbType = SqlDbType2.VarChar;
             Assert.Equal(DbType.AnsiString, p.DbType);
-            Assert.Equal(SqlDbType.VarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.VarChar, p.SqlDbType);
             Assert.Equal(3510, p.Value);
         }
 
@@ -1170,7 +1170,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = "Char";
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlString), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlString)parameter.SqlValue).Value);
@@ -1178,7 +1178,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = true;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Bit, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlBoolean), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlBoolean)parameter.SqlValue).Value);
@@ -1186,7 +1186,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = (byte)0x0a;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.TinyInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlByte), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlByte)parameter.SqlValue).Value);
@@ -1194,7 +1194,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = new DateTime(2008, 6, 4);
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.DateTime, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlDateTime), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlDateTime)parameter.SqlValue).Value);
@@ -1202,7 +1202,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = Guid.NewGuid();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.UniqueIdentifier, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.UniqueIdentifier, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlGuid), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlGuid)parameter.SqlValue).Value);
@@ -1210,7 +1210,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = (short)5;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.SmallInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlInt16), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlInt16)parameter.SqlValue).Value);
@@ -1218,7 +1218,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = 10;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Int, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlInt32), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlInt32)parameter.SqlValue).Value);
@@ -1226,14 +1226,14 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = 56L;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.BigInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlInt64), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlInt64)parameter.SqlValue).Value);
             Assert.Equal(value, parameter.Value);
 
             parameter.SqlValue = 45.5D;
-            Assert.Equal(SqlDbType.Float, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlDouble), parameter.SqlValue.GetType());
             Assert.Equal(45.5D, ((SqlDouble)parameter.SqlValue).Value);
@@ -1241,7 +1241,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = 45m;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Decimal, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlDecimal), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlDecimal)parameter.SqlValue).Value);
@@ -1249,7 +1249,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = 45f;
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Real, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Real, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlSingle), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlSingle)parameter.SqlValue).Value);
@@ -1257,7 +1257,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = new byte[] { 0x0d, 0x0a };
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlBinary), parameter.SqlValue.GetType());
             Assert.Equal(value, ((SqlBinary)parameter.SqlValue).Value);
@@ -1266,7 +1266,7 @@ namespace Microsoft.Data.SqlClient.Tests
             parameter = new SqlParameter();
             value = 'X';
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlString), parameter.SqlValue.GetType());
             Assert.Equal("X", ((SqlString)parameter.SqlValue).Value);
@@ -1274,7 +1274,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             value = new char[] { 'X', 'A' };
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlString), parameter.SqlValue.GetType());
             Assert.Equal("XA", ((SqlString)parameter.SqlValue).Value);
@@ -1289,19 +1289,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlBinary.Null;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.Equal(SqlBinary.Null, parameter.SqlValue);
             Assert.Equal(SqlBinary.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1314,19 +1314,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Bit, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlBoolean.Null;
-            Assert.Equal(SqlDbType.Bit, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, parameter.SqlDbType);
             Assert.Equal(SqlBoolean.Null, parameter.SqlValue);
             Assert.Equal(SqlBoolean.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Bit, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Bit, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1339,19 +1339,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.TinyInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlByte.Null;
-            Assert.Equal(SqlDbType.TinyInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, parameter.SqlDbType);
             Assert.Equal(SqlByte.Null, parameter.SqlValue);
             Assert.Equal(SqlByte.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.TinyInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.TinyInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1364,13 +1364,13 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.Same(value, parameter.SqlValue);
             Assert.Same(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlBytes.Null;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlBytes), parameter.SqlValue.GetType());
             Assert.True(((SqlBytes)parameter.SqlValue).IsNull);
@@ -1380,7 +1380,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.VarBinary, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.VarBinary, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1393,13 +1393,13 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.Same(value, parameter.SqlValue);
             Assert.Same(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlChars.Null;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlChars), parameter.SqlValue.GetType());
             Assert.True(((SqlChars)parameter.SqlValue).IsNull);
@@ -1409,7 +1409,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.Same(value, parameter.SqlValue);
             Assert.Same(value, parameter.Value);
         }
@@ -1422,19 +1422,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.DateTime, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlDateTime.Null;
-            Assert.Equal(SqlDbType.DateTime, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, parameter.SqlDbType);
             Assert.Equal(SqlDateTime.Null, parameter.SqlValue);
             Assert.Equal(SqlDateTime.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.DateTime, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1447,19 +1447,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Decimal, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlDecimal.Null;
-            Assert.Equal(SqlDbType.Decimal, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, parameter.SqlDbType);
             Assert.Equal(SqlDecimal.Null, parameter.SqlValue);
             Assert.Equal(SqlDecimal.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Decimal, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Decimal, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1472,19 +1472,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Float, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlDouble.Null;
-            Assert.Equal(SqlDbType.Float, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, parameter.SqlDbType);
             Assert.Equal(SqlDouble.Null, parameter.SqlValue);
             Assert.Equal(SqlDouble.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Float, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Float, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1497,19 +1497,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.UniqueIdentifier, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.UniqueIdentifier, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlGuid.Null;
-            Assert.Equal(SqlDbType.UniqueIdentifier, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.UniqueIdentifier, parameter.SqlDbType);
             Assert.Equal(SqlGuid.Null, parameter.SqlValue);
             Assert.Equal(SqlGuid.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.UniqueIdentifier, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.UniqueIdentifier, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1522,19 +1522,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.SmallInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlInt16.Null;
-            Assert.Equal(SqlDbType.SmallInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, parameter.SqlDbType);
             Assert.Equal(SqlInt16.Null, parameter.SqlValue);
             Assert.Equal(SqlInt16.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.SmallInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.SmallInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1547,19 +1547,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Int, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlInt32.Null;
-            Assert.Equal(SqlDbType.Int, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, parameter.SqlDbType);
             Assert.Equal(SqlInt32.Null, parameter.SqlValue);
             Assert.Equal(SqlInt32.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Int, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1572,19 +1572,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.BigInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlInt64.Null;
-            Assert.Equal(SqlDbType.BigInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, parameter.SqlDbType);
             Assert.Equal(SqlInt64.Null, parameter.SqlValue);
             Assert.Equal(SqlInt64.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.BigInt, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.BigInt, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1597,19 +1597,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Money, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Money, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlMoney.Null;
-            Assert.Equal(SqlDbType.Money, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Money, parameter.SqlDbType);
             Assert.Equal(SqlMoney.Null, parameter.SqlValue);
             Assert.Equal(SqlMoney.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Money, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Money, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1622,19 +1622,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Real, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Real, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlSingle.Null;
-            Assert.Equal(SqlDbType.Real, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Real, parameter.SqlDbType);
             Assert.Equal(SqlSingle.Null, parameter.SqlValue);
             Assert.Equal(SqlSingle.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Real, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Real, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1647,19 +1647,19 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlString.Null;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.Equal(SqlString.Null, parameter.SqlValue);
             Assert.Equal(SqlString.Null, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.NVarChar, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Equal(value, parameter.Value);
         }
@@ -1672,13 +1672,13 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.SqlValue = value;
-            Assert.Equal(SqlDbType.Xml, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Xml, parameter.SqlDbType);
             Assert.Equal(value, parameter.SqlValue);
             Assert.Same(value, parameter.Value);
 
             parameter = new SqlParameter();
             parameter.SqlValue = SqlXml.Null;
-            Assert.Equal(SqlDbType.Xml, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Xml, parameter.SqlDbType);
             Assert.NotNull(parameter.SqlValue);
             Assert.Equal(typeof(SqlXml), parameter.SqlValue.GetType());
             Assert.True(((SqlXml)parameter.SqlValue).IsNull);
@@ -1688,7 +1688,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             parameter = new SqlParameter();
             parameter.Value = value;
-            Assert.Equal(SqlDbType.Xml, parameter.SqlDbType);
+            Assert.Equal(SqlDbType2.Xml, parameter.SqlDbType);
             Assert.Same(value, parameter.SqlValue);
             Assert.Same(value, parameter.Value);
         }
@@ -1701,38 +1701,38 @@ namespace Microsoft.Data.SqlClient.Tests
             p = new SqlParameter("name", (object)null);
             p.Value = 42;
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             Assert.Equal(42, p.Value);
 
             p.Value = DBNull.Value;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Equal(DBNull.Value, p.Value);
 
             p.Value = DateTime.MaxValue;
             Assert.Equal(DbType.DateTime, p.DbType);
-            Assert.Equal(SqlDbType.DateTime, p.SqlDbType);
+            Assert.Equal(SqlDbType2.DateTime, p.SqlDbType);
             Assert.Equal(DateTime.MaxValue, p.Value);
 
             p.Value = null;
             Assert.Equal(DbType.String, p.DbType);
-            Assert.Equal(SqlDbType.NVarChar, p.SqlDbType);
+            Assert.Equal(SqlDbType2.NVarChar, p.SqlDbType);
             Assert.Null(p.Value);
 
-            p = new SqlParameter("zipcode", SqlDbType.Int);
+            p = new SqlParameter("zipcode", SqlDbType2.Int);
             p.Value = DateTime.MaxValue;
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             Assert.Equal(DateTime.MaxValue, p.Value);
 
             p.Value = null;
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             Assert.Null(p.Value);
 
             p.Value = DBNull.Value;
             Assert.Equal(DbType.Int32, p.DbType);
-            Assert.Equal(SqlDbType.Int, p.SqlDbType);
+            Assert.Equal(SqlDbType2.Int, p.SqlDbType);
             Assert.Equal(DBNull.Value, p.Value);
         }
 
@@ -1783,7 +1783,7 @@ namespace Microsoft.Data.SqlClient.Tests
             string xmlSchema = "schema";
             string xmlName = "name";
 
-            SqlParameter parameter = new SqlParameter("@name", SqlDbType.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, xmlDatabase, xmlSchema, xmlName);
+            SqlParameter parameter = new SqlParameter("@name", SqlDbType2.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, xmlDatabase, xmlSchema, xmlName);
 
             Assert.Equal(xmlDatabase, parameter.XmlSchemaCollectionDatabase);
             Assert.Equal(xmlSchema, parameter.XmlSchemaCollectionOwningSchema);
@@ -1793,7 +1793,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public void CreateParameterWithEmptyXmlSchema()
         {
-            SqlParameter parameter = new SqlParameter("@name", SqlDbType.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, string.Empty, string.Empty, string.Empty);
+            SqlParameter parameter = new SqlParameter("@name", SqlDbType2.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, string.Empty, string.Empty, string.Empty);
 
             Assert.Equal(string.Empty, parameter.XmlSchemaCollectionDatabase);
             Assert.Equal(string.Empty, parameter.XmlSchemaCollectionOwningSchema);
@@ -1803,7 +1803,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [Fact]
         public void CreateParameterWithNullXmlSchema()
         {
-            SqlParameter parameter = new SqlParameter("@name", SqlDbType.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, null, null, null);
+            SqlParameter parameter = new SqlParameter("@name", SqlDbType2.Int, 4, ParameterDirection.Input, 0, 0, "name", DataRowVersion.Original, false, 1, null, null, null);
 
             Assert.Equal(string.Empty, parameter.XmlSchemaCollectionDatabase);
             Assert.Equal(string.Empty, parameter.XmlSchemaCollectionOwningSchema);

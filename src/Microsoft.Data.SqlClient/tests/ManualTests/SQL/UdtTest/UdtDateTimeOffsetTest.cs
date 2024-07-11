@@ -12,7 +12,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     public class DateTimeOffsetList : SqlDataRecord
     {
         public DateTimeOffsetList(DateTimeOffset dateTimeOffset)
-            : base(new SqlMetaData("dateTimeOffset", SqlDbType.DateTimeOffset, 0, 1)) // this is using scale 1
+            : base(new SqlMetaData("dateTimeOffset", SqlDbType2.DateTimeOffset, 0, 1)) // this is using scale 1
         {
             this.SetValues(dateTimeOffset);
         }
@@ -21,7 +21,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     public class DateTimeOffsetVariableScale : SqlDataRecord
     {
         public DateTimeOffsetVariableScale(DateTimeOffset dateTimeOffset, int scale)
-            : base(new SqlMetaData("dateTimeOffset", SqlDbType.DateTimeOffset, 0, (byte)scale)) // this is using variable scale
+            : base(new SqlMetaData("dateTimeOffset", SqlDbType2.DateTimeOffset, 0, (byte)scale)) // this is using variable scale
         {
             this.SetValues(dateTimeOffset);
         }
@@ -51,7 +51,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 var param = new SqlParameter
                 {
                     ParameterName = "@params",
-                    SqlDbType = SqlDbType.Structured,
+                    SqlDbType = SqlDbType2.Structured,
                     TypeName = $"dbo.{_udtTableType}",
                     Value = new DateTimeOffsetList[] { new DateTimeOffsetList(dateTimeOffset) }
                 };
@@ -99,7 +99,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     var param = new SqlParameter
                     {
                         ParameterName = "@params",
-                        SqlDbType = SqlDbType.Structured,
+                        SqlDbType = SqlDbType2.Structured,
                         Scale = (byte)scale,
                         TypeName = $"dbo.{tvpTypeName}",
                         Value = new DateTimeOffsetVariableScale[] { new DateTimeOffsetVariableScale(dateTimeOffset, scale) }

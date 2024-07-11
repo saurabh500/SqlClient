@@ -21,20 +21,20 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.Bit),
-                new SqlMetaData("col2", SqlDbType.TinyInt),
-                new SqlMetaData("col3", SqlDbType.VarBinary, 1000),
-                new SqlMetaData("col4", SqlDbType.NVarChar, 1000),
-                new SqlMetaData("col5", SqlDbType.DateTime),
-                new SqlMetaData("col6", SqlDbType.Float),
-                new SqlMetaData("col7", SqlDbType.UniqueIdentifier),
-                new SqlMetaData("col8", SqlDbType.SmallInt),
-                new SqlMetaData("col9", SqlDbType.Int),
-                new SqlMetaData("col10", SqlDbType.BigInt),
-                new SqlMetaData("col11", SqlDbType.Real),
-                new SqlMetaData("col12", SqlDbType.Decimal),
-                new SqlMetaData("col13", SqlDbType.Money),
-                new SqlMetaData("col14", SqlDbType.Variant)
+                new SqlMetaData("col1", SqlDbType2.Bit),
+                new SqlMetaData("col2", SqlDbType2.TinyInt),
+                new SqlMetaData("col3", SqlDbType2.VarBinary, 1000),
+                new SqlMetaData("col4", SqlDbType2.NVarChar, 1000),
+                new SqlMetaData("col5", SqlDbType2.DateTime),
+                new SqlMetaData("col6", SqlDbType2.Float),
+                new SqlMetaData("col7", SqlDbType2.UniqueIdentifier),
+                new SqlMetaData("col8", SqlDbType2.SmallInt),
+                new SqlMetaData("col9", SqlDbType2.Int),
+                new SqlMetaData("col10", SqlDbType2.BigInt),
+                new SqlMetaData("col11", SqlDbType2.Real),
+                new SqlMetaData("col12", SqlDbType2.Decimal),
+                new SqlMetaData("col13", SqlDbType2.Money),
+                new SqlMetaData("col14", SqlDbType2.Variant)
             };
 
             SqlDataRecord record = new SqlDataRecord(metaData);
@@ -145,7 +145,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.Udt, typeof(TestUdt), "sql_TestUdt")
+                new SqlMetaData("col1", SqlDbType2.Udt, typeof(TestUdt), "sql_TestUdt")
             };
 
             SqlDataRecord record = new SqlDataRecord(metaData);
@@ -158,7 +158,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50)
             };
 
             SqlDataRecord record = new SqlDataRecord(metaData);
@@ -170,7 +170,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50)
             };
 
             SqlDataRecord record = new SqlDataRecord(metaData);
@@ -183,7 +183,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50)
             };
 
             SqlDataRecord record = new SqlDataRecord(metaData);
@@ -196,8 +196,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
             record.SetString(0, "test");
@@ -218,8 +218,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
             record.SetString(0, "test");
@@ -237,8 +237,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
             record.SetString(0, "test");
@@ -257,8 +257,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
            {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
            };
             SqlDataRecord record = new SqlDataRecord(metaData);
 
@@ -270,8 +270,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
 
@@ -287,8 +287,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
 
@@ -299,8 +299,8 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 50),
-                new SqlMetaData("col2", SqlDbType.Int)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 50),
+                new SqlMetaData("col2", SqlDbType2.Int)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
 
@@ -312,7 +312,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.Char, 100)
+                new SqlMetaData("col1", SqlDbType2.Char, 100)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
             record.SetValue(0, 'c');
@@ -323,7 +323,7 @@ namespace Microsoft.Data.SqlClient.Tests
         [ClassData(typeof(GetUdtTypeTestData))]
         public void GetUdt_ReturnsValue(Type udtType, object value, string serverTypeName)
         {
-            SqlMetaData[] metadata = new SqlMetaData[] { new SqlMetaData(nameof(udtType.Name), SqlDbType.Udt, udtType, serverTypeName) };
+            SqlMetaData[] metadata = new SqlMetaData[] { new SqlMetaData(nameof(udtType.Name), SqlDbType2.Udt, udtType, serverTypeName) };
 
             SqlDataRecord record = new SqlDataRecord(metadata);
 
@@ -338,7 +338,7 @@ namespace Microsoft.Data.SqlClient.Tests
         {
             SqlMetaData[] metaData = new SqlMetaData[]
             {
-                new SqlMetaData("col1", SqlDbType.NVarChar, 1)
+                new SqlMetaData("col1", SqlDbType2.NVarChar, 1)
             };
             SqlDataRecord record = new SqlDataRecord(metaData);
             record.SetValue(0, "a");
@@ -402,20 +402,20 @@ namespace Microsoft.Data.SqlClient.Tests
     {
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[] { SqlDbType.UniqueIdentifier, Guid.NewGuid(), new Func<SqlDataRecord, object>(r => r.GetGuid(0)) };
-            yield return new object[] { SqlDbType.SmallInt, (short)123, new Func<SqlDataRecord, object>(r => r.GetInt16(0)) };
-            yield return new object[] { SqlDbType.Int, 123456, new Func<SqlDataRecord, object>(r => r.GetInt32(0)) };
-            yield return new object[] { SqlDbType.BigInt, (long)123456789, new Func<SqlDataRecord, object>(r => r.GetInt64(0)) };
-            yield return new object[] { SqlDbType.Float, (double)1.2, new Func<SqlDataRecord, object>(r => r.GetDouble(0)) };
-            yield return new object[] { SqlDbType.Real, (float)1.2, new Func<SqlDataRecord, object>(r => r.GetFloat(0)) };
-            yield return new object[] { SqlDbType.Decimal, 1.2m, new Func<SqlDataRecord, object>(r => r.GetDecimal(0)) };
-            yield return new object[] { SqlDbType.DateTime, DateTime.Now, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
-            yield return new object[] { SqlDbType.DateTimeOffset, new DateTimeOffset(DateTime.Now), new Func<SqlDataRecord, object>(r => r.GetDateTimeOffset(0)) };
-            yield return new object[] { SqlDbType.Time, TimeSpan.FromHours(1), new Func<SqlDataRecord, object>(r => r.GetTimeSpan(0)) };
-            yield return new object[] { SqlDbType.Date, DateTime.Now.Date, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
-            yield return new object[] { SqlDbType.Bit, bool.Parse(bool.TrueString), new Func<SqlDataRecord, object>(r => r.GetBoolean(0)) };
-            yield return new object[] { SqlDbType.SmallDateTime, DateTime.Now, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
-            yield return new object[] { SqlDbType.TinyInt, (byte)1, new Func<SqlDataRecord, object>(r => r.GetByte(0)) };
+            yield return new object[] { SqlDbType2.UniqueIdentifier, Guid.NewGuid(), new Func<SqlDataRecord, object>(r => r.GetGuid(0)) };
+            yield return new object[] { SqlDbType2.SmallInt, (short)123, new Func<SqlDataRecord, object>(r => r.GetInt16(0)) };
+            yield return new object[] { SqlDbType2.Int, 123456, new Func<SqlDataRecord, object>(r => r.GetInt32(0)) };
+            yield return new object[] { SqlDbType2.BigInt, (long)123456789, new Func<SqlDataRecord, object>(r => r.GetInt64(0)) };
+            yield return new object[] { SqlDbType2.Float, (double)1.2, new Func<SqlDataRecord, object>(r => r.GetDouble(0)) };
+            yield return new object[] { SqlDbType2.Real, (float)1.2, new Func<SqlDataRecord, object>(r => r.GetFloat(0)) };
+            yield return new object[] { SqlDbType2.Decimal, 1.2m, new Func<SqlDataRecord, object>(r => r.GetDecimal(0)) };
+            yield return new object[] { SqlDbType2.DateTime, DateTime.Now, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
+            yield return new object[] { SqlDbType2.DateTimeOffset, new DateTimeOffset(DateTime.Now), new Func<SqlDataRecord, object>(r => r.GetDateTimeOffset(0)) };
+            yield return new object[] { SqlDbType2.Time, TimeSpan.FromHours(1), new Func<SqlDataRecord, object>(r => r.GetTimeSpan(0)) };
+            yield return new object[] { SqlDbType2.Date, DateTime.Now.Date, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
+            yield return new object[] { SqlDbType2.Bit, bool.Parse(bool.TrueString), new Func<SqlDataRecord, object>(r => r.GetBoolean(0)) };
+            yield return new object[] { SqlDbType2.SmallDateTime, DateTime.Now, new Func<SqlDataRecord, object>(r => r.GetDateTime(0)) };
+            yield return new object[] { SqlDbType2.TinyInt, (byte)1, new Func<SqlDataRecord, object>(r => r.GetByte(0)) };
         }
 
         IEnumerator IEnumerable.GetEnumerator()

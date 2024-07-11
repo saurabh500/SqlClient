@@ -58,118 +58,118 @@ namespace Microsoft.Data.SqlClient.Server
         };
 
         private static readonly DbType[] s_sqlDbTypeToDbType = {
-            DbType.Int64,           // SqlDbType.BigInt
-            DbType.Binary,          // SqlDbType.Binary
-            DbType.Boolean,         // SqlDbType.Bit
-            DbType.AnsiString,      // SqlDbType.Char
-            DbType.DateTime,        // SqlDbType.DateTime
-            DbType.Decimal,         // SqlDbType.Decimal
-            DbType.Double,          // SqlDbType.Float
-            DbType.Binary,          // SqlDbType.Image
-            DbType.Int32,           // SqlDbType.Int
-            DbType.Currency,        // SqlDbType.Money
-            DbType.String,          // SqlDbType.NChar
-            DbType.String,          // SqlDbType.NText
-            DbType.String,          // SqlDbType.NVarChar
-            DbType.Single,          // SqlDbType.Real
-            DbType.Guid,            // SqlDbType.UniqueIdentifier
-            DbType.DateTime,        // SqlDbType.SmallDateTime
-            DbType.Int16,           // SqlDbType.SmallInt
-            DbType.Currency,        // SqlDbType.SmallMoney
-            DbType.AnsiString,      // SqlDbType.Text
-            DbType.Binary,          // SqlDbType.Timestamp
-            DbType.Byte,            // SqlDbType.TinyInt
-            DbType.Binary,          // SqlDbType.VarBinary
-            DbType.AnsiString,      // SqlDbType.VarChar
-            DbType.Object,          // SqlDbType.Variant
-            DbType.Object,          // SqlDbType.Row
-            DbType.Xml,             // SqlDbType.Xml
-            DbType.String,          // SqlDbType.NVarChar, place holder
-            DbType.String,          // SqlDbType.NVarChar, place holder
-            DbType.String,          // SqlDbType.NVarChar, place holder
-            DbType.Object,          // SqlDbType.Udt
-            DbType.Object,          // SqlDbType.Structured
-            DbType.Date,            // SqlDbType.Date
-            DbType.Time,            // SqlDbType.Time
-            DbType.DateTime2,       // SqlDbType.DateTime2
-            DbType.DateTimeOffset   // SqlDbType.DateTimeOffset
+            DbType.Int64,           // SqlDbType2.BigInt
+            DbType.Binary,          // SqlDbType2.Binary
+            DbType.Boolean,         // SqlDbType2.Bit
+            DbType.AnsiString,      // SqlDbType2.Char
+            DbType.DateTime,        // SqlDbType2.DateTime
+            DbType.Decimal,         // SqlDbType2.Decimal
+            DbType.Double,          // SqlDbType2.Float
+            DbType.Binary,          // SqlDbType2.Image
+            DbType.Int32,           // SqlDbType2.Int
+            DbType.Currency,        // SqlDbType2.Money
+            DbType.String,          // SqlDbType2.NChar
+            DbType.String,          // SqlDbType2.NText
+            DbType.String,          // SqlDbType2.NVarChar
+            DbType.Single,          // SqlDbType2.Real
+            DbType.Guid,            // SqlDbType2.UniqueIdentifier
+            DbType.DateTime,        // SqlDbType2.SmallDateTime
+            DbType.Int16,           // SqlDbType2.SmallInt
+            DbType.Currency,        // SqlDbType2.SmallMoney
+            DbType.AnsiString,      // SqlDbType2.Text
+            DbType.Binary,          // SqlDbType2.Timestamp
+            DbType.Byte,            // SqlDbType2.TinyInt
+            DbType.Binary,          // SqlDbType2.VarBinary
+            DbType.AnsiString,      // SqlDbType2.VarChar
+            DbType.Object,          // SqlDbType2.Variant
+            DbType.Object,          // SqlDbType2.Row
+            DbType.Xml,             // SqlDbType2.Xml
+            DbType.String,          // SqlDbType2.NVarChar, place holder
+            DbType.String,          // SqlDbType2.NVarChar, place holder
+            DbType.String,          // SqlDbType2.NVarChar, place holder
+            DbType.Object,          // SqlDbType2.Udt
+            DbType.Object,          // SqlDbType2.Structured
+            DbType.Date,            // SqlDbType2.Date
+            DbType.Time,            // SqlDbType2.Time
+            DbType.DateTime2,       // SqlDbType2.DateTime2
+            DbType.DateTimeOffset   // SqlDbType2.DateTimeOffset
         };
 
 
-        // Array of default-valued metadata ordered by corresponding SqlDbType.
+        // Array of default-valued metadata ordered by corresponding SqlDbType2.
         internal static SqlMetaData[] s_defaults =
             {
             //    new SqlMetaData(name, DbType, SqlDbType, MaxLen, Prec, Scale, Locale, DatabaseName, SchemaName, isPartialLength)
-            new SqlMetaData("bigint", SqlDbType.BigInt,
-                    8, 19, 0, 0, SqlCompareOptions.None,  false),            // SqlDbType.BigInt
-            new SqlMetaData("binary", SqlDbType.Binary,
-                    1, 0, 0, 0, SqlCompareOptions.None,  false),                // SqlDbType.Binary
-            new SqlMetaData("bit", SqlDbType.Bit,
-                    1, 1, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.Bit
-            new SqlMetaData("char", SqlDbType.Char,
-                    1, 0, 0, 0, DefaultStringCompareOptions,  false),                // SqlDbType.Char
-            new SqlMetaData("datetime", SqlDbType.DateTime,
-                    8, 23, 3, 0, SqlCompareOptions.None, false),            // SqlDbType.DateTime
-            new SqlMetaData("decimal", SqlDbType.Decimal,
-                    9, 18, 0, 0, SqlCompareOptions.None,  false),            // SqlDbType.Decimal
-            new SqlMetaData("float", SqlDbType.Float,
-                    8, 53, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.Float
-            new SqlMetaData("image", SqlDbType.Image,
-                    UnlimitedMaxLength, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.Image
-            new SqlMetaData("int", SqlDbType.Int,
-                    4, 10, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.Int
-            new SqlMetaData("money", SqlDbType.Money,
-                    8, 19, 4, 0, SqlCompareOptions.None, false),            // SqlDbType.Money
-            new SqlMetaData("nchar", SqlDbType.NChar,
-                    1, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType.NChar
-            new SqlMetaData("ntext", SqlDbType.NText,
-                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType.NText
-            new SqlMetaData("nvarchar", SqlDbType.NVarChar,
-                    MaxUnicodeLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType.NVarChar
-            new SqlMetaData("real", SqlDbType.Real,
-                    4, 24, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.Real
-            new SqlMetaData("uniqueidentifier", SqlDbType.UniqueIdentifier,
-                    16, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.UniqueIdentifier
-            new SqlMetaData("smalldatetime", SqlDbType.SmallDateTime,
-                    4, 16, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.SmallDateTime
-            new SqlMetaData("smallint", SqlDbType.SmallInt,
-                    2, 5, 0, 0, SqlCompareOptions.None, false),                                    // SqlDbType.SmallInt
-            new SqlMetaData("smallmoney", SqlDbType.SmallMoney,
-                    4, 10, 4, 0, SqlCompareOptions.None, false),                // SqlDbType.SmallMoney
-            new SqlMetaData("text", SqlDbType.Text,
-                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType.Text
-            new SqlMetaData("timestamp", SqlDbType.Timestamp,
-                    8, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.Timestamp
-            new SqlMetaData("tinyint", SqlDbType.TinyInt,
-                    1, 3, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.TinyInt
-            new SqlMetaData("varbinary", SqlDbType.VarBinary,
-                    MaxBinaryLength, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.VarBinary
-            new SqlMetaData("varchar", SqlDbType.VarChar,
-                    MaxANSILength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType.VarChar
-            new SqlMetaData("sql_variant", SqlDbType.Variant,
-                    8016, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.Variant
-            new SqlMetaData("nvarchar", SqlDbType.NVarChar,
+            new SqlMetaData("bigint", SqlDbType2.BigInt,
+                    8, 19, 0, 0, SqlCompareOptions.None,  false),            // SqlDbType2.BigInt
+            new SqlMetaData("binary", SqlDbType2.Binary,
+                    1, 0, 0, 0, SqlCompareOptions.None,  false),                // SqlDbType2.Binary
+            new SqlMetaData("bit", SqlDbType2.Bit,
+                    1, 1, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.Bit
+            new SqlMetaData("char", SqlDbType2.Char,
+                    1, 0, 0, 0, DefaultStringCompareOptions,  false),                // SqlDbType2.Char
+            new SqlMetaData("datetime", SqlDbType2.DateTime,
+                    8, 23, 3, 0, SqlCompareOptions.None, false),            // SqlDbType2.DateTime
+            new SqlMetaData("decimal", SqlDbType2.Decimal,
+                    9, 18, 0, 0, SqlCompareOptions.None,  false),            // SqlDbType2.Decimal
+            new SqlMetaData("float", SqlDbType2.Float,
+                    8, 53, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.Float
+            new SqlMetaData("image", SqlDbType2.Image,
+                    UnlimitedMaxLength, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.Image
+            new SqlMetaData("int", SqlDbType2.Int,
+                    4, 10, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.Int
+            new SqlMetaData("money", SqlDbType2.Money,
+                    8, 19, 4, 0, SqlCompareOptions.None, false),            // SqlDbType2.Money
+            new SqlMetaData("nchar", SqlDbType2.NChar,
+                    1, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType2.NChar
+            new SqlMetaData("ntext", SqlDbType2.NText,
+                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType2.NText
+            new SqlMetaData("nvarchar", SqlDbType2.NVarChar,
+                    MaxUnicodeLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType2.NVarChar
+            new SqlMetaData("real", SqlDbType2.Real,
+                    4, 24, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.Real
+            new SqlMetaData("uniqueidentifier", SqlDbType2.UniqueIdentifier,
+                    16, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.UniqueIdentifier
+            new SqlMetaData("smalldatetime", SqlDbType2.SmallDateTime,
+                    4, 16, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.SmallDateTime
+            new SqlMetaData("smallint", SqlDbType2.SmallInt,
+                    2, 5, 0, 0, SqlCompareOptions.None, false),                                    // SqlDbType2.SmallInt
+            new SqlMetaData("smallmoney", SqlDbType2.SmallMoney,
+                    4, 10, 4, 0, SqlCompareOptions.None, false),                // SqlDbType2.SmallMoney
+            new SqlMetaData("text", SqlDbType2.Text,
+                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType2.Text
+            new SqlMetaData("timestamp", SqlDbType2.Timestamp,
+                    8, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.Timestamp
+            new SqlMetaData("tinyint", SqlDbType2.TinyInt,
+                    1, 3, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.TinyInt
+            new SqlMetaData("varbinary", SqlDbType2.VarBinary,
+                    MaxBinaryLength, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.VarBinary
+            new SqlMetaData("varchar", SqlDbType2.VarChar,
+                    MaxANSILength, 0, 0, 0, DefaultStringCompareOptions, false),                // SqlDbType2.VarChar
+            new SqlMetaData("sql_variant", SqlDbType2.Variant,
+                    8016, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.Variant
+            new SqlMetaData("nvarchar", SqlDbType2.NVarChar,
                     1, 0, 0, 0, DefaultStringCompareOptions, false),                // Placeholder for value 24
-            new SqlMetaData("xml", SqlDbType.Xml,
-                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, true),                // SqlDbType.Xml
-            new SqlMetaData("nvarchar", SqlDbType.NVarChar,
+            new SqlMetaData("xml", SqlDbType2.Xml,
+                    UnlimitedMaxLength, 0, 0, 0, DefaultStringCompareOptions, true),                // SqlDbType2.Xml
+            new SqlMetaData("nvarchar", SqlDbType2.NVarChar,
                     1, 0, 0, 0, DefaultStringCompareOptions, false),                // Placeholder for value 26
-            new SqlMetaData("nvarchar", SqlDbType.NVarChar,
+            new SqlMetaData("nvarchar", SqlDbType2.NVarChar,
                     MaxUnicodeLength, 0, 0, 0, DefaultStringCompareOptions, false),                // Placeholder for value 27
-            new SqlMetaData("nvarchar", SqlDbType.NVarChar,
+            new SqlMetaData("nvarchar", SqlDbType2.NVarChar,
                     MaxUnicodeLength, 0, 0, 0, DefaultStringCompareOptions, false),                // Placeholder for value 28
-            new SqlMetaData("udt", SqlDbType.Udt,
-                    0, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType.Udt = 29
-            new SqlMetaData("table", SqlDbType.Structured,
-                    0, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType.Structured
-            new SqlMetaData("date", SqlDbType.Date,
-                    3, 10,0, 0, SqlCompareOptions.None, false),                // SqlDbType.Date
-            new SqlMetaData("time", SqlDbType.Time,
-                    5, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType.Time
-            new SqlMetaData("datetime2", SqlDbType.DateTime2,
-                    8, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType.DateTime2
-            new SqlMetaData("datetimeoffset", SqlDbType.DateTimeOffset,
-                   10, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType.DateTimeOffset
+            new SqlMetaData("udt", SqlDbType2.Udt,
+                    0, 0, 0, 0, SqlCompareOptions.None, false),            // SqlDbType2.Udt = 29
+            new SqlMetaData("table", SqlDbType2.Structured,
+                    0, 0, 0, 0, SqlCompareOptions.None, false),                // SqlDbType2.Structured
+            new SqlMetaData("date", SqlDbType2.Date,
+                    3, 10,0, 0, SqlCompareOptions.None, false),                // SqlDbType2.Date
+            new SqlMetaData("time", SqlDbType2.Time,
+                    5, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType2.Time
+            new SqlMetaData("datetime2", SqlDbType2.DateTime2,
+                    8, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType2.DateTime2
+            new SqlMetaData("datetimeoffset", SqlDbType2.DateTimeOffset,
+                   10, 0, 7, 0, SqlCompareOptions.None, false),                // SqlDbType2.DateTimeOffset
             };
 
         private string _name;
@@ -400,49 +400,49 @@ namespace Microsoft.Data.SqlClient.Server
         {
             switch (dbType)
             {
-                case SqlDbType.BigInt:
-                case SqlDbType.Image:
-                case SqlDbType.Timestamp:
-                case SqlDbType.Bit:
-                case SqlDbType.DateTime:
-                case SqlDbType.SmallDateTime:
-                case SqlDbType.Real:
-                case SqlDbType.Int:
-                case SqlDbType.Money:
-                case SqlDbType.SmallMoney:
-                case SqlDbType.Float:
-                case SqlDbType.UniqueIdentifier:
-                case SqlDbType.SmallInt:
-                case SqlDbType.TinyInt:
-                case SqlDbType.Xml:
-                case SqlDbType.Date:
+                case SqlDbType2.BigInt:
+                case SqlDbType2.Image:
+                case SqlDbType2.Timestamp:
+                case SqlDbType2.Bit:
+                case SqlDbType2.DateTime:
+                case SqlDbType2.SmallDateTime:
+                case SqlDbType2.Real:
+                case SqlDbType2.Int:
+                case SqlDbType2.Money:
+                case SqlDbType2.SmallMoney:
+                case SqlDbType2.Float:
+                case SqlDbType2.UniqueIdentifier:
+                case SqlDbType2.SmallInt:
+                case SqlDbType2.TinyInt:
+                case SqlDbType2.Xml:
+                case SqlDbType2.Date:
                     Construct(name, dbType, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.Binary:
-                case SqlDbType.VarBinary:
+                case SqlDbType2.Binary:
+                case SqlDbType2.VarBinary:
                     Construct(name, dbType, maxLength, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.Char:
-                case SqlDbType.NChar:
-                case SqlDbType.NVarChar:
-                case SqlDbType.VarChar:
+                case SqlDbType2.Char:
+                case SqlDbType2.NChar:
+                case SqlDbType2.NVarChar:
+                case SqlDbType2.VarChar:
                     Construct(name, dbType, maxLength, localeId, compareOptions, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.NText:
-                case SqlDbType.Text:
+                case SqlDbType2.NText:
+                case SqlDbType2.Text:
                     // We should ignore user's max length and use Max instead to avoid exception
                     Construct(name, dbType, Max, localeId, compareOptions, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.Decimal:
-                case SqlDbType.Time:
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.Decimal:
+                case SqlDbType2.Time:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     Construct(name, dbType, precision, scale, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.Variant:
+                case SqlDbType2.Variant:
                     Construct(name, dbType, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
-                case SqlDbType.Udt:
+                case SqlDbType2.Udt:
                     Construct(name, dbType, userDefinedType, string.Empty, useServerDefault, isUniqueKey, columnSortOrder, sortOrdinal);
                     break;
                 default:
@@ -562,7 +562,7 @@ namespace Microsoft.Data.SqlClient.Server
                 {
                     return _serverTypeName;
                 }
-                else if (SqlDbType == SqlDbType.Udt)
+                else if (SqlDbType == SqlDbType2.Udt)
                 {
                     return UdtTypeName;
                 }
@@ -593,7 +593,7 @@ namespace Microsoft.Data.SqlClient.Server
         {
             get
             {
-                if (SqlDbType != SqlDbType.Udt)
+                if (SqlDbType != SqlDbType2.Udt)
                 {
                     return null;
                 }
@@ -616,29 +616,29 @@ namespace Microsoft.Data.SqlClient.Server
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
             // Check for absence of explicitly-allowed types to avoid unexpected additions when new types are added
-            if (!(SqlDbType.BigInt == dbType ||
-                    SqlDbType.Bit == dbType ||
-                    SqlDbType.DateTime == dbType ||
-                    SqlDbType.Date == dbType ||
-                    SqlDbType.DateTime2 == dbType ||
-                    SqlDbType.DateTimeOffset == dbType ||
-                    SqlDbType.Decimal == dbType ||
-                    SqlDbType.Float == dbType ||
-                    SqlDbType.Image == dbType ||
-                    SqlDbType.Int == dbType ||
-                    SqlDbType.Money == dbType ||
-                    SqlDbType.NText == dbType ||
-                    SqlDbType.Real == dbType ||
-                    SqlDbType.SmallDateTime == dbType ||
-                    SqlDbType.SmallInt == dbType ||
-                    SqlDbType.SmallMoney == dbType ||
-                    SqlDbType.Text == dbType ||
-                    SqlDbType.Time == dbType ||
-                    SqlDbType.Timestamp == dbType ||
-                    SqlDbType.TinyInt == dbType ||
-                    SqlDbType.UniqueIdentifier == dbType ||
-                    SqlDbType.Variant == dbType ||
-                    SqlDbType.Xml == dbType)
+            if (!(SqlDbType2.BigInt == dbType ||
+                    SqlDbType2.Bit == dbType ||
+                    SqlDbType2.DateTime == dbType ||
+                    SqlDbType2.Date == dbType ||
+                    SqlDbType2.DateTime2 == dbType ||
+                    SqlDbType2.DateTimeOffset == dbType ||
+                    SqlDbType2.Decimal == dbType ||
+                    SqlDbType2.Float == dbType ||
+                    SqlDbType2.Image == dbType ||
+                    SqlDbType2.Int == dbType ||
+                    SqlDbType2.Money == dbType ||
+                    SqlDbType2.NText == dbType ||
+                    SqlDbType2.Real == dbType ||
+                    SqlDbType2.SmallDateTime == dbType ||
+                    SqlDbType2.SmallInt == dbType ||
+                    SqlDbType2.SmallMoney == dbType ||
+                    SqlDbType2.Text == dbType ||
+                    SqlDbType2.Time == dbType ||
+                    SqlDbType2.Timestamp == dbType ||
+                    SqlDbType2.TinyInt == dbType ||
+                    SqlDbType2.UniqueIdentifier == dbType ||
+                    SqlDbType2.Variant == dbType ||
+                    SqlDbType2.Xml == dbType)
             )
             {
                 throw SQL.InvalidSqlDbTypeForConstructor(dbType);
@@ -646,7 +646,7 @@ namespace Microsoft.Data.SqlClient.Server
 
             SetDefaultsForType(dbType);
 
-            if (SqlDbType.NText == dbType || SqlDbType.Text == dbType)
+            if (SqlDbType2.NText == dbType || SqlDbType2.Text == dbType)
             {
                 _locale = CultureInfo.CurrentCulture.LCID;
             }
@@ -666,7 +666,7 @@ namespace Microsoft.Data.SqlClient.Server
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
             long lLocale = 0;
-            if (SqlDbType.Char == dbType)
+            if (SqlDbType2.Char == dbType)
             {
                 if (maxLength > MaxANSILength || maxLength < 0)
                 {
@@ -674,7 +674,7 @@ namespace Microsoft.Data.SqlClient.Server
                 }
                 lLocale = CultureInfo.CurrentCulture.LCID;
             }
-            else if (SqlDbType.VarChar == dbType)
+            else if (SqlDbType2.VarChar == dbType)
             {
                 if ((maxLength > MaxANSILength || maxLength < 0) && maxLength != Max)
                 {
@@ -682,7 +682,7 @@ namespace Microsoft.Data.SqlClient.Server
                 }
                 lLocale = CultureInfo.CurrentCulture.LCID;
             }
-            else if (SqlDbType.NChar == dbType)
+            else if (SqlDbType2.NChar == dbType)
             {
                 if (maxLength > MaxUnicodeLength || maxLength < 0)
                 {
@@ -690,7 +690,7 @@ namespace Microsoft.Data.SqlClient.Server
                 }
                 lLocale = CultureInfo.CurrentCulture.LCID;
             }
-            else if (SqlDbType.NVarChar == dbType)
+            else if (SqlDbType2.NVarChar == dbType)
             {
                 if ((maxLength > MaxUnicodeLength || maxLength < 0) && maxLength != Max)
                 {
@@ -698,7 +698,7 @@ namespace Microsoft.Data.SqlClient.Server
                 }
                 lLocale = CultureInfo.CurrentCulture.LCID;
             }
-            else if (SqlDbType.NText == dbType || SqlDbType.Text == dbType)
+            else if (SqlDbType2.NText == dbType || SqlDbType2.Text == dbType)
             {
                 // old-style lobs only allowed with Max length
                 if (SqlMetaData.Max != maxLength)
@@ -707,21 +707,21 @@ namespace Microsoft.Data.SqlClient.Server
                 }
                 lLocale = CultureInfo.CurrentCulture.LCID;
             }
-            else if (SqlDbType.Binary == dbType)
+            else if (SqlDbType2.Binary == dbType)
             {
                 if (maxLength > MaxBinaryLength || maxLength < 0)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.VarBinary == dbType)
+            else if (SqlDbType2.VarBinary == dbType)
             {
                 if ((maxLength > MaxBinaryLength || maxLength < 0) && maxLength != Max)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.Image == dbType)
+            else if (SqlDbType2.Image == dbType)
             {
                 // old-style lobs only allowed with Max length
                 if (SqlMetaData.Max != maxLength)
@@ -763,35 +763,35 @@ namespace Microsoft.Data.SqlClient.Server
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
             // Validate type and max length.
-            if (SqlDbType.Char == dbType)
+            if (SqlDbType2.Char == dbType)
             {
                 if (maxLength > MaxANSILength || maxLength < 0)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.VarChar == dbType)
+            else if (SqlDbType2.VarChar == dbType)
             {
                 if ((maxLength > MaxANSILength || maxLength < 0) && maxLength != Max)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.NChar == dbType)
+            else if (SqlDbType2.NChar == dbType)
             {
                 if (maxLength > MaxUnicodeLength || maxLength < 0)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.NVarChar == dbType)
+            else if (SqlDbType2.NVarChar == dbType)
             {
                 if ((maxLength > MaxUnicodeLength || maxLength < 0) && maxLength != Max)
                 {
                     throw ADP.Argument(StringsHelper.GetString(Strings.ADP_InvalidDataLength2, maxLength.ToString(CultureInfo.InvariantCulture)), nameof(maxLength));
                 }
             }
-            else if (SqlDbType.NText == dbType || SqlDbType.Text == dbType)
+            else if (SqlDbType2.NText == dbType || SqlDbType2.Text == dbType)
             {
                 // old-style lobs only allowed with Max length
                 if (SqlMetaData.Max != maxLength)
@@ -846,7 +846,7 @@ namespace Microsoft.Data.SqlClient.Server
 
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
-            if (SqlDbType.Decimal == dbType)
+            if (SqlDbType2.Decimal == dbType)
             {
                 if (precision > SqlDecimal.MaxPrecision || scale > precision)
                 {
@@ -858,7 +858,7 @@ namespace Microsoft.Data.SqlClient.Server
                     throw SQL.ScaleValueOutOfRange(scale);
                 }
             }
-            else if (SqlDbType.Time == dbType || SqlDbType.DateTime2 == dbType || SqlDbType.DateTimeOffset == dbType)
+            else if (SqlDbType2.Time == dbType || SqlDbType2.DateTime2 == dbType || SqlDbType2.DateTimeOffset == dbType)
             {
                 if (scale > MaxTimeScale)
                 {
@@ -875,7 +875,7 @@ namespace Microsoft.Data.SqlClient.Server
             _name = name;
             _precision = precision;
             _scale = scale;
-            if (SqlDbType.Decimal == dbType)
+            if (SqlDbType2.Decimal == dbType)
             {
                 _maxLength = s_maxLenFromPrecision[precision - 1];
             }
@@ -908,7 +908,7 @@ namespace Microsoft.Data.SqlClient.Server
 
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
-            if (SqlDbType.Udt != dbType)
+            if (SqlDbType2.Udt != dbType)
             {
                 throw SQL.InvalidSqlDbTypeForConstructor(dbType);
             }
@@ -918,7 +918,7 @@ namespace Microsoft.Data.SqlClient.Server
                 throw ADP.ArgumentNull(nameof(userDefinedType));
             }
 
-            SetDefaultsForType(SqlDbType.Udt);
+            SetDefaultsForType(SqlDbType2.Udt);
 
             _name = name;
             _maxLength = SerializationHelperSql9.GetUdtMaxLength(userDefinedType);
@@ -947,7 +947,7 @@ namespace Microsoft.Data.SqlClient.Server
 
             ValidateSortOrder(columnSortOrder, sortOrdinal);
 
-            if (SqlDbType.Xml != dbType)
+            if (SqlDbType2.Xml != dbType)
             {
                 throw SQL.InvalidSqlDbTypeForConstructor(dbType);
             }
@@ -960,7 +960,7 @@ namespace Microsoft.Data.SqlClient.Server
                 }
             }
 
-            SetDefaultsForType(SqlDbType.Xml);
+            SetDefaultsForType(SqlDbType2.Xml);
 
             _name = name;
             _xmlSchemaCollectionDatabase = database;
@@ -1007,7 +1007,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue27/*' />
         public short Adjust(short value)
         {
-            if (SqlDbType.SmallInt != SqlDbType)
+            if (SqlDbType2.SmallInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1017,7 +1017,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue28/*' />
         public int Adjust(int value)
         {
-            if (SqlDbType.Int != SqlDbType)
+            if (SqlDbType2.Int != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1027,7 +1027,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue29/*' />
         public long Adjust(long value)
         {
-            if (SqlDbType.BigInt != SqlDbType)
+            if (SqlDbType2.BigInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1037,7 +1037,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue31/*' />
         public float Adjust(float value)
         {
-            if (SqlDbType.Real != SqlDbType)
+            if (SqlDbType2.Real != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1047,7 +1047,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue25/*' />
         public double Adjust(double value)
         {
-            if (SqlDbType.Float != SqlDbType)
+            if (SqlDbType2.Float != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1057,7 +1057,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue32/*' />
         public string Adjust(string value)
         {
-            if (SqlDbType.Char == SqlDbType || SqlDbType.NChar == SqlDbType)
+            if (SqlDbType2.Char == SqlDbType || SqlDbType2.NChar == SqlDbType)
             {
                 // Don't pad null values
                 if (null != value)
@@ -1069,10 +1069,10 @@ namespace Microsoft.Data.SqlClient.Server
                     }
                 }
             }
-            else if (SqlDbType.VarChar != SqlDbType &&
-                     SqlDbType.NVarChar != SqlDbType &&
-                     SqlDbType.Text != SqlDbType &&
-                     SqlDbType.NText != SqlDbType)
+            else if (SqlDbType2.VarChar != SqlDbType &&
+                     SqlDbType2.NVarChar != SqlDbType &&
+                     SqlDbType2.Text != SqlDbType &&
+                     SqlDbType2.NText != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1094,14 +1094,14 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue24/*' />
         public decimal Adjust(decimal value)
         {
-            if (SqlDbType.Decimal != SqlDbType &&
-                SqlDbType.Money != SqlDbType &&
-                SqlDbType.SmallMoney != SqlDbType)
+            if (SqlDbType2.Decimal != SqlDbType &&
+                SqlDbType2.Money != SqlDbType &&
+                SqlDbType2.SmallMoney != SqlDbType)
             {
                 ThrowInvalidType();
             }
 
-            if (SqlDbType.Decimal != SqlDbType)
+            if (SqlDbType2.Decimal != SqlDbType)
             {
                 VerifyMoneyRange(new SqlMoney(value));
                 return value;
@@ -1116,15 +1116,15 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue22/*' />
         public DateTime Adjust(DateTime value)
         {
-            if (SqlDbType.DateTime == SqlDbType || SqlDbType.SmallDateTime == SqlDbType)
+            if (SqlDbType2.DateTime == SqlDbType || SqlDbType2.SmallDateTime == SqlDbType)
             {
                 VerifyDateTimeRange(value);
             }
-            else if (SqlDbType.DateTime2 == SqlDbType)
+            else if (SqlDbType2.DateTime2 == SqlDbType)
             {
                 return new DateTime(InternalAdjustTimeTicks(value.Ticks));
             }
-            else if (SqlDbType.Date == SqlDbType)
+            else if (SqlDbType2.Date == SqlDbType)
             {
                 return value.Date;
             }
@@ -1138,7 +1138,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue26/*' />
         public Guid Adjust(Guid value)
         {
-            if (SqlDbType.UniqueIdentifier != SqlDbType)
+            if (SqlDbType2.UniqueIdentifier != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1148,7 +1148,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue7/*' />
         public SqlBoolean Adjust(SqlBoolean value)
         {
-            if (SqlDbType.Bit != SqlDbType)
+            if (SqlDbType2.Bit != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1158,7 +1158,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue8/*' />
         public SqlByte Adjust(SqlByte value)
         {
-            if (SqlDbType.TinyInt != SqlDbType)
+            if (SqlDbType2.TinyInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1168,7 +1168,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue15/*' />
         public SqlInt16 Adjust(SqlInt16 value)
         {
-            if (SqlDbType.SmallInt != SqlDbType)
+            if (SqlDbType2.SmallInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1178,7 +1178,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue16/*' />
         public SqlInt32 Adjust(SqlInt32 value)
         {
-            if (SqlDbType.Int != SqlDbType)
+            if (SqlDbType2.Int != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1188,7 +1188,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue17/*' />
         public SqlInt64 Adjust(SqlInt64 value)
         {
-            if (SqlDbType.BigInt != SqlDbType)
+            if (SqlDbType2.BigInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1198,7 +1198,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue19/*' />
         public SqlSingle Adjust(SqlSingle value)
         {
-            if (SqlDbType.Real != SqlDbType)
+            if (SqlDbType2.Real != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1208,7 +1208,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue13/*' />
         public SqlDouble Adjust(SqlDouble value)
         {
-            if (SqlDbType.Float != SqlDbType)
+            if (SqlDbType2.Float != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1218,7 +1218,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue18/*' />
         public SqlMoney Adjust(SqlMoney value)
         {
-            if (SqlDbType.Money != SqlDbType && SqlDbType.SmallMoney != SqlDbType)
+            if (SqlDbType2.Money != SqlDbType && SqlDbType2.SmallMoney != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1232,7 +1232,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue11/*' />
         public SqlDateTime Adjust(SqlDateTime value)
         {
-            if (SqlDbType.DateTime != SqlDbType && SqlDbType.SmallDateTime != SqlDbType)
+            if (SqlDbType2.DateTime != SqlDbType && SqlDbType2.SmallDateTime != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1246,7 +1246,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue12/*' />
         public SqlDecimal Adjust(SqlDecimal value)
         {
-            if (SqlDbType.Decimal != SqlDbType)
+            if (SqlDbType2.Decimal != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1256,7 +1256,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue20/*' />
         public SqlString Adjust(SqlString value)
         {
-            if (SqlDbType.Char == SqlDbType || SqlDbType.NChar == SqlDbType)
+            if (SqlDbType2.Char == SqlDbType || SqlDbType2.NChar == SqlDbType)
             {
                 //DBG.Assert(Max!=MaxLength, "SqlMetaData.Adjust(SqlString): Fixed-length type with Max length!");
                 // Don't pad null values
@@ -1270,10 +1270,10 @@ namespace Microsoft.Data.SqlClient.Server
                 }
             }
             else if (
-                SqlDbType.VarChar != SqlDbType &&
-                SqlDbType.NVarChar != SqlDbType &&
-                SqlDbType.Text != SqlDbType &&
-                SqlDbType.NText != SqlDbType
+                SqlDbType2.VarChar != SqlDbType &&
+                SqlDbType2.NVarChar != SqlDbType &&
+                SqlDbType2.Text != SqlDbType &&
+                SqlDbType2.NText != SqlDbType
             )
             {
                 ThrowInvalidType();
@@ -1297,7 +1297,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue6/*' />
         public SqlBinary Adjust(SqlBinary value)
         {
-            if (SqlDbType.Binary == SqlDbType || SqlDbType.Timestamp == SqlDbType)
+            if (SqlDbType2.Binary == SqlDbType || SqlDbType2.Timestamp == SqlDbType)
             {
                 if (!value.IsNull)
                 {
@@ -1312,7 +1312,7 @@ namespace Microsoft.Data.SqlClient.Server
                     }
                 }
             }
-            else if (SqlDbType.VarBinary != SqlDbType && SqlDbType.Image != SqlDbType)
+            else if (SqlDbType2.VarBinary != SqlDbType && SqlDbType2.Image != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1338,7 +1338,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue14/*' />
         public SqlGuid Adjust(SqlGuid value)
         {
-            if (SqlDbType.UniqueIdentifier != SqlDbType)
+            if (SqlDbType2.UniqueIdentifier != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1348,7 +1348,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue10/*' />
         public SqlChars Adjust(SqlChars value)
         {
-            if (SqlDbType.Char == SqlDbType || SqlDbType.NChar == SqlDbType)
+            if (SqlDbType2.Char == SqlDbType || SqlDbType2.NChar == SqlDbType)
             {
                 //DBG.Assert(Max!=MaxLength, "SqlMetaData.Adjust(SqlChars): Fixed-length type with Max length!");
                 // Don't pad null values
@@ -1379,10 +1379,10 @@ namespace Microsoft.Data.SqlClient.Server
                 }
             }
             else if (
-                SqlDbType.VarChar != SqlDbType &&
-                SqlDbType.NVarChar != SqlDbType &&
-                SqlDbType.Text != SqlDbType &&
-                SqlDbType.NText != SqlDbType
+                SqlDbType2.VarChar != SqlDbType &&
+                SqlDbType2.NVarChar != SqlDbType &&
+                SqlDbType2.Text != SqlDbType &&
+                SqlDbType2.NText != SqlDbType
             )
             {
                 ThrowInvalidType();
@@ -1406,7 +1406,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue9/*' />
         public SqlBytes Adjust(SqlBytes value)
         {
-            if (SqlDbType.Binary == SqlDbType || SqlDbType.Timestamp == SqlDbType)
+            if (SqlDbType2.Binary == SqlDbType || SqlDbType2.Timestamp == SqlDbType)
             {
                 //DBG.Assert(Max!=MaxLength, "SqlMetaData.Adjust(SqlBytes): Fixed-length type with Max length!");
                 // Don't pad null values
@@ -1432,7 +1432,7 @@ namespace Microsoft.Data.SqlClient.Server
                     }
                 }
             }
-            else if (SqlDbType.VarBinary != SqlDbType && SqlDbType.Image != SqlDbType)
+            else if (SqlDbType2.VarBinary != SqlDbType && SqlDbType2.Image != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1455,7 +1455,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue21/*' />
         public SqlXml Adjust(SqlXml value)
         {
-            if (SqlDbType.Xml != SqlDbType)
+            if (SqlDbType2.Xml != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1465,7 +1465,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue33/*' />
         public TimeSpan Adjust(TimeSpan value)
         {
-            if (SqlDbType.Time != SqlDbType)
+            if (SqlDbType2.Time != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1476,7 +1476,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue23/*' />
         public DateTimeOffset Adjust(DateTimeOffset value)
         {
-            if (SqlDbType.DateTimeOffset != SqlDbType)
+            if (SqlDbType2.DateTimeOffset != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1655,43 +1655,43 @@ namespace Microsoft.Data.SqlClient.Server
             switch (Type.GetTypeCode(dataType))
             {
                 case TypeCode.Boolean:
-                    smd = new SqlMetaData(name, SqlDbType.Bit);
+                    smd = new SqlMetaData(name, SqlDbType2.Bit);
                     break;
                 case TypeCode.Byte:
-                    smd = new SqlMetaData(name, SqlDbType.TinyInt);
+                    smd = new SqlMetaData(name, SqlDbType2.TinyInt);
                     break;
                 case TypeCode.Char:
-                    smd = new SqlMetaData(name, SqlDbType.NVarChar, 1);
+                    smd = new SqlMetaData(name, SqlDbType2.NVarChar, 1);
                     break;
                 case TypeCode.DateTime:
-                    smd = new SqlMetaData(name, SqlDbType.DateTime);
+                    smd = new SqlMetaData(name, SqlDbType2.DateTime);
                     break;
                 case TypeCode.DBNull:
                     throw ADP.InvalidDataType(TypeCode.DBNull);
                 case TypeCode.Decimal:
                     {
                         SqlDecimal sd = new SqlDecimal((decimal)value);
-                        smd = new SqlMetaData(name, SqlDbType.Decimal, sd.Precision, sd.Scale);
+                        smd = new SqlMetaData(name, SqlDbType2.Decimal, sd.Precision, sd.Scale);
                     }
                     break;
                 case TypeCode.Double:
-                    smd = new SqlMetaData(name, SqlDbType.Float);
+                    smd = new SqlMetaData(name, SqlDbType2.Float);
                     break;
                 case TypeCode.Empty:
                     throw ADP.InvalidDataType(TypeCode.Empty);
                 case TypeCode.Int16:
-                    smd = new SqlMetaData(name, SqlDbType.SmallInt);
+                    smd = new SqlMetaData(name, SqlDbType2.SmallInt);
                     break;
                 case TypeCode.Int32:
-                    smd = new SqlMetaData(name, SqlDbType.Int);
+                    smd = new SqlMetaData(name, SqlDbType2.Int);
                     break;
                 case TypeCode.Int64:
-                    smd = new SqlMetaData(name, SqlDbType.BigInt);
+                    smd = new SqlMetaData(name, SqlDbType2.BigInt);
                     break;
                 case TypeCode.SByte:
                     throw ADP.InvalidDataType(TypeCode.SByte);
                 case TypeCode.Single:
-                    smd = new SqlMetaData(name, SqlDbType.Real);
+                    smd = new SqlMetaData(name, SqlDbType2.Real);
                     break;
                 case TypeCode.String:
                     {
@@ -1704,7 +1704,7 @@ namespace Microsoft.Data.SqlClient.Server
                         {
                             maxLen = Max;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.NVarChar, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.NVarChar, maxLen);
                     }
                     break;
                 case TypeCode.UInt16:
@@ -1725,7 +1725,7 @@ namespace Microsoft.Data.SqlClient.Server
                         {
                             maxLen = Max;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.VarBinary, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.VarBinary, maxLen);
                     }
                     else if (dataType == typeof(char[]))
                     {
@@ -1738,15 +1738,15 @@ namespace Microsoft.Data.SqlClient.Server
                         {
                             maxLen = Max;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.NVarChar, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.NVarChar, maxLen);
                     }
                     else if (dataType == typeof(Guid))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.UniqueIdentifier);
+                        smd = new SqlMetaData(name, SqlDbType2.UniqueIdentifier);
                     }
                     else if (dataType == typeof(object))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Variant);
+                        smd = new SqlMetaData(name, SqlDbType2.Variant);
                     }
                     else if (dataType == typeof(SqlBinary))
                     {
@@ -1766,45 +1766,45 @@ namespace Microsoft.Data.SqlClient.Server
                         }
                         else
                         {
-                            maxLen = s_defaults[(int)SqlDbType.VarBinary].MaxLength;
+                            maxLen = s_defaults[(int)SqlDbType2.VarBinary].MaxLength;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.VarBinary, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.VarBinary, maxLen);
                     }
                     else if (dataType == typeof(SqlBoolean))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Bit);
+                        smd = new SqlMetaData(name, SqlDbType2.Bit);
                     }
                     else if (dataType == typeof(SqlByte))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.TinyInt);
+                        smd = new SqlMetaData(name, SqlDbType2.TinyInt);
                     }
                     else if (dataType == typeof(SqlDateTime))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.DateTime);
+                        smd = new SqlMetaData(name, SqlDbType2.DateTime);
                     }
                     else if (dataType == typeof(SqlDouble))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Float);
+                        smd = new SqlMetaData(name, SqlDbType2.Float);
                     }
                     else if (dataType == typeof(SqlGuid))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.UniqueIdentifier);
+                        smd = new SqlMetaData(name, SqlDbType2.UniqueIdentifier);
                     }
                     else if (dataType == typeof(SqlInt16))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.SmallInt);
+                        smd = new SqlMetaData(name, SqlDbType2.SmallInt);
                     }
                     else if (dataType == typeof(SqlInt32))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Int);
+                        smd = new SqlMetaData(name, SqlDbType2.Int);
                     }
                     else if (dataType == typeof(SqlInt64))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.BigInt);
+                        smd = new SqlMetaData(name, SqlDbType2.BigInt);
                     }
                     else if (dataType == typeof(SqlMoney))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Money);
+                        smd = new SqlMetaData(name, SqlDbType2.Money);
                     }
                     else if (dataType == typeof(SqlDecimal))
                     {
@@ -1818,14 +1818,14 @@ namespace Microsoft.Data.SqlClient.Server
                         }
                         else
                         {
-                            bPrec = s_defaults[(int)SqlDbType.Decimal].Precision;
-                            scale = s_defaults[(int)SqlDbType.Decimal].Scale;
+                            bPrec = s_defaults[(int)SqlDbType2.Decimal].Precision;
+                            scale = s_defaults[(int)SqlDbType2.Decimal].Scale;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.Decimal, bPrec, scale);
+                        smd = new SqlMetaData(name, SqlDbType2.Decimal, bPrec, scale);
                     }
                     else if (dataType == typeof(SqlSingle))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Real);
+                        smd = new SqlMetaData(name, SqlDbType2.Real);
                     }
                     else if (dataType == typeof(SqlString))
                     {
@@ -1841,11 +1841,11 @@ namespace Microsoft.Data.SqlClient.Server
                             {
                                 maxLen = Max;
                             }
-                            smd = new SqlMetaData(name, SqlDbType.NVarChar, maxLen, ss.LCID, ss.SqlCompareOptions);
+                            smd = new SqlMetaData(name, SqlDbType2.NVarChar, maxLen, ss.LCID, ss.SqlCompareOptions);
                         }
                         else
                         {
-                            smd = new SqlMetaData(name, SqlDbType.NVarChar, s_defaults[(int)SqlDbType.NVarChar].MaxLength);
+                            smd = new SqlMetaData(name, SqlDbType2.NVarChar, s_defaults[(int)SqlDbType2.NVarChar].MaxLength);
                         }
                     }
                     else if (dataType == typeof(SqlChars))
@@ -1866,9 +1866,9 @@ namespace Microsoft.Data.SqlClient.Server
                         }
                         else
                         {
-                            maxLen = s_defaults[(int)SqlDbType.NVarChar].MaxLength;
+                            maxLen = s_defaults[(int)SqlDbType2.NVarChar].MaxLength;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.NVarChar, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.NVarChar, maxLen);
                     }
                     else if (dataType == typeof(SqlBytes))
                     {
@@ -1888,21 +1888,21 @@ namespace Microsoft.Data.SqlClient.Server
                         }
                         else
                         {
-                            maxLen = s_defaults[(int)SqlDbType.VarBinary].MaxLength;
+                            maxLen = s_defaults[(int)SqlDbType2.VarBinary].MaxLength;
                         }
-                        smd = new SqlMetaData(name, SqlDbType.VarBinary, maxLen);
+                        smd = new SqlMetaData(name, SqlDbType2.VarBinary, maxLen);
                     }
                     else if (dataType == typeof(SqlXml))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Xml);
+                        smd = new SqlMetaData(name, SqlDbType2.Xml);
                     }
                     else if (dataType == typeof(TimeSpan))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.Time, 0, InferScaleFromTimeTicks(((TimeSpan)value).Ticks));
+                        smd = new SqlMetaData(name, SqlDbType2.Time, 0, InferScaleFromTimeTicks(((TimeSpan)value).Ticks));
                     }
                     else if (dataType == typeof(DateTimeOffset))
                     {
-                        smd = new SqlMetaData(name, SqlDbType.DateTimeOffset, 0, InferScaleFromTimeTicks(((DateTimeOffset)value).Ticks));
+                        smd = new SqlMetaData(name, SqlDbType2.DateTimeOffset, 0, InferScaleFromTimeTicks(((DateTimeOffset)value).Ticks));
                     }
                     else
                     {
@@ -1920,7 +1920,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue1/*' />
         public bool Adjust(bool value)
         {
-            if (SqlDbType.Bit != SqlDbType)
+            if (SqlDbType2.Bit != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1930,7 +1930,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue2/*' />
         public byte Adjust(byte value)
         {
-            if (SqlDbType.TinyInt != SqlDbType)
+            if (SqlDbType2.TinyInt != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1940,7 +1940,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue3/*' />
         public byte[] Adjust(byte[] value)
         {
-            if (SqlDbType.Binary == SqlDbType || SqlDbType.Timestamp == SqlDbType)
+            if (SqlDbType2.Binary == SqlDbType || SqlDbType2.Timestamp == SqlDbType)
             {
                 // Don't pad null values
                 if (null != value)
@@ -1955,7 +1955,7 @@ namespace Microsoft.Data.SqlClient.Server
                     }
                 }
             }
-            else if (SqlDbType.VarBinary != SqlDbType && SqlDbType.Image != SqlDbType)
+            else if (SqlDbType2.VarBinary != SqlDbType && SqlDbType2.Image != SqlDbType)
             {
                 ThrowInvalidType();
             }
@@ -1980,7 +1980,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue4/*' />
         public char Adjust(char value)
         {
-            if (SqlDbType.Char == SqlDbType || SqlDbType.NChar == SqlDbType)
+            if (SqlDbType2.Char == SqlDbType || SqlDbType2.NChar == SqlDbType)
             {
                 if (1 != MaxLength)
                 {
@@ -1988,8 +1988,8 @@ namespace Microsoft.Data.SqlClient.Server
                 }
             }
             else if ((1 > MaxLength) ||  // char must have max length of at least 1
-                    (SqlDbType.VarChar != SqlDbType && SqlDbType.NVarChar != SqlDbType &&
-                    SqlDbType.Text != SqlDbType && SqlDbType.NText != SqlDbType)
+                    (SqlDbType2.VarChar != SqlDbType && SqlDbType2.NVarChar != SqlDbType &&
+                    SqlDbType2.Text != SqlDbType && SqlDbType2.NText != SqlDbType)
                     )
             {
                 ThrowInvalidType();
@@ -2000,7 +2000,7 @@ namespace Microsoft.Data.SqlClient.Server
         /// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient.Server/SqlMetaData.xml' path='docs/members[@name="SqlMetaData"]/AdjustValue5/*' />
         public char[] Adjust(char[] value)
         {
-            if (SqlDbType.Char == SqlDbType || SqlDbType.NChar == SqlDbType)
+            if (SqlDbType2.Char == SqlDbType || SqlDbType2.NChar == SqlDbType)
             {
                 // Don't pad null values
                 if (null != value)
@@ -2022,10 +2022,10 @@ namespace Microsoft.Data.SqlClient.Server
                 }
             }
             else if (
-                SqlDbType.VarChar != SqlDbType && 
-                SqlDbType.NVarChar != SqlDbType &&
-                SqlDbType.Text != SqlDbType && 
-                SqlDbType.NText != SqlDbType
+                SqlDbType2.VarChar != SqlDbType && 
+                SqlDbType2.NVarChar != SqlDbType &&
+                SqlDbType2.Text != SqlDbType && 
+                SqlDbType2.NText != SqlDbType
             )
             {
                 ThrowInvalidType();
@@ -2055,14 +2055,14 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 return md;
             }
-            if (md.SqlDbType == SqlDbType.Xml)
+            if (md.SqlDbType == SqlDbType2.Xml)
             {
                 ThrowInvalidType();     //Xml should always have IsPartialLength = true
             }
             if (
-                md.SqlDbType == SqlDbType.NVarChar ||
-                md.SqlDbType == SqlDbType.VarChar ||
-                md.SqlDbType == SqlDbType.VarBinary
+                md.SqlDbType == SqlDbType2.NVarChar ||
+                md.SqlDbType == SqlDbType2.VarChar ||
+                md.SqlDbType == SqlDbType2.VarBinary
             )
             {
                 return new SqlMetaData(md.Name, md.SqlDbType, SqlMetaData.Max, 0, 0, md.LocaleId,
@@ -2081,7 +2081,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private void VerifyDateTimeRange(DateTime value)
         {
-            if (SqlDbType.SmallDateTime == SqlDbType && (s_smallDateTimeMax < value || s_smallDateTimeMin > value))
+            if (SqlDbType2.SmallDateTime == SqlDbType && (s_smallDateTimeMax < value || s_smallDateTimeMin > value))
             {
                 ThrowInvalidType();
             }
@@ -2089,7 +2089,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private void VerifyMoneyRange(SqlMoney value)
         {
-            if (SqlDbType.SmallMoney == SqlDbType && ((s_smallMoneyMax < value).Value || (s_smallMoneyMin > value).Value))
+            if (SqlDbType2.SmallMoney == SqlDbType && ((s_smallMoneyMax < value).Value || (s_smallMoneyMin > value).Value))
             {
                 ThrowInvalidType();
             }
@@ -2112,7 +2112,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private void VerifyTimeRange(TimeSpan value)
         {
-            if (SqlDbType.Time == SqlDbType && (s_timeMin > value || value > s_timeMax))
+            if (SqlDbType2.Time == SqlDbType && (s_timeMin > value || value > s_timeMax))
             {
                 ThrowInvalidType();
             }
@@ -2137,7 +2137,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private void SetDefaultsForType(SqlDbType dbType)
         {
-            if (SqlDbType.BigInt <= dbType && SqlDbType.DateTimeOffset >= dbType)
+            if (SqlDbType2.BigInt <= dbType && SqlDbType2.DateTimeOffset >= dbType)
             {
                 SqlMetaData smdDflt = s_defaults[(int)dbType];
                 _sqlDbType = dbType;

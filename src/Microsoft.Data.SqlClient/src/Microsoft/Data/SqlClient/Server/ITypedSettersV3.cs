@@ -11,7 +11,7 @@ namespace Microsoft.Data.SqlClient.Server
     internal interface ITypedSettersV3
     {
         // By value setters (data copy across the interface boundary implied)
-        //  All setters are valid for SqlDbType.Variant
+        //  All setters are valid for SqlDbType2.Variant
 
         // SetVariantMetaData is used to set the precise type of data just before pushing 
         //  data into a variant type via one of the other setters. It 
@@ -27,10 +27,10 @@ namespace Microsoft.Data.SqlClient.Server
         //  valid for all types
         void SetDBNull(SmiEventSink sink, int ordinal);
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         void SetBoolean(SmiEventSink sink, int ordinal, bool value);
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         void SetByte(SmiEventSink sink, int ordinal, byte value);
 
         // Semantics for SetBytes are to modify existing value, not overwrite
@@ -50,22 +50,22 @@ namespace Microsoft.Data.SqlClient.Server
         // valid for character types: Char, VarChar, Text, NChar, NVarChar, NText
         void SetString(SmiEventSink sink, int ordinal, string value, int offset, int length);
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         void SetInt16(SmiEventSink sink, int ordinal, short value);
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         void SetInt32(SmiEventSink sink, int ordinal, int value);
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         void SetInt64(SmiEventSink sink, int ordinal, long value);
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         void SetSingle(SmiEventSink sink, int ordinal, float value);
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         void SetDouble(SmiEventSink sink, int ordinal, double value);
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         void SetSqlDecimal(SmiEventSink sink, int ordinal, SqlDecimal value);
 
         // valid for DateTime & SmallDateTime

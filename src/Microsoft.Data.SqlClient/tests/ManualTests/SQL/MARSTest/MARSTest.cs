@@ -634,7 +634,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 int supplier = reader.GetInt32(0);
                 using SqlCommand getSupplierCommand = new("SELECT CompanyName FROM dbo.Suppliers WHERE SupplierID = @ID", con);
-                getSupplierCommand.Parameters.Add(new SqlParameter("ID", SqlDbType.Int) { Value = supplier });
+                getSupplierCommand.Parameters.Add(new SqlParameter("ID", SqlDbType2.Int) { Value = supplier });
                 string name = (string)await getSupplierCommand.ExecuteScalarAsync();
                 Assert.Equal(companyNames[supplier], name);
             }

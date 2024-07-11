@@ -44,7 +44,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     throw new ArgumentException("Must not be sparse", nameof(options));
                 }
 
-                if (typeInfo.Type != SqlDbType.Xml)
+                if (typeInfo.Type != SqlDbType2.Xml)
                 {
                     throw new ArgumentException("columnset column must be an XML column");
                 }

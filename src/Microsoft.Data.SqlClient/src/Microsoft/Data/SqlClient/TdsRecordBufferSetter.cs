@@ -32,7 +32,7 @@ namespace Microsoft.Data.SqlClient
 
         internal TdsRecordBufferSetter(TdsParserStateObject stateObj, SmiMetaData md)
         {
-            Debug.Assert(SqlDbType.Structured == md.SqlDbType, "Unsupported SqlDbType: " + md.SqlDbType);
+            Debug.Assert(SqlDbType2.Structured == md.SqlDbType, "Unsupported SqlDbType: " + md.SqlDbType);
             _fieldSetters = new TdsValueSetter[md.FieldMetaData.Count];
             for (int i = 0; i < md.FieldMetaData.Count; i++)
             {
@@ -74,14 +74,14 @@ namespace Microsoft.Data.SqlClient
             _fieldSetters[ordinal].SetDBNull();
         }
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         public override void SetBoolean(SmiEventSink sink, int ordinal, bool value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetBoolean(value);
         }
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         public override void SetByte(SmiEventSink sink, int ordinal, byte value)
         {
             CheckSettingColumn(ordinal);
@@ -126,42 +126,42 @@ namespace Microsoft.Data.SqlClient
             _fieldSetters[ordinal].SetString(value, offset, length);
         }
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         public override void SetInt16(SmiEventSink sink, int ordinal, short value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetInt16(value);
         }
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         public override void SetInt32(SmiEventSink sink, int ordinal, int value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetInt32(value);
         }
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         public override void SetInt64(SmiEventSink sink, int ordinal, long value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetInt64(value);
         }
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         public override void SetSingle(SmiEventSink sink, int ordinal, float value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetSingle(value);
         }
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         public override void SetDouble(SmiEventSink sink, int ordinal, double value)
         {
             CheckSettingColumn(ordinal);
             _fieldSetters[ordinal].SetDouble(value);
         }
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         public override void SetSqlDecimal(SmiEventSink sink, int ordinal, SqlDecimal value)
         {
             CheckSettingColumn(ordinal);
@@ -182,7 +182,7 @@ namespace Microsoft.Data.SqlClient
             _fieldSetters[ordinal].SetGuid(value);
         }
 
-        // valid for SqlDbType.Time
+        // valid for SqlDbType2.Time
         public override void SetTimeSpan(SmiEventSink sink, int ordinal, TimeSpan value)
         {
             CheckSettingColumn(ordinal);
@@ -196,7 +196,7 @@ namespace Microsoft.Data.SqlClient
             _fieldSetters[ordinal].SetDateTimeOffset(value);
         }
 
-        // valid for SqlDbType.Variant
+        // valid for SqlDbType2.Variant
         public override void SetVariantMetaData(SmiEventSink sink, int ordinal, SmiMetaData metaData)
         {
             CheckWritingToColumn(ordinal);

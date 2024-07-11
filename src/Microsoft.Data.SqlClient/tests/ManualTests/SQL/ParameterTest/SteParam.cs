@@ -47,7 +47,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
             if (perm.TryGetValue(SteAttributeKey.TypeName, out attr) && (attr != SteTypeBoundaries.s_doNotUseMarker))
             {
-                if (didSetSqlDbType && SqlDbType.Structured == param.SqlDbType)
+                if (didSetSqlDbType && SqlDbType2.Structured == param.SqlDbType)
                 {
                     param.TypeName = (string)attr;
                 }

@@ -37,11 +37,11 @@ namespace Microsoft.Data.SqlClient
 #endif
 
         // HACK!!!
-        // Constant for SqlDbType.SmallVarBinary... store internal variable here instead of on
+        // Constant for SqlDbType2.SmallVarBinary... store internal variable here instead of on
         // SqlDbType so that it is not surfaced to the user!!!  Related to dtc and the fact that
         // the TransactionManager TDS stream is the only token left that uses VarBinarys instead of
         // BigVarBinarys.
-        public const SqlDbType SmallVarBinary = (SqlDbType)(SqlDbType.Variant) + 1;
+        public const SqlDbType SmallVarBinary = (SqlDbType)(SqlDbType2.Variant) + 1;
 
         // network protocol string constants
         public const string TCP = "tcp";

@@ -42,14 +42,14 @@ namespace Microsoft.Data.SqlClient.Tests.AlwaysEncryptedTests
         /// <summary>
         /// SQL types unsupported by TCE
         /// </summary>
-        private static SqlDbType[] unsupportedTypes = new SqlDbType[] { SqlDbType.Image,
-                                                                 SqlDbType.NText,
-                                                                 SqlDbType.Text,
-                                                                 SqlDbType.Timestamp,
-                                                                 SqlDbType.Variant,
-                                                                 SqlDbType.Xml,
-                                                                 SqlDbType.Udt,
-                                                                 SqlDbType.Structured };
+        private static SqlDbType[] unsupportedTypes = new SqlDbType[] { SqlDbType2.Image,
+                                                                 SqlDbType2.NText,
+                                                                 SqlDbType2.Text,
+                                                                 SqlDbType2.Timestamp,
+                                                                 SqlDbType2.Variant,
+                                                                 SqlDbType2.Xml,
+                                                                 SqlDbType2.Udt,
+                                                                 SqlDbType2.Structured };
 
         private static Random random = new Random();
 

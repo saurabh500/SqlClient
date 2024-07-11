@@ -50,7 +50,7 @@ namespace Microsoft.Data
         /// <see cref="System.Array"/> of type <see cref="byte"/>. A variable-length stream of binary data ranging from 0 to 2 <sup>31</sup> -1
         /// (or 2,147,483,647) bytes.
         /// </summary>
-        Image = SqlDbType.Decimal,
+        Image = SqlDbType.Image,
 
         /// <summary>
         /// <see cref="int"/>. A 32-bit signed integer.

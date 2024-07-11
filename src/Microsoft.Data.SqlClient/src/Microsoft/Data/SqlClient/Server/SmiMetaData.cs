@@ -46,11 +46,11 @@ namespace Microsoft.Data.SqlClient.Server
     {
         private SqlDbType _databaseType;          // Main enum that determines what is valid for other attributes.
         private long _maxLength;             // Varies for variable-length types, others are fixed value per type
-        private byte _precision;             // Varies for SqlDbType.Decimal, others are fixed value per type
-        private byte _scale;                 // Varies for SqlDbType.Decimal, others are fixed value per type
+        private byte _precision;             // Varies for SqlDbType2.Decimal, others are fixed value per type
+        private byte _scale;                 // Varies for SqlDbType2.Decimal, others are fixed value per type
         private long _localeId;              // Valid only for character types, others are 0
         private SqlCompareOptions _compareOptions;        // Valid only for character types, others are SqlCompareOptions.Default
-        private Type _clrType;               // Varies for SqlDbType.Udt, others are fixed value per type.
+        private Type _clrType;               // Varies for SqlDbType2.Udt, others are fixed value per type.
         private string _udtAssemblyQualifiedName;           // Valid only for UDT types when _clrType is not available
         private bool _isMultiValued;         // Multiple instances per value? (I.e. tables, arrays)
         private IList<SmiExtendedMetaData> _fieldMetaData;         // Metadata of fields for structured types
@@ -83,37 +83,37 @@ namespace Microsoft.Data.SqlClient.Server
 
         // Defaults
         //    SmiMetaData(SqlDbType,                  MaxLen,                     Prec, Scale,  CompareOptions)
-        internal static readonly SmiMetaData DefaultBigInt = new SmiMetaData(SqlDbType.BigInt, 8, 19, 0, SqlCompareOptions.None);     // SqlDbType.BigInt
-        internal static readonly SmiMetaData DefaultBinary = new SmiMetaData(SqlDbType.Binary, 1, 0, 0, SqlCompareOptions.None);     // SqlDbType.Binary
-        internal static readonly SmiMetaData DefaultBit = new SmiMetaData(SqlDbType.Bit, 1, 1, 0, SqlCompareOptions.None);     // SqlDbType.Bit
-        internal static readonly SmiMetaData DefaultChar_NoCollation = new SmiMetaData(SqlDbType.Char, 1, 0, 0, DefaultStringCompareOptions);// SqlDbType.Char
-        internal static readonly SmiMetaData DefaultDateTime = new SmiMetaData(SqlDbType.DateTime, 8, 23, 3, SqlCompareOptions.None);     // SqlDbType.DateTime
-        internal static readonly SmiMetaData DefaultDecimal = new SmiMetaData(SqlDbType.Decimal, 9, 18, 0, SqlCompareOptions.None);     // SqlDbType.Decimal
-        internal static readonly SmiMetaData DefaultFloat = new SmiMetaData(SqlDbType.Float, 8, 53, 0, SqlCompareOptions.None);     // SqlDbType.Float
-        internal static readonly SmiMetaData DefaultImage = new SmiMetaData(SqlDbType.Image, UnlimitedMaxLengthIndicator, 0, 0, SqlCompareOptions.None);     // SqlDbType.Image
-        internal static readonly SmiMetaData DefaultInt = new SmiMetaData(SqlDbType.Int, 4, 10, 0, SqlCompareOptions.None);     // SqlDbType.Int
-        internal static readonly SmiMetaData DefaultMoney = new SmiMetaData(SqlDbType.Money, 8, 19, 4, SqlCompareOptions.None);     // SqlDbType.Money
-        internal static readonly SmiMetaData DefaultNChar_NoCollation = new SmiMetaData(SqlDbType.NChar, 1, 0, 0, DefaultStringCompareOptions);// SqlDbType.NChar
-        internal static readonly SmiMetaData DefaultNText_NoCollation = new SmiMetaData(SqlDbType.NText, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType.NText
-        internal static readonly SmiMetaData DefaultNVarChar_NoCollation = new SmiMetaData(SqlDbType.NVarChar, MaxUnicodeCharacters, 0, 0, DefaultStringCompareOptions);// SqlDbType.NVarChar
-        internal static readonly SmiMetaData DefaultReal = new SmiMetaData(SqlDbType.Real, 4, 24, 0, SqlCompareOptions.None);     // SqlDbType.Real
-        internal static readonly SmiMetaData DefaultUniqueIdentifier = new SmiMetaData(SqlDbType.UniqueIdentifier, 16, 0, 0, SqlCompareOptions.None);     // SqlDbType.UniqueIdentifier
-        internal static readonly SmiMetaData DefaultSmallDateTime = new SmiMetaData(SqlDbType.SmallDateTime, 4, 16, 0, SqlCompareOptions.None);     // SqlDbType.SmallDateTime
-        internal static readonly SmiMetaData DefaultSmallInt = new SmiMetaData(SqlDbType.SmallInt, 2, 5, 0, SqlCompareOptions.None);     // SqlDbType.SmallInt
-        internal static readonly SmiMetaData DefaultSmallMoney = new SmiMetaData(SqlDbType.SmallMoney, 4, 10, 4, SqlCompareOptions.None);     // SqlDbType.SmallMoney
-        internal static readonly SmiMetaData DefaultText_NoCollation = new SmiMetaData(SqlDbType.Text, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType.Text
-        internal static readonly SmiMetaData DefaultTimestamp = new SmiMetaData(SqlDbType.Timestamp, 8, 0, 0, SqlCompareOptions.None);     // SqlDbType.Timestamp
-        internal static readonly SmiMetaData DefaultTinyInt = new SmiMetaData(SqlDbType.TinyInt, 1, 3, 0, SqlCompareOptions.None);     // SqlDbType.TinyInt
-        internal static readonly SmiMetaData DefaultVarBinary = new SmiMetaData(SqlDbType.VarBinary, MaxBinaryLength, 0, 0, SqlCompareOptions.None);     // SqlDbType.VarBinary
-        internal static readonly SmiMetaData DefaultVarChar_NoCollation = new SmiMetaData(SqlDbType.VarChar, MaxANSICharacters, 0, 0, DefaultStringCompareOptions);// SqlDbType.VarChar
-        internal static readonly SmiMetaData DefaultVariant = new SmiMetaData(SqlDbType.Variant, 8016, 0, 0, SqlCompareOptions.None);     // SqlDbType.Variant
-        internal static readonly SmiMetaData DefaultXml = new SmiMetaData(SqlDbType.Xml, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType.Xml
-        internal static readonly SmiMetaData DefaultUdt_NoType = new SmiMetaData(SqlDbType.Udt, 0, 0, 0, SqlCompareOptions.None);     // SqlDbType.Udt
-        internal static readonly SmiMetaData DefaultStructured = new SmiMetaData(SqlDbType.Structured, 0, 0, 0, SqlCompareOptions.None);     // SqlDbType.Structured
-        internal static readonly SmiMetaData DefaultDate = new SmiMetaData(SqlDbType.Date, 3, 10, 0, SqlCompareOptions.None);     // SqlDbType.Date
-        internal static readonly SmiMetaData DefaultTime = new SmiMetaData(SqlDbType.Time, 5, 0, 7, SqlCompareOptions.None);     // SqlDbType.Time
-        internal static readonly SmiMetaData DefaultDateTime2 = new SmiMetaData(SqlDbType.DateTime2, 8, 0, 7, SqlCompareOptions.None);     // SqlDbType.DateTime2
-        internal static readonly SmiMetaData DefaultDateTimeOffset = new SmiMetaData(SqlDbType.DateTimeOffset, 10, 0, 7, SqlCompareOptions.None);     // SqlDbType.DateTimeOffset
+        internal static readonly SmiMetaData DefaultBigInt = new SmiMetaData(SqlDbType2.BigInt, 8, 19, 0, SqlCompareOptions.None);     // SqlDbType2.BigInt
+        internal static readonly SmiMetaData DefaultBinary = new SmiMetaData(SqlDbType2.Binary, 1, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Binary
+        internal static readonly SmiMetaData DefaultBit = new SmiMetaData(SqlDbType2.Bit, 1, 1, 0, SqlCompareOptions.None);     // SqlDbType2.Bit
+        internal static readonly SmiMetaData DefaultChar_NoCollation = new SmiMetaData(SqlDbType2.Char, 1, 0, 0, DefaultStringCompareOptions);// SqlDbType2.Char
+        internal static readonly SmiMetaData DefaultDateTime = new SmiMetaData(SqlDbType2.DateTime, 8, 23, 3, SqlCompareOptions.None);     // SqlDbType2.DateTime
+        internal static readonly SmiMetaData DefaultDecimal = new SmiMetaData(SqlDbType2.Decimal, 9, 18, 0, SqlCompareOptions.None);     // SqlDbType2.Decimal
+        internal static readonly SmiMetaData DefaultFloat = new SmiMetaData(SqlDbType2.Float, 8, 53, 0, SqlCompareOptions.None);     // SqlDbType2.Float
+        internal static readonly SmiMetaData DefaultImage = new SmiMetaData(SqlDbType2.Image, UnlimitedMaxLengthIndicator, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Image
+        internal static readonly SmiMetaData DefaultInt = new SmiMetaData(SqlDbType2.Int, 4, 10, 0, SqlCompareOptions.None);     // SqlDbType2.Int
+        internal static readonly SmiMetaData DefaultMoney = new SmiMetaData(SqlDbType2.Money, 8, 19, 4, SqlCompareOptions.None);     // SqlDbType2.Money
+        internal static readonly SmiMetaData DefaultNChar_NoCollation = new SmiMetaData(SqlDbType2.NChar, 1, 0, 0, DefaultStringCompareOptions);// SqlDbType2.NChar
+        internal static readonly SmiMetaData DefaultNText_NoCollation = new SmiMetaData(SqlDbType2.NText, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType2.NText
+        internal static readonly SmiMetaData DefaultNVarChar_NoCollation = new SmiMetaData(SqlDbType2.NVarChar, MaxUnicodeCharacters, 0, 0, DefaultStringCompareOptions);// SqlDbType2.NVarChar
+        internal static readonly SmiMetaData DefaultReal = new SmiMetaData(SqlDbType2.Real, 4, 24, 0, SqlCompareOptions.None);     // SqlDbType2.Real
+        internal static readonly SmiMetaData DefaultUniqueIdentifier = new SmiMetaData(SqlDbType2.UniqueIdentifier, 16, 0, 0, SqlCompareOptions.None);     // SqlDbType2.UniqueIdentifier
+        internal static readonly SmiMetaData DefaultSmallDateTime = new SmiMetaData(SqlDbType2.SmallDateTime, 4, 16, 0, SqlCompareOptions.None);     // SqlDbType2.SmallDateTime
+        internal static readonly SmiMetaData DefaultSmallInt = new SmiMetaData(SqlDbType2.SmallInt, 2, 5, 0, SqlCompareOptions.None);     // SqlDbType2.SmallInt
+        internal static readonly SmiMetaData DefaultSmallMoney = new SmiMetaData(SqlDbType2.SmallMoney, 4, 10, 4, SqlCompareOptions.None);     // SqlDbType2.SmallMoney
+        internal static readonly SmiMetaData DefaultText_NoCollation = new SmiMetaData(SqlDbType2.Text, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType2.Text
+        internal static readonly SmiMetaData DefaultTimestamp = new SmiMetaData(SqlDbType2.Timestamp, 8, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Timestamp
+        internal static readonly SmiMetaData DefaultTinyInt = new SmiMetaData(SqlDbType2.TinyInt, 1, 3, 0, SqlCompareOptions.None);     // SqlDbType2.TinyInt
+        internal static readonly SmiMetaData DefaultVarBinary = new SmiMetaData(SqlDbType2.VarBinary, MaxBinaryLength, 0, 0, SqlCompareOptions.None);     // SqlDbType2.VarBinary
+        internal static readonly SmiMetaData DefaultVarChar_NoCollation = new SmiMetaData(SqlDbType2.VarChar, MaxANSICharacters, 0, 0, DefaultStringCompareOptions);// SqlDbType2.VarChar
+        internal static readonly SmiMetaData DefaultVariant = new SmiMetaData(SqlDbType2.Variant, 8016, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Variant
+        internal static readonly SmiMetaData DefaultXml = new SmiMetaData(SqlDbType2.Xml, UnlimitedMaxLengthIndicator, 0, 0, DefaultStringCompareOptions);// SqlDbType2.Xml
+        internal static readonly SmiMetaData DefaultUdt_NoType = new SmiMetaData(SqlDbType2.Udt, 0, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Udt
+        internal static readonly SmiMetaData DefaultStructured = new SmiMetaData(SqlDbType2.Structured, 0, 0, 0, SqlCompareOptions.None);     // SqlDbType2.Structured
+        internal static readonly SmiMetaData DefaultDate = new SmiMetaData(SqlDbType2.Date, 3, 10, 0, SqlCompareOptions.None);     // SqlDbType2.Date
+        internal static readonly SmiMetaData DefaultTime = new SmiMetaData(SqlDbType2.Time, 5, 0, 7, SqlCompareOptions.None);     // SqlDbType2.Time
+        internal static readonly SmiMetaData DefaultDateTime2 = new SmiMetaData(SqlDbType2.DateTime2, 8, 0, 7, SqlCompareOptions.None);     // SqlDbType2.DateTime2
+        internal static readonly SmiMetaData DefaultDateTimeOffset = new SmiMetaData(SqlDbType2.DateTimeOffset, 10, 0, 7, SqlCompareOptions.None);     // SqlDbType2.DateTimeOffset
         // No default for generic UDT
 
         // character defaults hook thread-local culture to get collation
@@ -187,38 +187,38 @@ namespace Microsoft.Data.SqlClient.Server
         // The one and only constructor for use by outside code.
         //
         //  Parameters that matter for given values of dbType (other parameters are ignored in favor of internal defaults).
-        //  Thus, if dbType parameter value is SqlDbType.Decimal, the values of precision and scale passed in are used, but
+        //  Thus, if dbType parameter value is SqlDbType2.Decimal, the values of precision and scale passed in are used, but
         //  maxLength, localeId, compareOptions, etc are set to defaults for the Decimal type:
-        //      SqlDbType.BigInt:               dbType
-        //      SqlDbType.Binary:               dbType, maxLength
-        //      SqlDbType.Bit:                  dbType
-        //      SqlDbType.Char:                 dbType, maxLength, localeId, compareOptions
-        //      SqlDbType.DateTime:             dbType
-        //      SqlDbType.Decimal:              dbType, precision, scale
-        //      SqlDbType.Float:                dbType
-        //      SqlDbType.Image:                dbType
-        //      SqlDbType.Int:                  dbType
-        //      SqlDbType.Money:                dbType
-        //      SqlDbType.NChar:                dbType, maxLength, localeId, compareOptions
-        //      SqlDbType.NText:                dbType, localeId, compareOptions
-        //      SqlDbType.NVarChar:             dbType, maxLength, localeId, compareOptions
-        //      SqlDbType.Real:                 dbType
-        //      SqlDbType.UniqueIdentifier:     dbType
-        //      SqlDbType.SmallDateTime:        dbType
-        //      SqlDbType.SmallInt:             dbType
-        //      SqlDbType.SmallMoney:           dbType
-        //      SqlDbType.Text:                 dbType, localeId, compareOptions
-        //      SqlDbType.Timestamp:            dbType
-        //      SqlDbType.TinyInt:              dbType
-        //      SqlDbType.VarBinary:            dbType, maxLength
-        //      SqlDbType.VarChar:              dbType, maxLength, localeId, compareOptions
-        //      SqlDbType.Variant:              dbType
+        //      SqlDbType2.BigInt:               dbType
+        //      SqlDbType2.Binary:               dbType, maxLength
+        //      SqlDbType2.Bit:                  dbType
+        //      SqlDbType2.Char:                 dbType, maxLength, localeId, compareOptions
+        //      SqlDbType2.DateTime:             dbType
+        //      SqlDbType2.Decimal:              dbType, precision, scale
+        //      SqlDbType2.Float:                dbType
+        //      SqlDbType2.Image:                dbType
+        //      SqlDbType2.Int:                  dbType
+        //      SqlDbType2.Money:                dbType
+        //      SqlDbType2.NChar:                dbType, maxLength, localeId, compareOptions
+        //      SqlDbType2.NText:                dbType, localeId, compareOptions
+        //      SqlDbType2.NVarChar:             dbType, maxLength, localeId, compareOptions
+        //      SqlDbType2.Real:                 dbType
+        //      SqlDbType2.UniqueIdentifier:     dbType
+        //      SqlDbType2.SmallDateTime:        dbType
+        //      SqlDbType2.SmallInt:             dbType
+        //      SqlDbType2.SmallMoney:           dbType
+        //      SqlDbType2.Text:                 dbType, localeId, compareOptions
+        //      SqlDbType2.Timestamp:            dbType
+        //      SqlDbType2.TinyInt:              dbType
+        //      SqlDbType2.VarBinary:            dbType, maxLength
+        //      SqlDbType2.VarChar:              dbType, maxLength, localeId, compareOptions
+        //      SqlDbType2.Variant:              dbType
         //      PlaceHolder for value 24
-        //      SqlDbType.Xml:                  dbType
+        //      SqlDbType2.Xml:                  dbType
         //      Placeholder for value 26
         //      Placeholder for value 27
         //      Placeholder for value 28
-        //      SqlDbType.Udt:                  dbType, userDefinedType
+        //      SqlDbType2.Udt:                  dbType, userDefinedType
         //
 
         // SMI V100 (aka V3) constructor.  Superceded in V200.
@@ -305,43 +305,43 @@ namespace Microsoft.Data.SqlClient.Server
 
             switch (dbType)
             {
-                case SqlDbType.BigInt:
-                case SqlDbType.Bit:
-                case SqlDbType.DateTime:
-                case SqlDbType.Float:
-                case SqlDbType.Image:
-                case SqlDbType.Int:
-                case SqlDbType.Money:
-                case SqlDbType.Real:
-                case SqlDbType.SmallDateTime:
-                case SqlDbType.SmallInt:
-                case SqlDbType.SmallMoney:
-                case SqlDbType.Timestamp:
-                case SqlDbType.TinyInt:
-                case SqlDbType.UniqueIdentifier:
-                case SqlDbType.Variant:
-                case SqlDbType.Xml:
-                case SqlDbType.Date:
+                case SqlDbType2.BigInt:
+                case SqlDbType2.Bit:
+                case SqlDbType2.DateTime:
+                case SqlDbType2.Float:
+                case SqlDbType2.Image:
+                case SqlDbType2.Int:
+                case SqlDbType2.Money:
+                case SqlDbType2.Real:
+                case SqlDbType2.SmallDateTime:
+                case SqlDbType2.SmallInt:
+                case SqlDbType2.SmallMoney:
+                case SqlDbType2.Timestamp:
+                case SqlDbType2.TinyInt:
+                case SqlDbType2.UniqueIdentifier:
+                case SqlDbType2.Variant:
+                case SqlDbType2.Xml:
+                case SqlDbType2.Date:
                     break;
-                case SqlDbType.Binary:
-                case SqlDbType.VarBinary:
+                case SqlDbType2.Binary:
+                case SqlDbType2.VarBinary:
                     _maxLength = maxLength;
                     break;
-                case SqlDbType.Char:
-                case SqlDbType.NChar:
-                case SqlDbType.NVarChar:
-                case SqlDbType.VarChar:
+                case SqlDbType2.Char:
+                case SqlDbType2.NChar:
+                case SqlDbType2.NVarChar:
+                case SqlDbType2.VarChar:
                     // locale and compare options are not validated until they get to the server
                     _maxLength = maxLength;
                     _localeId = localeId;
                     _compareOptions = compareOptions;
                     break;
-                case SqlDbType.NText:
-                case SqlDbType.Text:
+                case SqlDbType2.NText:
+                case SqlDbType2.Text:
                     _localeId = localeId;
                     _compareOptions = compareOptions;
                     break;
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     Debug.Assert(MinPrecision <= precision && SqlDecimal.MaxPrecision >= precision, "Invalid precision: " + precision);
                     Debug.Assert(MinScale <= scale && SqlDecimal.MaxScale >= scale, "Invalid scale: " + scale);
                     Debug.Assert(scale <= precision, "Precision: " + precision + " greater than scale: " + scale);
@@ -349,7 +349,7 @@ namespace Microsoft.Data.SqlClient.Server
                     _scale = scale;
                     _maxLength = s_maxLenFromPrecision[precision - 1];
                     break;
-                case SqlDbType.Udt:
+                case SqlDbType2.Udt:
                     // For SqlParameter, both userDefinedType and udtAssemblyQualifiedName can be NULL,
                     // so we are checking only maxLength if it will be used (i.e. userDefinedType is NULL)
                     Debug.Assert((userDefinedType != null) || (0 <= maxLength || UnlimitedMaxLengthIndicator == maxLength),
@@ -366,7 +366,7 @@ namespace Microsoft.Data.SqlClient.Server
                     }
                     _udtAssemblyQualifiedName = udtAssemblyQualifiedName;
                     break;
-                case SqlDbType.Structured:
+                case SqlDbType2.Structured:
                     if (fieldTypes != null)
                     {
                         _fieldMetaData = (new List<SmiExtendedMetaData>(fieldTypes)).AsReadOnly();
@@ -374,17 +374,17 @@ namespace Microsoft.Data.SqlClient.Server
                     _isMultiValued = isMultiValued;
                     _maxLength = _fieldMetaData.Count;
                     break;
-                case SqlDbType.Time:
+                case SqlDbType2.Time:
                     Debug.Assert(MinScale <= scale && scale <= MaxTimeScale, "Invalid time scale: " + scale);
                     _scale = scale;
                     _maxLength = 5 - s_maxVarTimeLenOffsetFromScale[scale];
                     break;
-                case SqlDbType.DateTime2:
+                case SqlDbType2.DateTime2:
                     Debug.Assert(MinScale <= scale && scale <= MaxTimeScale, "Invalid time scale: " + scale);
                     _scale = scale;
                     _maxLength = 8 - s_maxVarTimeLenOffsetFromScale[scale];
                     break;
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.DateTimeOffset:
                     Debug.Assert(MinScale <= scale && scale <= MaxTimeScale, "Invalid time scale: " + scale);
                     _scale = scale;
                     _maxLength = 10 - s_maxVarTimeLenOffsetFromScale[scale];
@@ -418,48 +418,48 @@ namespace Microsoft.Data.SqlClient.Server
             bool result = true;
             switch (dbType)
             {
-                case SqlDbType.BigInt:
-                case SqlDbType.Bit:
-                case SqlDbType.DateTime:
-                case SqlDbType.Float:
-                case SqlDbType.Image:
-                case SqlDbType.Int:
-                case SqlDbType.Money:
-                case SqlDbType.Real:
-                case SqlDbType.SmallDateTime:
-                case SqlDbType.SmallInt:
-                case SqlDbType.SmallMoney:
-                case SqlDbType.Timestamp:
-                case SqlDbType.TinyInt:
-                case SqlDbType.UniqueIdentifier:
-                case SqlDbType.Variant:
-                case SqlDbType.Xml:
-                case SqlDbType.NText:
-                case SqlDbType.Text:
-                case SqlDbType.Decimal:
-                case SqlDbType.Udt:
-                case SqlDbType.Structured:
-                case SqlDbType.Date:
-                case SqlDbType.Time:
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.BigInt:
+                case SqlDbType2.Bit:
+                case SqlDbType2.DateTime:
+                case SqlDbType2.Float:
+                case SqlDbType2.Image:
+                case SqlDbType2.Int:
+                case SqlDbType2.Money:
+                case SqlDbType2.Real:
+                case SqlDbType2.SmallDateTime:
+                case SqlDbType2.SmallInt:
+                case SqlDbType2.SmallMoney:
+                case SqlDbType2.Timestamp:
+                case SqlDbType2.TinyInt:
+                case SqlDbType2.UniqueIdentifier:
+                case SqlDbType2.Variant:
+                case SqlDbType2.Xml:
+                case SqlDbType2.NText:
+                case SqlDbType2.Text:
+                case SqlDbType2.Decimal:
+                case SqlDbType2.Udt:
+                case SqlDbType2.Structured:
+                case SqlDbType2.Date:
+                case SqlDbType2.Time:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     break;
-                case SqlDbType.Binary:
+                case SqlDbType2.Binary:
                     result = 0 < maxLength && MaxBinaryLength >= maxLength;
                     break;
-                case SqlDbType.VarBinary:
+                case SqlDbType2.VarBinary:
                     result = UnlimitedMaxLengthIndicator == maxLength || (0 < maxLength && MaxBinaryLength >= maxLength);
                     break;
-                case SqlDbType.Char:
+                case SqlDbType2.Char:
                     result = 0 < maxLength && MaxANSICharacters >= maxLength;
                     break;
-                case SqlDbType.NChar:
+                case SqlDbType2.NChar:
                     result = 0 < maxLength && MaxUnicodeCharacters >= maxLength;
                     break;
-                case SqlDbType.NVarChar:
+                case SqlDbType2.NVarChar:
                     result = UnlimitedMaxLengthIndicator == maxLength || (0 < maxLength && MaxUnicodeCharacters >= maxLength);
                     break;
-                case SqlDbType.VarChar:
+                case SqlDbType2.VarChar:
                     result = UnlimitedMaxLengthIndicator == maxLength || (0 < maxLength && MaxANSICharacters >= maxLength);
                     break;
                 default:
@@ -493,7 +493,7 @@ namespace Microsoft.Data.SqlClient.Server
             get
             {
                 // Fault-in UDT clr types on access if have assembly-qualified name
-                if (null == _clrType && SqlDbType.Udt == _databaseType && _udtAssemblyQualifiedName != null)
+                if (null == _clrType && SqlDbType2.Udt == _databaseType && _udtAssemblyQualifiedName != null)
                 {
                     _clrType = Type.GetType(_udtAssemblyQualifiedName, true);
                 }
@@ -507,7 +507,7 @@ namespace Microsoft.Data.SqlClient.Server
             get
             {
                 // Fault-in UDT clr types on access if have assembly-qualified name
-                if (null == _clrType && SqlDbType.Udt == _databaseType && _udtAssemblyQualifiedName != null)
+                if (null == _clrType && SqlDbType2.Udt == _databaseType && _udtAssemblyQualifiedName != null)
                 {
                     _clrType = Type.GetType(_udtAssemblyQualifiedName, false);
                 }
@@ -520,7 +520,7 @@ namespace Microsoft.Data.SqlClient.Server
             get
             {
                 string result;
-                if (SqlDbType.Udt == _databaseType)
+                if (SqlDbType2.Udt == _databaseType)
                 {
                     Debug.Assert(string.Empty == s_typeNameByDatabaseType[(int)_databaseType], "unexpected udt?");
                     result = Type.FullName;
@@ -539,7 +539,7 @@ namespace Microsoft.Data.SqlClient.Server
             get
             {
                 string result = null;
-                if (SqlDbType.Udt == _databaseType)
+                if (SqlDbType2.Udt == _databaseType)
                 {
                     // Fault-in assembly-qualified name if type is available
                     if (_udtAssemblyQualifiedName == null && _clrType != null)
@@ -563,11 +563,11 @@ namespace Microsoft.Data.SqlClient.Server
         internal static bool IsSupportedDbType(SqlDbType dbType)
         {
             // Hole in SqlDbTypes between Xml and Udt for non-WinFS scenarios.
-            return (SqlDbType.BigInt <= dbType && SqlDbType.Xml >= dbType) ||
-                    (SqlDbType.Udt <= dbType && SqlDbType.DateTimeOffset >= dbType);
+            return (SqlDbType2.BigInt <= dbType && SqlDbType2.Xml >= dbType) ||
+                    (SqlDbType2.Udt <= dbType && SqlDbType2.DateTimeOffset >= dbType);
         }
 
-        // Only correct access point for defaults per SqlDbType.
+        // Only correct access point for defaults per SqlDbType2.
         internal static SmiMetaData GetDefaultForType(SqlDbType dbType)
         {
             Debug.Assert(IsSupportedDbType(dbType), "Unsupported SqlDbtype: " + dbType);
@@ -599,88 +599,88 @@ namespace Microsoft.Data.SqlClient.Server
             _extendedProperties = SmiMetaDataPropertyCollection.s_emptyInstance;
         }
 
-        // static array of default-valued metadata ordered by corresponding SqlDbType.
+        // static array of default-valued metadata ordered by corresponding SqlDbType2.
         // NOTE: INDEXED BY SqlDbType ENUM!  MUST UPDATE THIS ARRAY WHEN UPDATING SqlDbType!
         //   ONLY ACCESS THIS GLOBAL FROM GetDefaultForType!
         private static readonly SmiMetaData[] s_defaultValues =
             {
-                DefaultBigInt,                 // SqlDbType.BigInt
-                DefaultBinary,                 // SqlDbType.Binary
-                DefaultBit,                    // SqlDbType.Bit
-                DefaultChar_NoCollation,       // SqlDbType.Char
-                DefaultDateTime,               // SqlDbType.DateTime
-                DefaultDecimal,                // SqlDbType.Decimal
-                DefaultFloat,                  // SqlDbType.Float
-                DefaultImage,                  // SqlDbType.Image
-                DefaultInt,                    // SqlDbType.Int
-                DefaultMoney,                  // SqlDbType.Money
-                DefaultNChar_NoCollation,      // SqlDbType.NChar
-                DefaultNText_NoCollation,      // SqlDbType.NText
-                DefaultNVarChar_NoCollation,   // SqlDbType.NVarChar
-                DefaultReal,                   // SqlDbType.Real
-                DefaultUniqueIdentifier,       // SqlDbType.UniqueIdentifier
-                DefaultSmallDateTime,          // SqlDbType.SmallDateTime
-                DefaultSmallInt,               // SqlDbType.SmallInt
-                DefaultSmallMoney,             // SqlDbType.SmallMoney
-                DefaultText_NoCollation,       // SqlDbType.Text
-                DefaultTimestamp,              // SqlDbType.Timestamp
-                DefaultTinyInt,                // SqlDbType.TinyInt
-                DefaultVarBinary,              // SqlDbType.VarBinary
-                DefaultVarChar_NoCollation,    // SqlDbType.VarChar
-                DefaultVariant,                // SqlDbType.Variant
+                DefaultBigInt,                 // SqlDbType2.BigInt
+                DefaultBinary,                 // SqlDbType2.Binary
+                DefaultBit,                    // SqlDbType2.Bit
+                DefaultChar_NoCollation,       // SqlDbType2.Char
+                DefaultDateTime,               // SqlDbType2.DateTime
+                DefaultDecimal,                // SqlDbType2.Decimal
+                DefaultFloat,                  // SqlDbType2.Float
+                DefaultImage,                  // SqlDbType2.Image
+                DefaultInt,                    // SqlDbType2.Int
+                DefaultMoney,                  // SqlDbType2.Money
+                DefaultNChar_NoCollation,      // SqlDbType2.NChar
+                DefaultNText_NoCollation,      // SqlDbType2.NText
+                DefaultNVarChar_NoCollation,   // SqlDbType2.NVarChar
+                DefaultReal,                   // SqlDbType2.Real
+                DefaultUniqueIdentifier,       // SqlDbType2.UniqueIdentifier
+                DefaultSmallDateTime,          // SqlDbType2.SmallDateTime
+                DefaultSmallInt,               // SqlDbType2.SmallInt
+                DefaultSmallMoney,             // SqlDbType2.SmallMoney
+                DefaultText_NoCollation,       // SqlDbType2.Text
+                DefaultTimestamp,              // SqlDbType2.Timestamp
+                DefaultTinyInt,                // SqlDbType2.TinyInt
+                DefaultVarBinary,              // SqlDbType2.VarBinary
+                DefaultVarChar_NoCollation,    // SqlDbType2.VarChar
+                DefaultVariant,                // SqlDbType2.Variant
                 DefaultNVarChar_NoCollation,   // Placeholder for value 24
-                DefaultXml,                    // SqlDbType.Xml
+                DefaultXml,                    // SqlDbType2.Xml
                 DefaultNVarChar_NoCollation,   // Placeholder for value 26
                 DefaultNVarChar_NoCollation,   // Placeholder for value 27
                 DefaultNVarChar_NoCollation,   // Placeholder for value 28
                 DefaultUdt_NoType,             // Generic Udt
                 DefaultStructured,             // Generic structured type
-                DefaultDate,                   // SqlDbType.Date
-                DefaultTime,                   // SqlDbType.Time
-                DefaultDateTime2,              // SqlDbType.DateTime2
-                DefaultDateTimeOffset,         // SqlDbType.DateTimeOffset
+                DefaultDate,                   // SqlDbType2.Date
+                DefaultTime,                   // SqlDbType2.Time
+                DefaultDateTime2,              // SqlDbType2.DateTime2
+                DefaultDateTimeOffset,         // SqlDbType2.DateTimeOffset
             };
 
-        // static array of type names ordered by corresponding SqlDbType.
+        // static array of type names ordered by corresponding SqlDbType2.
         // NOTE: INDEXED BY SqlDbType ENUM!  MUST UPDATE THIS ARRAY WHEN UPDATING SqlDbType!
         //   ONLY ACCESS THIS GLOBAL FROM get_TypeName!
         private static readonly string[] s_typeNameByDatabaseType =
             {
-                "bigint",               // SqlDbType.BigInt
-                "binary",               // SqlDbType.Binary
-                "bit",                  // SqlDbType.Bit
-                "char",                 // SqlDbType.Char
-                "datetime",             // SqlDbType.DateTime
-                "decimal",              // SqlDbType.Decimal
-                "float",                // SqlDbType.Float
-                "image",                // SqlDbType.Image
-                "int",                  // SqlDbType.Int
-                "money",                // SqlDbType.Money
-                "nchar",                // SqlDbType.NChar
-                "ntext",                // SqlDbType.NText
-                "nvarchar",             // SqlDbType.NVarChar
-                "real",                 // SqlDbType.Real
-                "uniqueidentifier",     // SqlDbType.UniqueIdentifier
-                "smalldatetime",        // SqlDbType.SmallDateTime
-                "smallint",             // SqlDbType.SmallInt
-                "smallmoney",           // SqlDbType.SmallMoney
-                "text",                 // SqlDbType.Text
-                "timestamp",            // SqlDbType.Timestamp
-                "tinyint",              // SqlDbType.TinyInt
-                "varbinary",            // SqlDbType.VarBinary
-                "varchar",              // SqlDbType.VarChar
-                "sql_variant",          // SqlDbType.Variant
+                "bigint",               // SqlDbType2.BigInt
+                "binary",               // SqlDbType2.Binary
+                "bit",                  // SqlDbType2.Bit
+                "char",                 // SqlDbType2.Char
+                "datetime",             // SqlDbType2.DateTime
+                "decimal",              // SqlDbType2.Decimal
+                "float",                // SqlDbType2.Float
+                "image",                // SqlDbType2.Image
+                "int",                  // SqlDbType2.Int
+                "money",                // SqlDbType2.Money
+                "nchar",                // SqlDbType2.NChar
+                "ntext",                // SqlDbType2.NText
+                "nvarchar",             // SqlDbType2.NVarChar
+                "real",                 // SqlDbType2.Real
+                "uniqueidentifier",     // SqlDbType2.UniqueIdentifier
+                "smalldatetime",        // SqlDbType2.SmallDateTime
+                "smallint",             // SqlDbType2.SmallInt
+                "smallmoney",           // SqlDbType2.SmallMoney
+                "text",                 // SqlDbType2.Text
+                "timestamp",            // SqlDbType2.Timestamp
+                "tinyint",              // SqlDbType2.TinyInt
+                "varbinary",            // SqlDbType2.VarBinary
+                "varchar",              // SqlDbType2.VarChar
+                "sql_variant",          // SqlDbType2.Variant
                 null,                   // placeholder for 24
-                "xml",                  // SqlDbType.Xml
+                "xml",                  // SqlDbType2.Xml
                 null,                   // placeholder for 26
                 null,                   // placeholder for 27
                 null,                   // placeholder for 28
-                string.Empty,           // SqlDbType.Udt  -- get type name from Type.FullName instead.
+                string.Empty,           // SqlDbType2.Udt  -- get type name from Type.FullName instead.
                 string.Empty,           // Structured types have user-defined type names.
-                "date",                 // SqlDbType.Date
-                "time",                 // SqlDbType.Time
-                "datetime2",            // SqlDbType.DateTime2
-                "datetimeoffset",       // SqlDbType.DateTimeOffset
+                "date",                 // SqlDbType2.Date
+                "time",                 // SqlDbType2.Time
+                "datetime2",            // SqlDbType2.DateTime2
+                "datetimeoffset",       // SqlDbType2.DateTimeOffset
             };
 
         // Internal setter to be used by constructors only!  Modifies state!

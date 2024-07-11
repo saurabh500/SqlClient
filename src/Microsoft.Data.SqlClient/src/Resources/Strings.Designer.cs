@@ -1321,7 +1321,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Metadata must be SqlDbType.Row.
+        ///   Looks up a localized string similar to Metadata must be SqlDbType2.Row.
         /// </summary>
         internal static string ADP_NotRowType {
             get {
@@ -7162,7 +7162,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SqlDbType.Structured type is only supported for multiple valued types..
+        ///   Looks up a localized string similar to SqlDbType2.Structured type is only supported for multiple valued types..
         /// </summary>
         internal static string MetaType_SingleValuedStructNotSupported {
             get {
@@ -9901,7 +9901,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SqlDbType.SmallMoney overflow.  Value &apos;{0}&apos; is out of range.  Must be between -214,748.3648 and 214,748.3647..
+        ///   Looks up a localized string similar to SqlDbType2.SmallMoney overflow.  Value &apos;{0}&apos; is out of range.  Must be between -214,748.3648 and 214,748.3647..
         /// </summary>
         internal static string SQL_MoneyOverflow {
             get {
@@ -10333,7 +10333,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SqlDbType.SmallDateTime overflow.  Value &apos;{0}&apos; is out of range.  Must be between 1/1/1900 12:00:00 AM and 6/6/2079 11:59:59 PM..
+        ///   Looks up a localized string similar to SqlDbType2.SmallDateTime overflow.  Value &apos;{0}&apos; is out of range.  Must be between 1/1/1900 12:00:00 AM and 6/6/2079 11:59:59 PM..
         /// </summary>
         internal static string SQL_SmallDateTimeOverflow {
             get {
@@ -10648,7 +10648,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SqlDbType.Time overflow.  Value &apos;{0}&apos; is out of range.  Must be between 00:00:00.0000000 and 23:59:59.9999999..
+        ///   Looks up a localized string similar to SqlDbType2.Time overflow.  Value &apos;{0}&apos; is out of range.  Must be between 00:00:00.0000000 and 23:59:59.9999999..
         /// </summary>
         internal static string SQL_TimeOverflow {
             get {
@@ -11323,7 +11323,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to GetMetaData is not valid for this SqlDbType..
+        ///   Looks up a localized string similar to GetMetaData is not valid for this SqlDbType2..
         /// </summary>
         internal static string SqlMetaData_NoMetadata {
             get {

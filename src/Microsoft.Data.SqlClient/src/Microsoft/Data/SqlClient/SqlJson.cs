@@ -30,7 +30,7 @@ namespace Microsoft.Data.SqlClient
         /// Creates a <see cref="SqlJson" /> instance, from the Json represented by the <see cref="JsonDocument" /> .
         /// </summary>
         /// <param name="jsonDocument">A <see cref="JsonDocument"/> instance.</param>
-        public SqlJson(JsonDocument jsonDocument) 
+        public SqlJson(JsonDocument jsonDocument)
         {
             // TODO: This JSON document will be transmitted as a string to SQL server.
             // No need to validate anything since a jsonDocument means a valid json structure.

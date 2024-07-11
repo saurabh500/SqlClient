@@ -17,7 +17,7 @@ namespace Microsoft.Data.SqlClient.Server
         private Type GetFieldTypeFrameworkSpecific(int ordinal)
         {
             SqlMetaData md = GetSqlMetaData(ordinal);
-            if (md.SqlDbType == SqlDbType.Udt)
+            if (md.SqlDbType == SqlDbType2.Udt)
             {
                 return md.Type;
             }

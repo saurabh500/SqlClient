@@ -103,12 +103,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 IEnumerable<int> Ids = list.Select(x => x.id.Value).Distinct();
 
-                var sqlParam = new SqlParameter("ids", SqlDbType.Structured)
+                var sqlParam = new SqlParameter("ids", SqlDbType2.Structured)
                 {
                     TypeName = "dbo.TableOfIntId",
                     SqlValue = Ids.Select(x =>
                     {
-                        SqlDataRecord rec = new(new[] { new SqlMetaData("Id", SqlDbType.Int) });
+                        SqlDataRecord rec = new(new[] { new SqlMetaData("Id", SqlDbType2.Int) });
                         rec.SetInt32(0, x);
                         return rec;
                     })
@@ -390,7 +390,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-                param = cmd.Parameters.Add(TvpName, SqlDbType.Structured);
+                param = cmd.Parameters.Add(TvpName, SqlDbType2.Structured);
                 param.TypeName = GetTypeName(tvpPerm);
 
                 // set up the server
@@ -479,7 +479,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 cmd.CommandText = procName;
                 cmd.CommandType = CommandType.StoredProcedure;
-                SqlParameter param = cmd.Parameters.Add("@tvp", SqlDbType.Structured);
+                SqlParameter param = cmd.Parameters.Add("@tvp", SqlDbType2.Structured);
 
                 SqlMetaData[] columnMetadata;
                 List<SqlDataRecord> rows = new();
@@ -487,10 +487,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 Console.WriteLine("------- Sort order + uniqueness #1: simple -------");
                 columnMetadata = new SqlMetaData[] {
-                            new SqlMetaData("", SqlDbType.Int, false, true, SortOrder.Ascending, 0),
-                            new SqlMetaData("", SqlDbType.NVarChar, 40, false, true, SortOrder.Descending, 1),
-                            new SqlMetaData("", SqlDbType.DateTime, false, true, SortOrder.Ascending, 2),
-                            new SqlMetaData("", SqlDbType.Int, false, true, SortOrder.Descending, 3),
+                            new SqlMetaData("", SqlDbType2.Int, false, true, SortOrder.Ascending, 0),
+                            new SqlMetaData("", SqlDbType2.NVarChar, 40, false, true, SortOrder.Descending, 1),
+                            new SqlMetaData("", SqlDbType2.DateTime, false, true, SortOrder.Ascending, 2),
+                            new SqlMetaData("", SqlDbType2.Int, false, true, SortOrder.Descending, 3),
                         };
 
                 record = new SqlDataRecord(columnMetadata);
@@ -522,10 +522,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 Console.WriteLine("------- Sort order + uniqueness #2: mixed order -------");
                 columnMetadata = new SqlMetaData[] {
-                            new SqlMetaData("", SqlDbType.Int, false, true, SortOrder.Descending, 3),
-                            new SqlMetaData("", SqlDbType.NVarChar, 40, false, true, SortOrder.Descending, 0),
-                            new SqlMetaData("", SqlDbType.DateTime, false, true, SortOrder.Ascending, 2),
-                            new SqlMetaData("", SqlDbType.Int, false, true, SortOrder.Ascending, 1),
+                            new SqlMetaData("", SqlDbType2.Int, false, true, SortOrder.Descending, 3),
+                            new SqlMetaData("", SqlDbType2.NVarChar, 40, false, true, SortOrder.Descending, 0),
+                            new SqlMetaData("", SqlDbType2.DateTime, false, true, SortOrder.Ascending, 2),
+                            new SqlMetaData("", SqlDbType2.Int, false, true, SortOrder.Ascending, 1),
                         };
 
                 record = new SqlDataRecord(columnMetadata);
@@ -561,10 +561,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 Console.WriteLine("------- default column #1: outer subset -------");
                 columnMetadata = new SqlMetaData[] {
-                            new SqlMetaData("", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.NVarChar, 40, false, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.DateTime, false, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.NVarChar, 40, false, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.DateTime, false, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, true, false, SortOrder.Unspecified, -1),
                         };
 
                 record = new SqlDataRecord(columnMetadata);
@@ -600,10 +600,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 Console.WriteLine("------- default column #1: middle subset -------");
                 columnMetadata = new SqlMetaData[] {
-                            new SqlMetaData("", SqlDbType.Int, false, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.NVarChar, 40, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.Int, false, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, false, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.NVarChar, 40, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.DateTime, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, false, false, SortOrder.Unspecified, -1),
                         };
 
                 record = new SqlDataRecord(columnMetadata);
@@ -639,10 +639,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 Console.WriteLine("------- default column #1: all -------");
                 columnMetadata = new SqlMetaData[] {
-                            new SqlMetaData("", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.NVarChar, 40, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-                            new SqlMetaData("", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.NVarChar, 40, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.DateTime, true, false, SortOrder.Unspecified, -1),
+                            new SqlMetaData("", SqlDbType2.Int, true, false, SortOrder.Unspecified, -1),
                         };
 
                 record = new SqlDataRecord(columnMetadata);
@@ -697,7 +697,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 Connection = connection,
             };
             await cmd.Connection.OpenAsync();
-            cmd.Parameters.Add(new SqlParameter("@rows", SqlDbType.Structured)
+            cmd.Parameters.Add(new SqlParameter("@rows", SqlDbType2.Structured)
             {
                 TypeName = "unimportant",
                 Value = enumerator,
@@ -755,8 +755,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                                 resultStr.Length == maxLength &&
                                 metadata.TryGetValue(SteAttributeKey.SqlDbType, out value) &&
                                 value != SteTypeBoundaries.s_doNotUseMarker &&
-                                (SqlDbType.Char == ((SqlDbType)value) ||
-                                  SqlDbType.NChar == ((SqlDbType)value)))
+                                (SqlDbType2.Char == ((SqlDbType)value) ||
+                                  SqlDbType2.NChar == ((SqlDbType)value)))
                     {
                         returnValue = true;
                     }
@@ -801,7 +801,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         }
                         // Check for length extension due to fixed-length type
                         else if (metadata.TryGetValue(SteAttributeKey.SqlDbType, out value) && value != SteTypeBoundaries.s_doNotUseMarker &&
-                                (SqlDbType.Binary == ((SqlDbType)value)))
+                                (SqlDbType2.Binary == ((SqlDbType)value)))
                         {
                             returnValue = true;
                         }
@@ -839,8 +839,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 }
                 else if (metadata.TryGetValue(SteAttributeKey.SqlDbType, out object value) &&
                         SteTypeBoundaries.s_doNotUseMarker != value &&
-                        (SqlDbType.SmallMoney == (SqlDbType)value ||
-                         SqlDbType.Money == (SqlDbType)value))
+                        (SqlDbType2.SmallMoney == (SqlDbType)value ||
+                         SqlDbType2.Money == (SqlDbType)value))
                 {
                     // Some server conversions seem to lose the decimal places
                     // TODO: Investigate and validate that this is acceptable!
@@ -858,7 +858,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 // check if value was altered by precision/scale conversion
                 else if (metadata.TryGetValue(SteAttributeKey.SqlDbType, out value) &&
                         SteTypeBoundaries.s_doNotUseMarker != value &&
-                        SqlDbType.Decimal == (SqlDbType)value)
+                        SqlDbType2.Decimal == (SqlDbType)value)
                 {
                     if (metadata.TryGetValue(SteAttributeKey.Scale, out value) &&
                             metadata.TryGetValue(SteAttributeKey.Precision, out object value2) &&
@@ -1088,10 +1088,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 SqlDbType dbType = (SqlDbType)perm[SteAttributeKey.SqlDbType];
                 switch (dbType)
                 {
-                    case SqlDbType.BigInt:
+                    case SqlDbType2.BigInt:
                         tsql.Append("Bigint");
                         break;
-                    case SqlDbType.Binary:
+                    case SqlDbType2.Binary:
                         tsql.Append("Binary(");
                         object maxLenObj = perm[SteAttributeKey.MaxLength];
                         int maxLen;
@@ -1106,94 +1106,94 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         tsql.Append(maxLen);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.Bit:
+                    case SqlDbType2.Bit:
                         tsql.Append("Bit");
                         break;
-                    case SqlDbType.Char:
+                    case SqlDbType2.Char:
                         tsql.Append("Char(");
                         tsql.Append(perm[SteAttributeKey.MaxLength]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.DateTime:
+                    case SqlDbType2.DateTime:
                         tsql.Append("DateTime");
                         break;
-                    case SqlDbType.Decimal:
+                    case SqlDbType2.Decimal:
                         tsql.Append("Decimal(");
                         tsql.Append(perm[SteAttributeKey.Precision]);
                         tsql.Append(", ");
                         tsql.Append(perm[SteAttributeKey.Scale]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.Float:
+                    case SqlDbType2.Float:
                         tsql.Append("Float");
                         break;
-                    case SqlDbType.Image:
+                    case SqlDbType2.Image:
                         tsql.Append("Image");
                         break;
-                    case SqlDbType.Int:
+                    case SqlDbType2.Int:
                         tsql.Append("Int");
                         break;
-                    case SqlDbType.Money:
+                    case SqlDbType2.Money:
                         tsql.Append("Money");
                         break;
-                    case SqlDbType.NChar:
+                    case SqlDbType2.NChar:
                         tsql.Append("NChar(");
                         tsql.Append(perm[SteAttributeKey.MaxLength]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.NText:
+                    case SqlDbType2.NText:
                         tsql.Append("NText");
                         break;
-                    case SqlDbType.NVarChar:
+                    case SqlDbType2.NVarChar:
                         tsql.Append("NVarChar(");
                         tsql.Append(perm[SteAttributeKey.MaxLength]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.Real:
+                    case SqlDbType2.Real:
                         tsql.Append("Real");
                         break;
-                    case SqlDbType.UniqueIdentifier:
+                    case SqlDbType2.UniqueIdentifier:
                         tsql.Append("UniqueIdentifier");
                         break;
-                    case SqlDbType.SmallDateTime:
+                    case SqlDbType2.SmallDateTime:
                         tsql.Append("SmallDateTime");
                         break;
-                    case SqlDbType.SmallInt:
+                    case SqlDbType2.SmallInt:
                         tsql.Append("SmallInt");
                         break;
-                    case SqlDbType.SmallMoney:
+                    case SqlDbType2.SmallMoney:
                         tsql.Append("SmallMoney");
                         break;
-                    case SqlDbType.Text:
+                    case SqlDbType2.Text:
                         tsql.Append("Text");
                         break;
-                    case SqlDbType.Timestamp:
+                    case SqlDbType2.Timestamp:
                         tsql.Append("Timestamp");
                         break;
-                    case SqlDbType.TinyInt:
+                    case SqlDbType2.TinyInt:
                         tsql.Append("TinyInt");
                         break;
-                    case SqlDbType.VarBinary:
+                    case SqlDbType2.VarBinary:
                         tsql.Append("VarBinary(");
                         tsql.Append(perm[SteAttributeKey.MaxLength]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.VarChar:
+                    case SqlDbType2.VarChar:
                         tsql.Append("VarChar(");
                         tsql.Append(perm[SteAttributeKey.MaxLength]);
                         tsql.Append(")");
                         break;
-                    case SqlDbType.Variant:
+                    case SqlDbType2.Variant:
                         tsql.Append("Variant");
                         break;
-                    case SqlDbType.Xml:
+                    case SqlDbType2.Xml:
                         tsql.Append("Xml");
                         break;
-                    case SqlDbType.Udt:
+                    case SqlDbType2.Udt:
                         string typeName = (string)perm[SteAttributeKey.TypeName];
                         tsql.Append(typeName);
                         break;
-                    case SqlDbType.Structured:
+                    case SqlDbType2.Structured:
                         throw new NotSupportedException("Not supported");
                 }
 
@@ -1405,7 +1405,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 type = (Type)attr;
             }
 
-            //if (SqlDbType.Udt == sqlDbType)
+            //if (SqlDbType2.Udt == sqlDbType)
             //{
             //    return new SqlMetaData("", sqlDbType, type, typeName);
             //}
@@ -1648,7 +1648,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 row[SchemaTableColumn.IsLong] = md.MaxLength == SqlMetaData.Max || md.MaxLength > 8000;
                 row[SchemaTableColumn.AllowDBNull] = true;
                 row[SchemaTableOptionalColumn.IsReadOnly] = true;
-                row[SchemaTableOptionalColumn.IsRowVersion] = md.SqlDbType == SqlDbType.Timestamp;
+                row[SchemaTableOptionalColumn.IsRowVersion] = md.SqlDbType == SqlDbType2.Timestamp;
                 row[SchemaTableColumn.IsUnique] = false;
                 row[SchemaTableColumn.IsKey] = false;
                 row[SchemaTableOptionalColumn.IsAutoIncrement] = false;
@@ -1781,7 +1781,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         public WraparoundRowEnumerator(int maxCount)
         {
             _maxCount = maxCount;
-            _record = new SqlDataRecord(new SqlMetaData("someData", SqlDbType.VarBinary, 8000));
+            _record = new SqlDataRecord(new SqlMetaData("someData", SqlDbType2.VarBinary, 8000));
 
             // 56 31 0 0 is result of calling BitConverter.GetBytes((int)7992)
             // The rest of the bytes are just padding to get 56, 31, 0, 0 to be in bytes 8-11 of TdsParserStatObject._outBuff after the 256th packet

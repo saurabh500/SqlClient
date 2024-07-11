@@ -484,7 +484,7 @@ namespace Microsoft.Data.SqlClient
         {
             get
             {
-                return SqlDbType.Date == type || SqlDbType.Time == type || SqlDbType.DateTime2 == type || SqlDbType.DateTimeOffset == type;
+                return SqlDbType2.Date == type || SqlDbType2.Time == type || SqlDbType2.DateTime2 == type || SqlDbType2.DateTimeOffset == type;
             }
         }
 
@@ -492,7 +492,7 @@ namespace Microsoft.Data.SqlClient
         {
             get
             {
-                return type == SqlDbType.Udt && length == Int32.MaxValue;
+                return type == SqlDbType2.Udt && length == Int32.MaxValue;
             }
         }
 
@@ -885,7 +885,7 @@ namespace Microsoft.Data.SqlClient
             IsMultiValued = 1 << 2
         }
 
-        internal SqlDbType type;    // SqlDbType enum value
+        internal SqlDbType2 type;    // SqlDbType enum value
         internal byte tdsType; // underlying tds type
         internal byte precision = TdsEnums.UNKNOWN_PRECISION_SCALE; // give default of unknown (-1)
         internal byte scale = TdsEnums.UNKNOWN_PRECISION_SCALE; // give default of unknown (-1)

@@ -186,7 +186,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 }
                 else
                 {
-                    ins.Parameters.Add("@blob", oldTypes ? SqlDbType.Image : SqlDbType.VarBinary, paramLen);
+                    ins.Parameters.Add("@blob", oldTypes ? SqlDbType2.Image : SqlDbType2.VarBinary, paramLen);
                     ins.Parameters["@blob"].Direction = ParameterDirection.Input;
                     ins.Parameters["@blob"].Value = stream;
                 }
@@ -320,8 +320,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 else
                 {
                     ins.Parameters.Add("@blob", nvarchar ?
-                                                   (oldTypes ? SqlDbType.NText : SqlDbType.NVarChar) :
-                                                   (oldTypes ? SqlDbType.Text : SqlDbType.VarChar), paramLen);
+                                                   (oldTypes ? SqlDbType2.NText : SqlDbType2.NVarChar) :
+                                                   (oldTypes ? SqlDbType2.Text : SqlDbType2.VarChar), paramLen);
                     ins.Parameters["@blob"].Direction = ParameterDirection.Input;
                     ins.Parameters["@blob"].Value = reader;
                 }
@@ -422,7 +422,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 }
                 else
                 {
-                    ins.Parameters.Add("@blob", SqlDbType.Xml, lengthLimited ? XmlStr.Length : -1);
+                    ins.Parameters.Add("@blob", SqlDbType2.Xml, lengthLimited ? XmlStr.Length : -1);
                     ins.Parameters["@blob"].Direction = ParameterDirection.Input;
                     ins.Parameters["@blob"].Value = reader;
                 }
@@ -480,7 +480,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             MemoryStream ms = new(data, false);
             // Include a delay to allow time for cancellation
             cmd.CommandText = "WAITFOR DELAY '00:00:05'; insert into #blobs (Id, blob) values (1, @blob)";
-            cmd.Parameters.Add("@blob", SqlDbType.VarBinary, dataSize);
+            cmd.Parameters.Add("@blob", SqlDbType2.VarBinary, dataSize);
             cmd.Parameters["@blob"].Direction = ParameterDirection.Input;
             cmd.Parameters["@blob"].Value = ms;
 
@@ -522,7 +522,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 sb.Append(i);
             // Include a delay to allow time for cancellation
             cmd.CommandText = "WAITFOR DELAY '00:00:05'; insert into #blobs (Id, blob) values (1, @blob)";
-            cmd.Parameters.Add("@blob", SqlDbType.VarChar, -1);
+            cmd.Parameters.Add("@blob", SqlDbType2.VarChar, -1);
             cmd.Parameters["@blob"].Direction = ParameterDirection.Input;
             cmd.Parameters["@blob"].Value = new StringReader(sb.ToString());
 
@@ -557,7 +557,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             cmd.ExecuteNonQuery();
             // Include a delay to allow time for cancellation
             cmd.CommandText = "WAITFOR DELAY '00:00:05'; insert into #blobs (Id, blob) values (1, @blob)";
-            cmd.Parameters.Add("@blob", SqlDbType.Xml, -1);
+            cmd.Parameters.Add("@blob", SqlDbType2.Xml, -1);
             cmd.Parameters["@blob"].Direction = ParameterDirection.Input;
             cmd.Parameters["@blob"].Value = XmlReader.Create(new StringReader(XmlStr));
 
@@ -598,7 +598,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 cmd.CommandText = "insert into #blobs (Id, blob) values (1, @blob)";
 
-                cmd.Parameters.Add("@blob", SqlDbType.VarBinary, dataSize);
+                cmd.Parameters.Add("@blob", SqlDbType2.VarBinary, dataSize);
                 cmd.Parameters["@blob"].Direction = ParameterDirection.Input;
                 cmd.Parameters["@blob"].Value = ms;
                 cmd.Prepare();
@@ -632,7 +632,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 // Include a delay to allow time for cancellation
                 cmd.CommandText = "WAITFOR DELAY '00:00:05'; insert into #blobs (Id, blob) values (1, @blob)";
 
-                cmd.Parameters.Add("@blob", SqlDbType.VarBinary, dataSize);
+                cmd.Parameters.Add("@blob", SqlDbType2.VarBinary, dataSize);
                 cmd.Parameters["@blob"].Direction = ParameterDirection.Input;
                 cmd.Parameters["@blob"].Value = ms;
 

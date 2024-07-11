@@ -302,7 +302,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
         private bool SkipOnInsert(int c)
         {
-            if (_columns[c].Type == SqlDbType.Timestamp)
+            if (_columns[c].Type == SqlDbType2.Timestamp)
             {
                 // cannot insert timestamp
                 return true;
@@ -552,7 +552,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             int i = 0;
             if (createIdColumn)
             {
-                SqlRandomTypeInfo keyType = sourceCollection[SqlDbType.Int];
+                SqlRandomTypeInfo keyType = sourceCollection[SqlDbType2.Int];
                 SqlRandomTableColumn keyColumn = keyType.CreateDefaultColumn(SqlRandomColumnOptions.None);
                 retColumns.Add(keyColumn);
                 totalRowSize += keyType.GetInRowSize(keyColumn, null);
@@ -657,7 +657,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 else if (isColumnSet)
                 {
                     Debug.Assert(!hasColumnSet, "there is already a column set, we should not set isColumnSet again above");
-                    ti = sourceCollection[SqlDbType.Xml];
+                    ti = sourceCollection[SqlDbType2.Xml];
                     options |= SqlRandomColumnOptions.ColumnSet;
                 }
                 else
@@ -665,13 +665,13 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     // regular column
                     ti = sourceCollection.Next(rand);
 
-                    if (ti.Type == SqlDbType.Timestamp)
+                    if (ti.Type == SqlDbType2.Timestamp)
                     {
                         // while table can contain single timestamp column only, there is no way to insert values into it. 
                         // thus, do not allow this
                         if (hasTimestamp || maxColumnsCount == 1)
                         {
-                            ti = sourceCollection[SqlDbType.Int];
+                            ti = sourceCollection[SqlDbType2.Int];
                         }
                         else
                         {

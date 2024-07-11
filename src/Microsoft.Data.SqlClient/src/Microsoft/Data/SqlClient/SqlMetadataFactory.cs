@@ -104,7 +104,7 @@ namespace Microsoft.Data.SqlClient
                     reader.GetValues(values);
                     DataRow newRow = dataTypesTable.NewRow();
 
-                    newRow[providerDbtype] = SqlDbType.Udt;
+                    newRow[providerDbtype] = SqlDbType2.Udt;
 
                     if (values[columnSizeIndex] != DBNull.Value)
                     {
@@ -226,7 +226,7 @@ namespace Microsoft.Data.SqlClient
                     reader.GetValues(values);
                     DataRow newRow = dataTypesTable.NewRow();
 
-                    newRow[providerDbtype] = SqlDbType.Structured;
+                    newRow[providerDbtype] = SqlDbType2.Structured;
 
                     if (values[columnSizeIndex] != DBNull.Value)
                     {

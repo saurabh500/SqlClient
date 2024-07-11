@@ -200,14 +200,14 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         transaction: null,
                         columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                     {
-                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType.NVarChar)
+                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType2.NVarChar)
                         {
                             Size = charColumnSize,
                             Value = "ColumnValue"
                         };
                         sqlCmd.Parameters.Add(param1);
 
-                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType.Decimal)
+                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType2.Decimal)
                         {
                             Precision = decimalColumnPrecision,
                             Scale = decimalColumnScale,
@@ -215,7 +215,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         };
                         sqlCmd.Parameters.Add(param2);
 
-                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType.Time)
+                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType2.Time)
                         {
                             Scale = timeColumnScale,
                             Value = TimeSpan.Parse("1:01:01.001")
@@ -237,14 +237,14 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         int decimalParamScale = decimalInputParamScale;
                         int timeParamScale = timeInputParamScale - 1;
 
-                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType.NVarChar)
+                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType2.NVarChar)
                         {
                             Size = charParamSize,
                             Value = "ColumnValue"
                         };
                         sqlCmd.Parameters.Add(param1);
 
-                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType.Decimal)
+                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType2.Decimal)
                         {
                             Precision = (byte)decimalParamPrecision,
                             Scale = (byte)decimalParamScale,
@@ -252,7 +252,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         };
                         sqlCmd.Parameters.Add(param2);
 
-                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType.Time)
+                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType2.Time)
                         {
                             Scale = (byte)timeParamScale,
                             Value = TimeSpan.Parse("1:01:01.001")
@@ -266,19 +266,19 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         }
 
                         // Validate that all properties have stayed the same for all parameters.
-                        Assert.Equal(SqlDbType.NVarChar, param1.SqlDbType);
+                        Assert.Equal(SqlDbType2.NVarChar, param1.SqlDbType);
                         Assert.Equal(DbType.String, param1.DbType);
                         Assert.Equal(0, param1.Scale);
                         Assert.Equal(0, param1.Precision);
                         Assert.Equal(charParamSize, param1.Size);
 
-                        Assert.Equal(SqlDbType.Decimal, param2.SqlDbType);
+                        Assert.Equal(SqlDbType2.Decimal, param2.SqlDbType);
                         Assert.Equal(DbType.Decimal, param2.DbType);
                         Assert.Equal(decimalParamScale, param2.Scale);
                         Assert.Equal(decimalParamPrecision, param2.Precision);
                         Assert.Equal(0, param2.Size);
 
-                        Assert.Equal(SqlDbType.Time, param3.SqlDbType);
+                        Assert.Equal(SqlDbType2.Time, param3.SqlDbType);
                         Assert.Equal(DbType.Time, param3.DbType);
                         Assert.Equal(timeParamScale, param3.Scale);
                         Assert.Equal(0, param3.Precision);
@@ -296,7 +296,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         int decimalParamScale = decimalOutputParamScale;
                         int timeParamScale = timeOutputParamScale;
 
-                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType.NVarChar)
+                        SqlParameter param1 = new SqlParameter("@p1", SqlDbType2.NVarChar)
                         {
                             Direction = ParameterDirection.Output,
                             Size = charParamSize,
@@ -305,7 +305,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
                         sqlCmd.Parameters.Add(param1);
 
-                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType.Decimal)
+                        SqlParameter param2 = new SqlParameter("@p2", SqlDbType2.Decimal)
                         {
                             Direction = ParameterDirection.Output,
                             Precision = (byte)decimalParamPrecision,
@@ -314,7 +314,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         };
                         sqlCmd.Parameters.Add(param2);
 
-                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType.Time)
+                        SqlParameter param3 = new SqlParameter("@p3", SqlDbType2.Time)
                         {
                             Direction = ParameterDirection.Output,
                             Scale = (byte)timeParamScale,
@@ -324,19 +324,19 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         sqlCmd.ExecuteNonQuery();
 
                         // Validate that all properties have stayed the same for all parameters.
-                        Assert.Equal(SqlDbType.NVarChar, param1.SqlDbType);
+                        Assert.Equal(SqlDbType2.NVarChar, param1.SqlDbType);
                         Assert.Equal(DbType.String, param1.DbType);
                         Assert.Equal(0, param1.Scale);
                         Assert.Equal(0, param1.Precision);
                         Assert.Equal(charParamSize, param1.Size);
 
-                        Assert.Equal(SqlDbType.Decimal, param2.SqlDbType);
+                        Assert.Equal(SqlDbType2.Decimal, param2.SqlDbType);
                         Assert.Equal(DbType.Decimal, param2.DbType);
                         Assert.Equal(decimalParamScale, param2.Scale);
                         Assert.Equal(decimalParamPrecision, param2.Precision);
                         Assert.Equal(0, param2.Size);
 
-                        Assert.Equal(SqlDbType.Time, param3.SqlDbType);
+                        Assert.Equal(SqlDbType2.Time, param3.SqlDbType);
                         Assert.Equal(DbType.Time, param3.DbType);
                         Assert.Equal(timeParamScale, param3.Scale);
                         Assert.Equal(0, param3.Precision);
@@ -384,7 +384,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         cmd.CommandTimeout = 90;
                     }
 
-                    SqlParameter dummyParam = new SqlParameter(DummyParamName, SqlDbType.NVarChar, 150)
+                    SqlParameter dummyParam = new SqlParameter(DummyParamName, SqlDbType2.NVarChar, 150)
                     {
                         Value = "a"
                     };
@@ -717,8 +717,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         transaction: null,
                         columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                     {
-                        sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                        sqlCommand.Parameters.Add(@"FirstName", SqlDbType.VarChar, name.Length);
+                        sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                        sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.VarChar, name.Length);
 
                         sqlCommand.Parameters[0].Value = 0;
                         sqlCommand.Parameters[1].Value = name;
@@ -941,9 +941,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar, ((string)values[2]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar, ((string)values[2]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -986,9 +986,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar, ((string)values[2]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar, ((string)values[2]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1044,9 +1044,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar, ((string)values[2]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar, ((string)values[2]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1111,9 +1111,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar, ((string)values[2]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar, ((string)values[2]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1164,8 +1164,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1234,8 +1234,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 {
                     if (value == SqlCommandColumnEncryptionSetting.Enabled)
                     {
-                        sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                        sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                        sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                        sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                         sqlCommand.Parameters[0].Value = values[0];
                         sqlCommand.Parameters[1].Value = values[1];
@@ -1340,7 +1340,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
                     sqlCommand.Parameters.AddWithValue(@"CustomerId", 60);
-                    SqlParameter firstNameParameter = new SqlParameter(@"FirstName", System.Data.SqlDbType.NVarChar, 50);
+                    SqlParameter firstNameParameter = new SqlParameter(@"FirstName", System.Data.SqlDbType2.NVarChar, 50);
 
                     firstNameParameter.Direction = System.Data.ParameterDirection.Input;
                     firstNameParameter.Value = DBNull.Value;
@@ -1357,8 +1357,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                             transaction: null,
                             columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int).Value = 60;
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar).Value = @"Corporation60";
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int).Value = 60;
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar).Value = @"Corporation60";
 
                     using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader())
                     {
@@ -1428,8 +1428,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1479,8 +1479,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1501,8 +1501,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1524,8 +1524,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                    new SqlCommand($"SELECT CustomerId, FirstName, LastName  FROM [{_tableName}] WHERE FirstName = @FirstName AND CustomerId = @CustomerId",
                    sqlConnection, transaction: null, columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1551,8 +1551,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1591,8 +1591,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1622,8 +1622,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1653,8 +1653,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     sqlConnection, transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1683,8 +1683,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     sqlConnection, transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1712,8 +1712,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     sqlConnection, transaction: null,
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -1736,8 +1736,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         sqlConnection, transaction: null,
                         columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int).Value = values[0];
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar).Value = values[2];
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int).Value = values[0];
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar).Value = values[2];
 
                     Task readAsyncTask = ReadAsync(sqlCommand, values, commandBehavior);
                     readAsyncTask.Wait();
@@ -1765,7 +1765,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
                     sqlCommand.Parameters.AddWithValue(@"CustomerId", 60);
-                    SqlParameter firstNameParameter = new SqlParameter(@"FirstName", System.Data.SqlDbType.NVarChar, 50);
+                    SqlParameter firstNameParameter = new SqlParameter(@"FirstName", System.Data.SqlDbType2.NVarChar, 50);
 
                     firstNameParameter.Direction = System.Data.ParameterDirection.Input;
                     firstNameParameter.Value = DBNull.Value;
@@ -1782,8 +1782,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         transaction: null,
                         columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int).Value = 60;
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar).Value = @"Corporation60";
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int).Value = 60;
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar).Value = @"Corporation60";
 
                     using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader(commandBehavior))
                     {
@@ -1804,8 +1804,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         transaction: null,
                         columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled))
                 {
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int).Value = 60;
-                    sqlCommand.Parameters.Add(@"LastName", SqlDbType.NVarChar).Value = @"Corporation60";
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int).Value = 60;
+                    sqlCommand.Parameters.Add(@"LastName", SqlDbType2.NVarChar).Value = @"Corporation60";
 
                     using (SqlDataReader sqlDataReader = sqlCommand.ExecuteReader(commandBehavior))
                     {
@@ -1896,8 +1896,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         //Increase Time out for enclave-enabled server.	
                         sqlCommand.CommandTimeout = 90;
                     }
-                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType.Int);
-                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType.NVarChar, ((string)values[1]).Length);
+                    sqlCommand.Parameters.Add(@"CustomerId", SqlDbType2.Int);
+                    sqlCommand.Parameters.Add(@"FirstName", SqlDbType2.NVarChar, ((string)values[1]).Length);
 
                     sqlCommand.Parameters[0].Value = values[0];
                     sqlCommand.Parameters[1].Value = values[1];
@@ -2532,8 +2532,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled
             )
             };
-            adapter.UpdateCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50, "FirstName");
-            adapter.UpdateCommand.Parameters.Add("@CustomerId", SqlDbType.Int, 4, "CustomerId");
+            adapter.UpdateCommand.Parameters.Add("@FirstName", SqlDbType2.NVarChar, 50, "FirstName");
+            adapter.UpdateCommand.Parameters.Add("@CustomerId", SqlDbType2.Int, 4, "CustomerId");
             adapter.UpdateCommand.UpdatedRowSource = UpdateRowSource.None;
 
             // Set the INSERT command and parameter.
@@ -2544,8 +2544,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 transaction: null,
                 columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled
             );
-            adapter.InsertCommand.Parameters.Add("@FirstName", SqlDbType.NVarChar, 50, "FirstName");
-            adapter.InsertCommand.Parameters.Add("@LastName", SqlDbType.NVarChar, 50, "LastName");
+            adapter.InsertCommand.Parameters.Add("@FirstName", SqlDbType2.NVarChar, 50, "FirstName");
+            adapter.InsertCommand.Parameters.Add("@LastName", SqlDbType2.NVarChar, 50, "LastName");
 
             adapter.InsertCommand.UpdatedRowSource = UpdateRowSource.None;
 
@@ -2556,7 +2556,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 transaction: null,
                 columnEncryptionSetting: SqlCommandColumnEncryptionSetting.Enabled
             );
-            adapter.DeleteCommand.Parameters.Add("@CustomerId", SqlDbType.Int, 4, "CustomerId");
+            adapter.DeleteCommand.Parameters.Add("@CustomerId", SqlDbType2.Int, 4, "CustomerId");
             adapter.DeleteCommand.UpdatedRowSource = UpdateRowSource.None;
 
             // Set the batch size.

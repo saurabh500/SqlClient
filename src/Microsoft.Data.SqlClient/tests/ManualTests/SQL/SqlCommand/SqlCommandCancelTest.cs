@@ -381,7 +381,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     // Generate a query with a large number of results.
                     using (var command = new SqlCommand("select @P from sysobjects a cross join sysobjects b cross join sysobjects c cross join sysobjects d cross join sysobjects e cross join sysobjects f", connection))
                     {
-                        command.Parameters.Add(new SqlParameter("@P", SqlDbType.Int) { Value = expectedValue });
+                        command.Parameters.Add(new SqlParameter("@P", SqlDbType2.Int) { Value = expectedValue });
                         connection.Open();
                         // Prepare the query.
                         // Currently this does nothing until command.ExecuteReader is called.

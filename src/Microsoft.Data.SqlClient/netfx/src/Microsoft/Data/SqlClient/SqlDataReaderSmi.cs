@@ -69,7 +69,7 @@ namespace Microsoft.Data.SqlClient
         {
             EnsureCanGetMetaData();
             SmiExtendedMetaData md = _currentMetaData[ordinal];
-            if (SqlDbType.Udt == md.SqlDbType)
+            if (SqlDbType2.Udt == md.SqlDbType)
             {
                 return md.TypeSpecificNamePart1 + "." + md.TypeSpecificNamePart2 + "." + md.TypeSpecificNamePart3;
             }
@@ -82,7 +82,7 @@ namespace Microsoft.Data.SqlClient
         public override Type GetFieldType(int ordinal)
         {
             EnsureCanGetMetaData();
-            if (_currentMetaData[ordinal].SqlDbType == SqlDbType.Udt)
+            if (_currentMetaData[ordinal].SqlDbType == SqlDbType2.Udt)
             {
                 return _currentMetaData[ordinal].Type;
             }
@@ -96,7 +96,7 @@ namespace Microsoft.Data.SqlClient
         {
             EnsureCanGetMetaData();
 
-            if (SqlDbType.Udt == _currentMetaData[ordinal].SqlDbType)
+            if (SqlDbType2.Udt == _currentMetaData[ordinal].SqlDbType)
             {
                 return _currentMetaData[ordinal].Type;
             }
@@ -265,7 +265,7 @@ namespace Microsoft.Data.SqlClient
             SmiExtendedMetaData metaData = _currentMetaData[ordinal];
             if (IsCommandBehavior(CommandBehavior.SequentialAccess))
             {
-                if (metaData.SqlDbType == SqlDbType.Xml)
+                if (metaData.SqlDbType == SqlDbType2.Xml)
                 {
                     return GetStreamingXmlChars(ordinal, fieldOffset, buffer, bufferOffset, length);
                 }
@@ -619,12 +619,12 @@ namespace Microsoft.Data.SqlClient
                     // based upon the precision, whereas TDS always sends 17 for 
                     // the max length; rather than push this logic into the server,
                     // I've elected to make a fixup here instead.
-                    if (SqlDbType.Decimal == colMetaData.SqlDbType)
+                    if (SqlDbType2.Decimal == colMetaData.SqlDbType)
                     {
                         // TODO: Consider moving this into SmiMetaData itself...
                         maxLength = TdsEnums.MAX_NUMERIC_LEN;   // SQLBUDT 339686
                     }
-                    else if (SqlDbType.Variant == colMetaData.SqlDbType)
+                    else if (SqlDbType2.Variant == colMetaData.SqlDbType)
                     {
                         // TODO: Consider moving this into SmiMetaData itself...
                         maxLength = 8009;   // SQLBUDT 340726
@@ -637,7 +637,7 @@ namespace Microsoft.Data.SqlClient
                     schemaRow[ProviderType] = (int)colMetaData.SqlDbType; // SqlDbType
                     schemaRow[NonVersionedProviderType] = (int)colMetaData.SqlDbType; // SqlDbType
 
-                    if (colMetaData.SqlDbType != SqlDbType.Udt)
+                    if (colMetaData.SqlDbType != SqlDbType2.Udt)
                     {
                         schemaRow[DataType] = metaType.ClassType; // com+ type
                         schemaRow[ProviderSpecificDataType] = metaType.SqlType;
@@ -660,21 +660,21 @@ namespace Microsoft.Data.SqlClient
                     // TODO: Consider moving this into SmiMetaData itself...
                     switch (colMetaData.SqlDbType)
                     {
-                        case SqlDbType.BigInt:
-                        case SqlDbType.DateTime:
-                        case SqlDbType.Decimal:
-                        case SqlDbType.Int:
-                        case SqlDbType.Money:
-                        case SqlDbType.SmallDateTime:
-                        case SqlDbType.SmallInt:
-                        case SqlDbType.SmallMoney:
-                        case SqlDbType.TinyInt:
+                        case SqlDbType2.BigInt:
+                        case SqlDbType2.DateTime:
+                        case SqlDbType2.Decimal:
+                        case SqlDbType2.Int:
+                        case SqlDbType2.Money:
+                        case SqlDbType2.SmallDateTime:
+                        case SqlDbType2.SmallInt:
+                        case SqlDbType2.SmallMoney:
+                        case SqlDbType2.TinyInt:
                             precision = colMetaData.Precision;
                             break;
-                        case SqlDbType.Float:
+                        case SqlDbType2.Float:
                             precision = 15;
                             break;
-                        case SqlDbType.Real:
+                        case SqlDbType2.Real:
                             precision = 7;
                             break;
                         default:
@@ -685,10 +685,10 @@ namespace Microsoft.Data.SqlClient
                     schemaRow[Precision] = precision;
 
                     // TODO: Consider moving this to a utitlity class if we end up with a bunch more of this stuff...
-                    if (SqlDbType.Decimal == colMetaData.SqlDbType ||
-                        SqlDbType.Time == colMetaData.SqlDbType ||
-                        SqlDbType.DateTime2 == colMetaData.SqlDbType ||
-                        SqlDbType.DateTimeOffset == colMetaData.SqlDbType)
+                    if (SqlDbType2.Decimal == colMetaData.SqlDbType ||
+                        SqlDbType2.Time == colMetaData.SqlDbType ||
+                        SqlDbType2.DateTime2 == colMetaData.SqlDbType ||
+                        SqlDbType2.DateTimeOffset == colMetaData.SqlDbType)
                     {
                         schemaRow[Scale] = colMetaData.Scale;
                     }
@@ -725,7 +725,7 @@ namespace Microsoft.Data.SqlClient
                     schemaRow[IsLong] = metaType.IsLong;
 
                     // mark unique for timestamp columns
-                    if (SqlDbType.Timestamp == colMetaData.SqlDbType)
+                    if (SqlDbType2.Timestamp == colMetaData.SqlDbType)
                     {
                         schemaRow[IsUnique] = true;
                         schemaRow[IsRowVersion] = true;
@@ -766,7 +766,7 @@ namespace Microsoft.Data.SqlClient
                         schemaRow[BaseServerName] = colMetaData.ServerName;
                     }
 
-                    if (SqlDbType.Udt == colMetaData.SqlDbType)
+                    if (SqlDbType2.Udt == colMetaData.SqlDbType)
                     {
                         schemaRow[DataTypeName] = colMetaData.TypeSpecificNamePart1 + "." + colMetaData.TypeSpecificNamePart2 + "." + colMetaData.TypeSpecificNamePart3;
                     }
@@ -776,7 +776,7 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     // Add Xml metadata
-                    if (SqlDbType.Xml == colMetaData.SqlDbType)
+                    if (SqlDbType2.Xml == colMetaData.SqlDbType)
                     {
                         schemaRow[XmlSchemaCollectionDatabase] = colMetaData.TypeSpecificNamePart1;
                         schemaRow[XmlSchemaCollectionOwningSchema] = colMetaData.TypeSpecificNamePart2;
@@ -960,7 +960,7 @@ namespace Microsoft.Data.SqlClient
             SmiQueryMetaData metaData = _currentMetaData[ordinal];
 
             // For non-null, non-variant types with sequential access, we support proper streaming
-            if ((metaData.SqlDbType != SqlDbType.Variant) && (IsCommandBehavior(CommandBehavior.SequentialAccess)) && (!ValueUtilsSmi.IsDBNull(_readerEventSink, _currentColumnValuesV3, ordinal)))
+            if ((metaData.SqlDbType != SqlDbType2.Variant) && (IsCommandBehavior(CommandBehavior.SequentialAccess)) && (!ValueUtilsSmi.IsDBNull(_readerEventSink, _currentColumnValuesV3, ordinal)))
             {
                 if (HasActiveStreamOrTextReaderOnColumn(ordinal))
                 {
@@ -982,7 +982,7 @@ namespace Microsoft.Data.SqlClient
             SmiQueryMetaData metaData = _currentMetaData[ordinal];
 
             // For non-variant types with sequential access, we support proper streaming
-            if ((metaData.SqlDbType != SqlDbType.Variant) && (IsCommandBehavior(CommandBehavior.SequentialAccess)) && (!ValueUtilsSmi.IsDBNull(_readerEventSink, _currentColumnValuesV3, ordinal)))
+            if ((metaData.SqlDbType != SqlDbType2.Variant) && (IsCommandBehavior(CommandBehavior.SequentialAccess)) && (!ValueUtilsSmi.IsDBNull(_readerEventSink, _currentColumnValuesV3, ordinal)))
             {
                 if (HasActiveStreamOrTextReaderOnColumn(ordinal))
                 {
@@ -1002,7 +1002,7 @@ namespace Microsoft.Data.SqlClient
             // NOTE: sql_variant can not contain a XML data type: http://msdn.microsoft.com/en-us/library/ms173829.aspx
 
             EnsureCanGetCol(ordinal);
-            if (_currentMetaData[ordinal].SqlDbType != SqlDbType.Xml)
+            if (_currentMetaData[ordinal].SqlDbType != SqlDbType2.Xml)
             {
                 throw ADP.InvalidCast();
             }

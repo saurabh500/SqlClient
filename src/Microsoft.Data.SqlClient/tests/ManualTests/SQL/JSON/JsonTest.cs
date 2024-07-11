@@ -41,7 +41,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.SQL.JSON
                 {
                     // Add the parameter and set its value
                     var parameter = new SqlParameter("@jsonData", jsonData);
-                    parameter.SqlDbType = (SqlDbType)35;
+                    parameter.SqlDbType = SqlDbType2.Json;
                     command.Parameters.Add(parameter);
 
                     for (int i = 0; i < 1000; i++)

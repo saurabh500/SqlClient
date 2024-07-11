@@ -75,9 +75,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             using var connection = new SqlConnection(DataTestUtility.TCPConnectionString);
             using var adapter = new SqlDataAdapter();
             using var cmd = new SqlCommand(sql, connection);
-            cmd.Parameters.Add(new SqlParameter("@Level", System.Data.SqlDbType.NVarChar, 50, "Level"));
-            cmd.Parameters.Add(new SqlParameter("@Message", SqlDbType.NVarChar, 500, "Message"));
-            cmd.Parameters.Add(new SqlParameter("@EventTime", SqlDbType.DateTime, 0, "EventTime"));
+            cmd.Parameters.Add(new SqlParameter("@Level", System.Data.SqlDbType2.NVarChar, 50, "Level"));
+            cmd.Parameters.Add(new SqlParameter("@Message", SqlDbType2.NVarChar, 500, "Message"));
+            cmd.Parameters.Add(new SqlParameter("@EventTime", SqlDbType2.DateTime, 0, "EventTime"));
             cmd.UpdatedRowSource = UpdateRowSource.None;
 
             adapter.InsertCommand = cmd;

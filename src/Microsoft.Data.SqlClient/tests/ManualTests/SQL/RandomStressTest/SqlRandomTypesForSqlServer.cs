@@ -16,7 +16,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultSize = 1;
 
         internal SqlVarBinaryTypeInfo()
-            : base(SqlDbType.VarBinary)
+            : base(SqlDbType2.VarBinary)
         {
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultCharSize = 1;
 
         internal SqlVarCharTypeInfo()
-            : base(SqlDbType.VarChar)
+            : base(SqlDbType2.VarChar)
         {
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultCharSize = 1;
 
         internal SqlNVarCharTypeInfo()
-            : base(SqlDbType.NVarChar)
+            : base(SqlDbType2.NVarChar)
         {
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 8;
 
         public SqlBigIntTypeInfo()
-            : base(SqlDbType.BigInt)
+            : base(SqlDbType2.BigInt)
         {
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 4;
 
         public SqlIntTypeInfo()
-            : base(SqlDbType.Int)
+            : base(SqlDbType2.Int)
         {
         }
 
@@ -282,7 +282,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 2;
 
         public SqlSmallIntTypeInfo()
-            : base(SqlDbType.SmallInt)
+            : base(SqlDbType2.SmallInt)
         {
         }
 
@@ -321,7 +321,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 1;
 
         public SqlTinyIntTypeInfo()
-            : base(SqlDbType.TinyInt)
+            : base(SqlDbType2.TinyInt)
         {
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const string TypeTSqlName = "text";
 
         public SqlTextTypeInfo()
-            : base(SqlDbType.Text)
+            : base(SqlDbType2.Text)
         {
         }
 
@@ -399,7 +399,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const string TypeTSqlName = "ntext";
 
         public SqlNTextTypeInfo()
-            : base(SqlDbType.NText)
+            : base(SqlDbType2.NText)
         {
         }
 
@@ -439,7 +439,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const string TypeTSqlName = "image";
 
         public SqlImageTypeInfo()
-            : base(SqlDbType.Image)
+            : base(SqlDbType2.Image)
         {
         }
 
@@ -481,7 +481,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultSize = 1;
 
         public SqlBinaryTypeInfo()
-            : base(SqlDbType.Binary)
+            : base(SqlDbType2.Binary)
         {
         }
 
@@ -536,7 +536,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultCharSize = 1;
 
         public SqlCharTypeInfo()
-            : base(SqlDbType.Char)
+            : base(SqlDbType2.Char)
         {
         }
 
@@ -591,7 +591,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultCharSize = 1;
 
         public SqlNCharTypeInfo()
-            : base(SqlDbType.NChar)
+            : base(SqlDbType2.NChar)
         {
         }
 
@@ -643,7 +643,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlBitTypeInfo : SqlRandomTypeInfo
     {
         public SqlBitTypeInfo()
-            : base(SqlDbType.Bit)
+            : base(SqlDbType2.Bit)
         {
         }
 
@@ -681,7 +681,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private int _defaultPrecision = 18;
 
         public SqlDecimalTypeInfo()
-            : base(SqlDbType.Decimal)
+            : base(SqlDbType2.Decimal)
         {
         }
 
@@ -746,7 +746,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 8;
 
         public SqlMoneyTypeInfo()
-            : base(SqlDbType.Money)
+            : base(SqlDbType2.Money)
         {
         }
 
@@ -785,7 +785,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int StorageSize = 4;
 
         public SqlSmallMoneyTypeInfo()
-            : base(SqlDbType.SmallMoney)
+            : base(SqlDbType2.SmallMoney)
         {
         }
 
@@ -826,7 +826,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const string TSqlTypeName = "real";
 
         public SqRealTypeInfo()
-            : base(SqlDbType.Real)
+            : base(SqlDbType2.Real)
         {
         }
 
@@ -875,7 +875,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const string TypePrefix = "float";
 
         public SqFloatTypeInfo()
-            : base(SqlDbType.Float)
+            : base(SqlDbType2.Float)
         {
         }
 
@@ -935,7 +935,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlRowVersionTypeInfo : SqlRandomTypeInfo
     {
         public SqlRowVersionTypeInfo()
-            : base(SqlDbType.Timestamp)
+            : base(SqlDbType2.Timestamp)
         {
         }
 
@@ -982,7 +982,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlUniqueIdentifierTypeInfo : SqlRandomTypeInfo
     {
         public SqlUniqueIdentifierTypeInfo()
-            : base(SqlDbType.UniqueIdentifier)
+            : base(SqlDbType2.UniqueIdentifier)
         {
         }
 
@@ -1019,7 +1019,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlDateTypeInfo : SqlRandomTypeInfo
     {
         public SqlDateTypeInfo()
-            : base(SqlDbType.Date)
+            : base(SqlDbType2.Date)
         {
         }
 
@@ -1052,7 +1052,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlDateTimeTypeInfo : SqlRandomTypeInfo
     {
         public SqlDateTimeTypeInfo()
-            : base(SqlDbType.DateTime)
+            : base(SqlDbType2.DateTime)
         {
         }
 
@@ -1087,7 +1087,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private const int DefaultPrecision = 7;
 
         public SqlDateTime2TypeInfo()
-            : base(SqlDbType.DateTime2)
+            : base(SqlDbType2.DateTime2)
         {
         }
 
@@ -1156,7 +1156,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlDateTimeOffsetTypeInfo : SqlRandomTypeInfo
     {
         public SqlDateTimeOffsetTypeInfo()
-            : base(SqlDbType.DateTimeOffset)
+            : base(SqlDbType2.DateTimeOffset)
         {
         }
 
@@ -1197,7 +1197,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlSmallDateTimeTypeInfo : SqlRandomTypeInfo
     {
         public SqlSmallDateTimeTypeInfo()
-            : base(SqlDbType.SmallDateTime)
+            : base(SqlDbType2.SmallDateTime)
         {
         }
 
@@ -1230,7 +1230,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlTimeTypeInfo : SqlRandomTypeInfo
     {
         public SqlTimeTypeInfo()
-            : base(SqlDbType.Time)
+            : base(SqlDbType2.Time)
         {
         }
 
@@ -1359,7 +1359,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         };
 
         public SqlVariantTypeInfo()
-            : base(SqlDbType.Variant)
+            : base(SqlDbType2.Variant)
         {
         }
 
@@ -1376,7 +1376,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
         private static bool IsUnicodeType(SqlDbType t)
         {
-            return (t == SqlDbType.NChar || t == SqlDbType.NText || t == SqlDbType.NVarChar);
+            return (t == SqlDbType2.NChar || t == SqlDbType2.NText || t == SqlDbType2.NVarChar);
         }
 
         protected override object CreateRandomValueInternal(SqlRandomizer rand, SqlRandomTableColumn columnInfo)
@@ -1441,7 +1441,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
     internal sealed class SqlXmlTypeInfo : SqlRandomTypeInfo
     {
         public SqlXmlTypeInfo()
-            : base(SqlDbType.Xml)
+            : base(SqlDbType2.Xml)
         {
         }
 

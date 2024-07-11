@@ -63,45 +63,45 @@ namespace Microsoft.Data.SqlClient
             {
                 switch (_metaData.SqlDbType)
                 {
-                    case SqlDbType.BigInt:
-                    case SqlDbType.Bit:
-                    case SqlDbType.DateTime:
-                    case SqlDbType.Decimal:
-                    case SqlDbType.Float:
-                    case SqlDbType.Int:
-                    case SqlDbType.Money:
-                    case SqlDbType.Real:
-                    case SqlDbType.UniqueIdentifier:
-                    case SqlDbType.SmallDateTime:
-                    case SqlDbType.SmallInt:
-                    case SqlDbType.SmallMoney:
-                    case SqlDbType.TinyInt:
-                    case SqlDbType.Date:
-                    case SqlDbType.Time:
-                    case SqlDbType.DateTime2:
-                    case SqlDbType.DateTimeOffset:
+                    case SqlDbType2.BigInt:
+                    case SqlDbType2.Bit:
+                    case SqlDbType2.DateTime:
+                    case SqlDbType2.Decimal:
+                    case SqlDbType2.Float:
+                    case SqlDbType2.Int:
+                    case SqlDbType2.Money:
+                    case SqlDbType2.Real:
+                    case SqlDbType2.UniqueIdentifier:
+                    case SqlDbType2.SmallDateTime:
+                    case SqlDbType2.SmallInt:
+                    case SqlDbType2.SmallMoney:
+                    case SqlDbType2.TinyInt:
+                    case SqlDbType2.Date:
+                    case SqlDbType2.Time:
+                    case SqlDbType2.DateTime2:
+                    case SqlDbType2.DateTimeOffset:
                         _stateObj.WriteByte(TdsEnums.FIXEDNULL);
                         break;
-                    case SqlDbType.Binary:
-                    case SqlDbType.Char:
-                    case SqlDbType.Image:
-                    case SqlDbType.NChar:
-                    case SqlDbType.NText:
-                    case SqlDbType.NVarChar:
-                    case SqlDbType.Text:
-                    case SqlDbType.Timestamp:
-                    case SqlDbType.VarBinary:
-                    case SqlDbType.VarChar:
+                    case SqlDbType2.Binary:
+                    case SqlDbType2.Char:
+                    case SqlDbType2.Image:
+                    case SqlDbType2.NChar:
+                    case SqlDbType2.NText:
+                    case SqlDbType2.NVarChar:
+                    case SqlDbType2.Text:
+                    case SqlDbType2.Timestamp:
+                    case SqlDbType2.VarBinary:
+                    case SqlDbType2.VarChar:
                         _stateObj.Parser.WriteShort(TdsEnums.VARNULL, _stateObj);
                         break;
-                    case SqlDbType.Udt:
-                    case SqlDbType.Xml:
+                    case SqlDbType2.Udt:
+                    case SqlDbType2.Xml:
                         Debug.Fail("PLP-only types shouldn't get to this point. Type: " + _metaData.SqlDbType);
                         break;
-                    case SqlDbType.Variant:
+                    case SqlDbType2.Variant:
                         _stateObj.Parser.WriteInt(TdsEnums.FIXEDNULL, _stateObj);
                         break;
-                    case SqlDbType.Structured:
+                    case SqlDbType2.Structured:
                         Debug.Fail("Not yet implemented.  Not needed until Structured UDTs");
                         break;
                     default:
@@ -111,12 +111,12 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         internal void SetBoolean(bool value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetBoolean));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(3, TdsEnums.SQLBIT, 0, _stateObj);
             }
@@ -134,12 +134,12 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         internal void SetByte(byte value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetByte));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(3, TdsEnums.SQLINT1, 0, _stateObj);
             }
@@ -191,7 +191,7 @@ namespace Microsoft.Data.SqlClient
                 Debug.Assert(!MetaType.GetMetaTypeFromSqlDbType(_metaData.SqlDbType, _metaData.IsMultiValued).IsLong,
                     "We're assuming long length types are sent as PLP. SqlDbType = " + _metaData.SqlDbType);
 
-                if (SqlDbType.Variant == _metaData.SqlDbType)
+                if (SqlDbType2.Variant == _metaData.SqlDbType)
                 {
                     _stateObj.Parser.WriteSqlVariantHeader(4 + length, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.Data.SqlClient
                     Debug.Assert(!MetaType.GetMetaTypeFromSqlDbType(_metaData.SqlDbType, _metaData.IsMultiValued).IsLong,
                         "We're assuming long length types are sent as PLP. SqlDbType = " + _metaData.SqlDbType);
 
-                    if (SqlDbType.Variant == _metaData.SqlDbType)
+                    if (SqlDbType2.Variant == _metaData.SqlDbType)
                     {
                         _stateObj.Parser.WriteSqlVariantHeader(4, TdsEnums.SQLBIGVARBINARY, 2, _stateObj);
                     }
@@ -283,7 +283,7 @@ namespace Microsoft.Data.SqlClient
                     Debug.Assert(0 == _currentOffset, "SetChars doesn't yet support chunking for non-plp data: " + _currentOffset);
 #endif
 
-                    if (SqlDbType.Variant == _metaData.SqlDbType)
+                    if (SqlDbType2.Variant == _metaData.SqlDbType)
                     {
                         _stateObj.Parser.WriteSqlVariantValue(new string(buffer, bufferOffset, length), length, 0, _stateObj);
                     }
@@ -360,9 +360,9 @@ namespace Microsoft.Data.SqlClient
                 SetBytes(0, bytes, 0, bytes.Length);
                 SetBytesLength(bytes.Length);
             }
-            else if (SqlDbType.Variant == _metaData.SqlDbType)
+            else if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
-                Debug.Assert(null != _variantType && SqlDbType.NVarChar == _variantType.SqlDbType, "Invalid variant type");
+                Debug.Assert(null != _variantType && SqlDbType2.NVarChar == _variantType.SqlDbType, "Invalid variant type");
 
                 SqlCollation collation = SqlCollation.FromLCIDAndSort(checked((int)_variantType.LocaleId), _variantType.CompareOptions);
 
@@ -412,13 +412,13 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         internal void SetInt16(short value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetInt16));
 
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(4, TdsEnums.SQLINT2, 0, _stateObj);
             }
@@ -429,12 +429,12 @@ namespace Microsoft.Data.SqlClient
             _stateObj.Parser.WriteShort(value, _stateObj);
         }
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         internal void SetInt32(int value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetInt32));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(6, TdsEnums.SQLINT4, 0, _stateObj);
             }
@@ -445,12 +445,12 @@ namespace Microsoft.Data.SqlClient
             _stateObj.Parser.WriteInt(value, _stateObj);
         }
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         internal void SetInt64(long value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetInt64));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 if (null == _variantType)
                 {
@@ -459,7 +459,7 @@ namespace Microsoft.Data.SqlClient
                 }
                 else
                 {
-                    Debug.Assert(SqlDbType.Money == _variantType.SqlDbType, "Invalid variant type");
+                    Debug.Assert(SqlDbType2.Money == _variantType.SqlDbType, "Invalid variant type");
 
                     _stateObj.Parser.WriteSqlVariantHeader(10, TdsEnums.SQLMONEY, 0, _stateObj);
                     _stateObj.Parser.WriteInt((int)(value >> 0x20), _stateObj);
@@ -470,11 +470,11 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 _stateObj.WriteByte((byte)_metaData.MaxLength);
-                if (SqlDbType.SmallMoney == _metaData.SqlDbType)
+                if (SqlDbType2.SmallMoney == _metaData.SqlDbType)
                 {
                     _stateObj.Parser.WriteInt((int)value, _stateObj);
                 }
-                else if (SqlDbType.Money == _metaData.SqlDbType)
+                else if (SqlDbType2.Money == _metaData.SqlDbType)
                 {
                     _stateObj.Parser.WriteInt((int)(value >> 0x20), _stateObj);
                     _stateObj.Parser.WriteInt((int)value, _stateObj);
@@ -486,12 +486,12 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         internal void SetSingle(float value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetSingle));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(6, TdsEnums.SQLFLT4, 0, _stateObj);
             }
@@ -502,12 +502,12 @@ namespace Microsoft.Data.SqlClient
             _stateObj.Parser.WriteFloat(value, _stateObj);
         }
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         internal void SetDouble(double value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetDouble));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(10, TdsEnums.SQLFLT8, 0, _stateObj);
             }
@@ -518,12 +518,12 @@ namespace Microsoft.Data.SqlClient
             _stateObj.Parser.WriteDouble(value, _stateObj);
         }
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         internal void SetSqlDecimal(SqlDecimal value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetSqlDecimal));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(21, TdsEnums.SQLNUMERICN, 2, _stateObj);
                 _stateObj.WriteByte(value.Precision); // propbytes: precision
@@ -542,13 +542,13 @@ namespace Microsoft.Data.SqlClient
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetDateTime));
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
-                if ((_variantType != null) && (_variantType.SqlDbType == SqlDbType.DateTime2))
+                if ((_variantType != null) && (_variantType.SqlDbType == SqlDbType2.DateTime2))
                 {
                     _stateObj.Parser.WriteSqlVariantDateTime2(value, _stateObj);
                 }
-                else if ((_variantType != null) && (_variantType.SqlDbType == SqlDbType.Date))
+                else if ((_variantType != null) && (_variantType.SqlDbType == SqlDbType2.Date))
                 {
                     _stateObj.Parser.WriteSqlVariantDate(value, _stateObj);
                 }
@@ -567,7 +567,7 @@ namespace Microsoft.Data.SqlClient
             else
             {
                 _stateObj.WriteByte((byte)_metaData.MaxLength);
-                if (SqlDbType.SmallDateTime == _metaData.SqlDbType)
+                if (SqlDbType2.SmallDateTime == _metaData.SqlDbType)
                 {
                     TdsDateTime dt = MetaType.FromDateTime(value, (byte)_metaData.MaxLength);
                     Debug.Assert(0 <= dt.days && dt.days <= ushort.MaxValue, "Invalid DateTime '" + value + "' for SmallDateTime");
@@ -575,7 +575,7 @@ namespace Microsoft.Data.SqlClient
                     _stateObj.Parser.WriteShort(dt.days, _stateObj);
                     _stateObj.Parser.WriteShort(dt.time, _stateObj);
                 }
-                else if (SqlDbType.DateTime == _metaData.SqlDbType)
+                else if (SqlDbType2.DateTime == _metaData.SqlDbType)
                 {
                     TdsDateTime dt = MetaType.FromDateTime(value, (byte)_metaData.MaxLength);
                     _stateObj.Parser.WriteInt(dt.days, _stateObj);
@@ -584,7 +584,7 @@ namespace Microsoft.Data.SqlClient
                 else
                 { // date and datetime2
                     int days = value.Subtract(DateTime.MinValue).Days;
-                    if (SqlDbType.DateTime2 == _metaData.SqlDbType)
+                    if (SqlDbType2.DateTime2 == _metaData.SqlDbType)
                     {
                         long time = value.TimeOfDay.Ticks / TdsEnums.TICKS_FROM_SCALE[_metaData.Scale];
 #if NET6_0_OR_GREATER
@@ -621,7 +621,7 @@ namespace Microsoft.Data.SqlClient
 #endif
             Debug.Assert(SmiMetaData.DefaultUniqueIdentifier.MaxLength == bytes.Length, "Invalid length for guid bytes: " + bytes.Length);
 
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 _stateObj.Parser.WriteSqlVariantHeader(18, TdsEnums.SQLUNIQUEID, 0, _stateObj);
             }
@@ -638,14 +638,14 @@ namespace Microsoft.Data.SqlClient
 #endif
         }
 
-        // valid for SqlDbType.Time
+        // valid for SqlDbType2.Time
         internal void SetTimeSpan(TimeSpan value)
         {
             Debug.Assert(
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetTime));
             byte scale;
             byte length;
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 scale = SmiMetaData.DefaultTime.Scale;
                 length = (byte)SmiMetaData.DefaultTime.MaxLength;
@@ -675,7 +675,7 @@ namespace Microsoft.Data.SqlClient
                 SmiXetterAccessMap.IsSetterAccessValid(_metaData, SmiXetterTypeCode.XetDateTimeOffset));
             byte scale;
             byte length;
-            if (SqlDbType.Variant == _metaData.SqlDbType)
+            if (SqlDbType2.Variant == _metaData.SqlDbType)
             {
                 // VSTFDevDiv #885208 - DateTimeOffset throws ArgumentException for when passing DateTimeOffset value to a sql_variant TVP
                 //                      using a SqlDataRecord or SqlDataReader
@@ -737,13 +737,13 @@ namespace Microsoft.Data.SqlClient
         {
             Debug.Assert(null == _variantType, "Variant type can only be set once");
             Debug.Assert(value != null &&
-                (value.SqlDbType == SqlDbType.Money ||
-                value.SqlDbType == SqlDbType.NVarChar ||
-                value.SqlDbType == SqlDbType.Date ||
-                value.SqlDbType == SqlDbType.DateTime ||
-                value.SqlDbType == SqlDbType.DateTime2 ||
-                value.SqlDbType == SqlDbType.DateTimeOffset ||
-                value.SqlDbType == SqlDbType.SmallDateTime
+                (value.SqlDbType == SqlDbType2.Money ||
+                value.SqlDbType == SqlDbType2.NVarChar ||
+                value.SqlDbType == SqlDbType2.Date ||
+                value.SqlDbType == SqlDbType2.DateTime ||
+                value.SqlDbType == SqlDbType2.DateTime2 ||
+                value.SqlDbType == SqlDbType2.DateTimeOffset ||
+                value.SqlDbType == SqlDbType2.SmallDateTime
                 ), "Invalid variant type");
             _variantType = value;
         }

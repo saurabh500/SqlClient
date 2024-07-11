@@ -91,7 +91,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                                   "SELECT * FROM TestTable"
                 })
                 {
-                    SqlParameter p = com.Parameters.Add("@p", SqlDbType.Udt);
+                    SqlParameter p = com.Parameters.Add("@p", SqlDbType2.Udt);
                     p.UdtTypeName = "Utf8String";
                     p.Value = new Utf8String("this is an input param test");
 
@@ -142,7 +142,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     CommandType = CommandType.StoredProcedure
                 })
                 {
-                    SqlParameter p = com.Parameters.Add("@value", SqlDbType.Udt);
+                    SqlParameter p = com.Parameters.Add("@value", SqlDbType2.Udt);
                     p.UdtTypeName = "Utf8String";
                     p.Direction = ParameterDirection.Output;
 
@@ -238,7 +238,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                                   "SELECT * FROM TestTableNull"
                 })
                 {
-                    SqlParameter p = com.Parameters.Add("@p", SqlDbType.Udt);
+                    SqlParameter p = com.Parameters.Add("@p", SqlDbType2.Udt);
                     p.UdtTypeName = "Utf8String";
                     p.Value = DBNull.Value;
 

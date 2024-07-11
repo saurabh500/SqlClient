@@ -127,13 +127,13 @@ namespace Microsoft.Data.SqlClient.Server
                 (
                     SmiMetaData.UnlimitedMaxLengthIndicator != metaData.MaxLength &&
                     (
-                        metaData.SqlDbType == SqlDbType.VarChar ||
-                        metaData.SqlDbType == SqlDbType.NVarChar ||
-                        metaData.SqlDbType == SqlDbType.Char ||
-                        metaData.SqlDbType == SqlDbType.NChar
+                        metaData.SqlDbType == SqlDbType2.VarChar ||
+                        metaData.SqlDbType == SqlDbType2.NVarChar ||
+                        metaData.SqlDbType == SqlDbType2.Char ||
+                        metaData.SqlDbType == SqlDbType2.NChar
                     )
                 ) ||
-                SqlDbType.Xml == metaData.SqlDbType
+                SqlDbType2.Xml == metaData.SqlDbType
             )
             {
                 throw SQL.NonBlobColumn(metaData.Name);
@@ -509,7 +509,7 @@ namespace Microsoft.Data.SqlClient.Server
             else
             {
                 SqlString stringValue;
-                if (metaData.SqlDbType == SqlDbType.Xml)
+                if (metaData.SqlDbType == SqlDbType2.Xml)
                 {
                     SqlXml xmlValue = GetSqlXml_Unchecked(sink, getters, ordinal, null);
 
@@ -809,7 +809,7 @@ namespace Microsoft.Data.SqlClient.Server
                     result = new SqlString(temp);
                 }
             }
-            else if (SqlDbType.Xml == metaData.SqlDbType)
+            else if (SqlDbType2.Xml == metaData.SqlDbType)
             {
                 SqlXml xmlValue = GetSqlXml_Unchecked(sink, getters, ordinal, null);
 
@@ -906,20 +906,20 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 switch (metaData.SqlDbType)
                 {
-                    case SqlDbType.Variant:  // Handle variants specifically for v200, since they could contain v200 types
+                    case SqlDbType2.Variant:  // Handle variants specifically for v200, since they could contain v200 types
                         metaData = getters.GetVariantType(sink, ordinal);
                         sink.ProcessMessagesAndThrow();
-                        Debug.Assert(SqlDbType.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
+                        Debug.Assert(SqlDbType2.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
                         result = GetValue200(sink, getters, ordinal, metaData, context);
                         break;
-                    case SqlDbType.Date:
-                    case SqlDbType.DateTime2:
+                    case SqlDbType2.Date:
+                    case SqlDbType2.DateTime2:
                         result = GetDateTime_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Time:
+                    case SqlDbType2.Time:
                         result = GetTimeSpan_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.DateTimeOffset:
+                    case SqlDbType2.DateTimeOffset:
                         result = GetDateTimeOffset_Unchecked(sink, getters, ordinal);
                         break;
                     default:
@@ -951,85 +951,85 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 switch (metaData.SqlDbType)
                 {
-                    case SqlDbType.BigInt:
+                    case SqlDbType2.BigInt:
                         result = GetInt64_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Binary:
+                    case SqlDbType2.Binary:
                         result = GetByteArray_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Bit:
+                    case SqlDbType2.Bit:
                         result = GetBoolean_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Char:
+                    case SqlDbType2.Char:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.DateTime:
+                    case SqlDbType2.DateTime:
                         result = GetDateTime_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Decimal:
+                    case SqlDbType2.Decimal:
                         result = GetSqlDecimal_Unchecked(sink, getters, ordinal).Value;
                         break;
-                    case SqlDbType.Float:
+                    case SqlDbType2.Float:
                         result = GetDouble_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Image:
+                    case SqlDbType2.Image:
                         result = GetByteArray_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Int:
+                    case SqlDbType2.Int:
                         result = GetInt32_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Money:
+                    case SqlDbType2.Money:
                         result = GetSqlMoney_Unchecked(sink, getters, ordinal).Value;
                         break;
-                    case SqlDbType.NChar:
+                    case SqlDbType2.NChar:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.NText:
+                    case SqlDbType2.NText:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.NVarChar:
+                    case SqlDbType2.NVarChar:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Real:
+                    case SqlDbType2.Real:
                         result = GetSingle_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.UniqueIdentifier:
+                    case SqlDbType2.UniqueIdentifier:
                         result = GetGuid_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.SmallDateTime:
+                    case SqlDbType2.SmallDateTime:
                         result = GetDateTime_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.SmallInt:
+                    case SqlDbType2.SmallInt:
                         result = GetInt16_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.SmallMoney:
+                    case SqlDbType2.SmallMoney:
                         result = GetSqlMoney_Unchecked(sink, getters, ordinal).Value;
                         break;
-                    case SqlDbType.Text:
+                    case SqlDbType2.Text:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Timestamp:
+                    case SqlDbType2.Timestamp:
                         result = GetByteArray_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.TinyInt:
+                    case SqlDbType2.TinyInt:
                         result = GetByte_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.VarBinary:
+                    case SqlDbType2.VarBinary:
                         result = GetByteArray_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.VarChar:
+                    case SqlDbType2.VarChar:
                         result = GetString_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Variant:
+                    case SqlDbType2.Variant:
                         metaData = getters.GetVariantType(sink, ordinal);
                         sink.ProcessMessagesAndThrow();
-                        Debug.Assert(SqlDbType.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
+                        Debug.Assert(SqlDbType2.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
                         result = GetValue(sink, getters, ordinal, metaData, context);
                         break;
-                    case SqlDbType.Xml:
+                    case SqlDbType2.Xml:
                         result = GetSqlXml_Unchecked(sink, getters, ordinal, context).Value;
                         break;
-                    case SqlDbType.Udt:
+                    case SqlDbType2.Udt:
                         result = GetUdt_LengthChecked(sink, getters, ordinal, metaData);
                         break;
                 }
@@ -1050,7 +1050,7 @@ namespace Microsoft.Data.SqlClient.Server
             object result;
             if (IsDBNull_Unchecked(sink, getters, ordinal))
             {
-                if (metaData.SqlDbType == SqlDbType.Udt)
+                if (metaData.SqlDbType == SqlDbType2.Udt)
                 {
                     result = NullUdtInstance(metaData);
                 }
@@ -1063,20 +1063,20 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 switch (metaData.SqlDbType)
                 {
-                    case SqlDbType.Variant: // Handle variants specifically for v200, since they could contain v200 types
+                    case SqlDbType2.Variant: // Handle variants specifically for v200, since they could contain v200 types
                         metaData = getters.GetVariantType(sink, ordinal);
                         sink.ProcessMessagesAndThrow();
-                        Debug.Assert(SqlDbType.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
+                        Debug.Assert(SqlDbType2.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
                         result = GetSqlValue200(sink, getters, ordinal, metaData, context);
                         break;
-                    case SqlDbType.Date:
-                    case SqlDbType.DateTime2:
+                    case SqlDbType2.Date:
+                    case SqlDbType2.DateTime2:
                         result = GetDateTime_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Time:
+                    case SqlDbType2.Time:
                         result = GetTimeSpan_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.DateTimeOffset:
+                    case SqlDbType2.DateTimeOffset:
                         result = GetDateTimeOffset_Unchecked(sink, getters, ordinal);
                         break;
                     default:
@@ -1100,7 +1100,7 @@ namespace Microsoft.Data.SqlClient.Server
             object result = null;
             if (IsDBNull_Unchecked(sink, getters, ordinal))
             {
-                if ( metaData.SqlDbType ==SqlDbType.Udt)
+                if ( metaData.SqlDbType ==SqlDbType2.Udt)
                 {
                     result = NullUdtInstance(metaData);
                 }
@@ -1113,85 +1113,85 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 switch (metaData.SqlDbType)
                 {
-                    case SqlDbType.BigInt:
+                    case SqlDbType2.BigInt:
                         result = new SqlInt64(GetInt64_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Binary:
+                    case SqlDbType2.Binary:
                         result = GetSqlBinary_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Bit:
+                    case SqlDbType2.Bit:
                         result = new SqlBoolean(GetBoolean_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Char:
+                    case SqlDbType2.Char:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.DateTime:
+                    case SqlDbType2.DateTime:
                         result = new SqlDateTime(GetDateTime_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Decimal:
+                    case SqlDbType2.Decimal:
                         result = GetSqlDecimal_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Float:
+                    case SqlDbType2.Float:
                         result = new SqlDouble(GetDouble_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Image:
+                    case SqlDbType2.Image:
                         result = GetSqlBinary_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Int:
+                    case SqlDbType2.Int:
                         result = new SqlInt32(GetInt32_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Money:
+                    case SqlDbType2.Money:
                         result = GetSqlMoney_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.NChar:
+                    case SqlDbType2.NChar:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.NText:
+                    case SqlDbType2.NText:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.NVarChar:
+                    case SqlDbType2.NVarChar:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Real:
+                    case SqlDbType2.Real:
                         result = new SqlSingle(GetSingle_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.UniqueIdentifier:
+                    case SqlDbType2.UniqueIdentifier:
                         result = new SqlGuid(GetGuid_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.SmallDateTime:
+                    case SqlDbType2.SmallDateTime:
                         result = new SqlDateTime(GetDateTime_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.SmallInt:
+                    case SqlDbType2.SmallInt:
                         result = new SqlInt16(GetInt16_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.SmallMoney:
+                    case SqlDbType2.SmallMoney:
                         result = GetSqlMoney_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.Text:
+                    case SqlDbType2.Text:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Timestamp:
+                    case SqlDbType2.Timestamp:
                         result = GetSqlBinary_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.TinyInt:
+                    case SqlDbType2.TinyInt:
                         result = new SqlByte(GetByte_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.VarBinary:
+                    case SqlDbType2.VarBinary:
                         result = GetSqlBinary_Unchecked(sink, getters, ordinal);
                         break;
-                    case SqlDbType.VarChar:
+                    case SqlDbType2.VarChar:
                         result = new SqlString(GetString_Unchecked(sink, getters, ordinal));
                         break;
-                    case SqlDbType.Variant:
+                    case SqlDbType2.Variant:
                         metaData = getters.GetVariantType(sink, ordinal);
                         sink.ProcessMessagesAndThrow();
-                        Debug.Assert(SqlDbType.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
+                        Debug.Assert(SqlDbType2.Variant != metaData.SqlDbType, "Variant-within-variant causes endless recursion!");
                         result = GetSqlValue(sink, getters, ordinal, metaData, context);
                         break;
-                    case SqlDbType.Xml:
+                    case SqlDbType2.Xml:
                         result = GetSqlXml_Unchecked(sink, getters, ordinal, context);
                         break;
-                    case SqlDbType.Udt:
+                    case SqlDbType2.Udt:
                         result = GetUdt_LengthChecked(sink, getters, ordinal, metaData);
                         break;
                 }
@@ -1202,41 +1202,41 @@ namespace Microsoft.Data.SqlClient.Server
 
         // null return values for SqlClient 1.1-compatible GetSqlValue()
         private static readonly object[] s_typeSpecificNullForSqlValue = {
-            SqlInt64.Null,      // SqlDbType.BigInt
-            SqlBinary.Null,     // SqlDbType.Binary
-            SqlBoolean.Null,    // SqlDbType.Bit
-            SqlString.Null,     // SqlDbType.Char
-            SqlDateTime.Null,   // SqlDbType.DateTime
-            SqlDecimal.Null,    // SqlDbType.Decimal
-            SqlDouble.Null,     // SqlDbType.Float
-            SqlBinary.Null,     // SqlDbType.Image
-            SqlInt32.Null,      // SqlDbType.Int
-            SqlMoney.Null,      // SqlDbType.Money
-            SqlString.Null,     // SqlDbType.NChar
-            SqlString.Null,     // SqlDbType.NText
-            SqlString.Null,     // SqlDbType.NVarChar
-            SqlSingle.Null,     // SqlDbType.Real
-            SqlGuid.Null,       // SqlDbType.UniqueIdentifier
-            SqlDateTime.Null,   // SqlDbType.SmallDateTime
-            SqlInt16.Null,      // SqlDbType.SmallInt
-            SqlMoney.Null,      // SqlDbType.SmallMoney
-            SqlString.Null,     // SqlDbType.Text
-            SqlBinary.Null,     // SqlDbType.Timestamp
-            SqlByte.Null,       // SqlDbType.TinyInt
-            SqlBinary.Null,     // SqlDbType.VarBinary
-            SqlString.Null,     // SqlDbType.VarChar
-            DBNull.Value,       // SqlDbType.Variant
+            SqlInt64.Null,      // SqlDbType2.BigInt
+            SqlBinary.Null,     // SqlDbType2.Binary
+            SqlBoolean.Null,    // SqlDbType2.Bit
+            SqlString.Null,     // SqlDbType2.Char
+            SqlDateTime.Null,   // SqlDbType2.DateTime
+            SqlDecimal.Null,    // SqlDbType2.Decimal
+            SqlDouble.Null,     // SqlDbType2.Float
+            SqlBinary.Null,     // SqlDbType2.Image
+            SqlInt32.Null,      // SqlDbType2.Int
+            SqlMoney.Null,      // SqlDbType2.Money
+            SqlString.Null,     // SqlDbType2.NChar
+            SqlString.Null,     // SqlDbType2.NText
+            SqlString.Null,     // SqlDbType2.NVarChar
+            SqlSingle.Null,     // SqlDbType2.Real
+            SqlGuid.Null,       // SqlDbType2.UniqueIdentifier
+            SqlDateTime.Null,   // SqlDbType2.SmallDateTime
+            SqlInt16.Null,      // SqlDbType2.SmallInt
+            SqlMoney.Null,      // SqlDbType2.SmallMoney
+            SqlString.Null,     // SqlDbType2.Text
+            SqlBinary.Null,     // SqlDbType2.Timestamp
+            SqlByte.Null,       // SqlDbType2.TinyInt
+            SqlBinary.Null,     // SqlDbType2.VarBinary
+            SqlString.Null,     // SqlDbType2.VarChar
+            DBNull.Value,       // SqlDbType2.Variant
             null,               // 24
-            SqlXml.Null,        // SqlDbType.Xml
+            SqlXml.Null,        // SqlDbType2.Xml
             null,               // 26
             null,               // 27
             null,               // 28
-            null,               // SqlDbType.Udt -- requires instantiating udt-specific type
-            null,               // SqlDbType.Structured
-            DBNull.Value,       // SqlDbType.Date
-            DBNull.Value,       // SqlDbType.Time
-            DBNull.Value,       // SqlDbType.DateTime2
-            DBNull.Value,       // SqlDbType.DateTimeOffset
+            null,               // SqlDbType2.Udt -- requires instantiating udt-specific type
+            null,               // SqlDbType2.Structured
+            DBNull.Value,       // SqlDbType2.Date
+            DBNull.Value,       // SqlDbType2.Time
+            DBNull.Value,       // SqlDbType2.DateTime2
+            DBNull.Value,       // SqlDbType2.DateTimeOffset
         };
 
         internal static object NullUdtInstance(SmiMetaData metaData)
@@ -1512,7 +1512,7 @@ namespace Microsoft.Data.SqlClient.Server
         )
         {
             // Ensure either an invalid type, or caller validated compatibility
-            // SqlDbType.Variant and have special handling
+            // SqlDbType2.Variant and have special handling
             Debug.Assert(
                 typeCode == ExtendedClrTypeCode.Invalid ||
                 typeCode == ExtendedClrTypeCode.SByte ||
@@ -1765,103 +1765,103 @@ namespace Microsoft.Data.SqlClient.Server
                 {
                     switch (metaData[i].SqlDbType)
                     {
-                        case SqlDbType.BigInt:
+                        case SqlDbType2.BigInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int64));
                             ValueUtilsSmi.SetInt64_Unchecked(sink, setters, i, reader.GetInt64(i));
                             break;
-                        case SqlDbType.Binary:
+                        case SqlDbType2.Binary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             ValueUtilsSmi.SetSqlBytes_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlBytes(i), 0);
                             break;
-                        case SqlDbType.Bit:
+                        case SqlDbType2.Bit:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Boolean));
                             SetBoolean_Unchecked(sink, setters, i, reader.GetBoolean(i));
                             break;
-                        case SqlDbType.Char:
+                        case SqlDbType2.Char:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetSqlChars_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlChars(i), 0);
                             break;
-                        case SqlDbType.DateTime:
+                        case SqlDbType2.DateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], reader.GetDateTime(i));
                             break;
-                        case SqlDbType.Decimal:
+                        case SqlDbType2.Decimal:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlDecimal));
                             SetSqlDecimal_Unchecked(sink, setters, i, reader.GetSqlDecimal(i));
                             break;
-                        case SqlDbType.Float:
+                        case SqlDbType2.Float:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Double));
                             SetDouble_Unchecked(sink, setters, i, reader.GetDouble(i));
                             break;
-                        case SqlDbType.Image:
+                        case SqlDbType2.Image:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetSqlBytes_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlBytes(i), 0);
                             break;
-                        case SqlDbType.Int:
+                        case SqlDbType2.Int:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int32));
                             SetInt32_Unchecked(sink, setters, i, reader.GetInt32(i));
                             break;
-                        case SqlDbType.Money:
+                        case SqlDbType2.Money:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Unchecked(sink, setters, i, metaData[i], reader.GetSqlMoney(i));
                             break;
-                        case SqlDbType.NChar:
-                        case SqlDbType.NText:
-                        case SqlDbType.NVarChar:
+                        case SqlDbType2.NChar:
+                        case SqlDbType2.NText:
+                        case SqlDbType2.NVarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetSqlChars_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlChars(i), 0);
                             break;
-                        case SqlDbType.Real:
+                        case SqlDbType2.Real:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Single));
                             SetSingle_Unchecked(sink, setters, i, reader.GetFloat(i));
                             break;
-                        case SqlDbType.UniqueIdentifier:
+                        case SqlDbType2.UniqueIdentifier:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Guid));
                             SetGuid_Unchecked(sink, setters, i, reader.GetGuid(i));
                             break;
-                        case SqlDbType.SmallDateTime:
+                        case SqlDbType2.SmallDateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], reader.GetDateTime(i));
                             break;
-                        case SqlDbType.SmallInt:
+                        case SqlDbType2.SmallInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int16));
                             SetInt16_Unchecked(sink, setters, i, reader.GetInt16(i));
                             break;
-                        case SqlDbType.SmallMoney:
+                        case SqlDbType2.SmallMoney:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Checked(sink, setters, i, metaData[i], reader.GetSqlMoney(i));
                             break;
-                        case SqlDbType.Text:
+                        case SqlDbType2.Text:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetSqlChars_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlChars(i), 0);
                             break;
-                        case SqlDbType.Timestamp:
+                        case SqlDbType2.Timestamp:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetSqlBytes_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlBytes(i), 0);
                             break;
-                        case SqlDbType.TinyInt:
+                        case SqlDbType2.TinyInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Byte));
                             SetByte_Unchecked(sink, setters, i, reader.GetByte(i));
                             break;
-                        case SqlDbType.VarBinary:
+                        case SqlDbType2.VarBinary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetSqlBytes_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlBytes(i), 0);
                             break;
-                        case SqlDbType.VarChar:
+                        case SqlDbType2.VarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.String));
                             SetSqlChars_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlChars(i), 0);
                             break;
-                        case SqlDbType.Xml:
+                        case SqlDbType2.Xml:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlXml));
                             SetSqlXml_Unchecked(sink, setters, i, reader.GetSqlXml(i));
                             break;
-                        case SqlDbType.Variant:
+                        case SqlDbType2.Variant:
                             object o = reader.GetSqlValue(i);
                             ExtendedClrTypeCode typeCode = MetaDataUtilsSmi.DetermineExtendedTypeCode(o);
                             SetCompatibleValue(sink, setters, i, metaData[i], o, typeCode, 0);
                             break;
 
-                        case SqlDbType.Udt:
+                        case SqlDbType2.Udt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetSqlBytes_LengthChecked(sink, setters, i, metaData[i], reader.GetSqlBytes(i), 0);
                             break;
@@ -1871,7 +1871,7 @@ namespace Microsoft.Data.SqlClient.Server
                             // invalid instance of SqlDbType, or one would have to add 
                             // new member to SqlDbType without adding a case in this 
                             // switch, hence the assert.
-                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType.ToString());
+                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType2.ToString());
                             throw ADP.NotSupported();
                     }
                 }
@@ -1894,27 +1894,27 @@ namespace Microsoft.Data.SqlClient.Server
                 {
                     switch (metaData[i].SqlDbType)
                     {
-                        case SqlDbType.BigInt:
+                        case SqlDbType2.BigInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int64));
                             SetInt64_Unchecked(sink, setters, i, reader.GetInt64(i));
                             break;
-                        case SqlDbType.Binary:
+                        case SqlDbType2.Binary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.ByteArray));
                             SetBytes_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.Bit:
+                        case SqlDbType2.Bit:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Boolean));
                             SetBoolean_Unchecked(sink, setters, i, reader.GetBoolean(i));
                             break;
-                        case SqlDbType.Char:
+                        case SqlDbType2.Char:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.CharArray));
                             SetCharsOrString_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.DateTime:
+                        case SqlDbType2.DateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], reader.GetDateTime(i));
                             break;
-                        case SqlDbType.Decimal:
+                        case SqlDbType2.Decimal:
                             { // block to scope sqlReader local to avoid conflicts
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlDecimal));
                                 // Support full fidelity for SqlDataReader
@@ -1928,69 +1928,69 @@ namespace Microsoft.Data.SqlClient.Server
                                 }
                             }
                             break;
-                        case SqlDbType.Float:
+                        case SqlDbType2.Float:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Double));
                             SetDouble_Unchecked(sink, setters, i, reader.GetDouble(i));
                             break;
-                        case SqlDbType.Image:
+                        case SqlDbType2.Image:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.ByteArray));
                             SetBytes_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.Int:
+                        case SqlDbType2.Int:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int32));
                             SetInt32_Unchecked(sink, setters, i, reader.GetInt32(i));
                             break;
-                        case SqlDbType.Money:
+                        case SqlDbType2.Money:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Checked(sink, setters, i, metaData[i], new SqlMoney(reader.GetDecimal(i)));
                             break;
-                        case SqlDbType.NChar:
-                        case SqlDbType.NText:
-                        case SqlDbType.NVarChar:
+                        case SqlDbType2.NChar:
+                        case SqlDbType2.NText:
+                        case SqlDbType2.NVarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.CharArray));
                             SetCharsOrString_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.Real:
+                        case SqlDbType2.Real:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Single));
                             SetSingle_Unchecked(sink, setters, i, reader.GetFloat(i));
                             break;
-                        case SqlDbType.UniqueIdentifier:
+                        case SqlDbType2.UniqueIdentifier:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Guid));
                             SetGuid_Unchecked(sink, setters, i, reader.GetGuid(i));
                             break;
-                        case SqlDbType.SmallDateTime:
+                        case SqlDbType2.SmallDateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], reader.GetDateTime(i));
                             break;
-                        case SqlDbType.SmallInt:
+                        case SqlDbType2.SmallInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int16));
                             SetInt16_Unchecked(sink, setters, i, reader.GetInt16(i));
                             break;
-                        case SqlDbType.SmallMoney:
+                        case SqlDbType2.SmallMoney:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Checked(sink, setters, i, metaData[i], new SqlMoney(reader.GetDecimal(i)));
                             break;
-                        case SqlDbType.Text:
+                        case SqlDbType2.Text:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.CharArray));
                             SetCharsOrString_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.Timestamp:
+                        case SqlDbType2.Timestamp:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.ByteArray));
                             SetBytes_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.TinyInt:
+                        case SqlDbType2.TinyInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Byte));
                             SetByte_Unchecked(sink, setters, i, reader.GetByte(i));
                             break;
-                        case SqlDbType.VarBinary:
+                        case SqlDbType2.VarBinary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.ByteArray));
                             SetBytes_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.VarChar:
+                        case SqlDbType2.VarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.String));
                             SetCharsOrString_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
-                        case SqlDbType.Xml:
+                        case SqlDbType2.Xml:
                             {
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlXml));
                                 if (reader is SqlDataReader sqlReader)
@@ -2003,7 +2003,7 @@ namespace Microsoft.Data.SqlClient.Server
                                 }
                             }
                             break;
-                        case SqlDbType.Variant:
+                        case SqlDbType2.Variant:
                             {  // block to scope sqlReader local and avoid conflicts
                                 // Support better options for SqlDataReader
                                 SqlBuffer.StorageType storageType = SqlBuffer.StorageType.Empty;
@@ -2035,20 +2035,20 @@ namespace Microsoft.Data.SqlClient.Server
                             }
                             break;
 
-                        case SqlDbType.Udt:
+                        case SqlDbType2.Udt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.ByteArray));
                             // Skip serialization for Udt types.
                             SetBytes_FromReader(sink, setters, i, metaData[i], reader, 0);
                             break;
 
-                        // SqlDbType.Structured should have been caught before this point for TVPs.  SUDTs will still need to implement.
+                        // SqlDbType2.Structured should have been caught before this point for TVPs.  SUDTs will still need to implement.
 
-                        case SqlDbType.Date:
-                        case SqlDbType.DateTime2:
+                        case SqlDbType2.Date:
+                        case SqlDbType2.DateTime2:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], reader.GetDateTime(i));
                             break;
-                        case SqlDbType.Time:
+                        case SqlDbType2.Time:
                             {
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.TimeSpan));
                                 TimeSpan ts;
@@ -2063,7 +2063,7 @@ namespace Microsoft.Data.SqlClient.Server
                                 SetTimeSpan_Checked(sink, setters, i, metaData[i], ts);
                             }
                             break;
-                        case SqlDbType.DateTimeOffset:
+                        case SqlDbType2.DateTimeOffset:
                             {
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTimeOffset));
                                 DateTimeOffset dto;
@@ -2084,7 +2084,7 @@ namespace Microsoft.Data.SqlClient.Server
                             // invalid instance of SqlDbType, or one would have to add 
                             // new member to SqlDbType without adding a case in this 
                             // switch, hence the assert.
-                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType.ToString());
+                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType2.ToString());
                             throw ADP.NotSupported();
                     }
                 }
@@ -2107,111 +2107,111 @@ namespace Microsoft.Data.SqlClient.Server
                 {
                     switch (metaData[i].SqlDbType)
                     {
-                        case SqlDbType.BigInt:
+                        case SqlDbType2.BigInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int64));
                             SetInt64_Unchecked(sink, setters, i, record.GetInt64(i));
                             break;
-                        case SqlDbType.Binary:
+                        case SqlDbType2.Binary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetBytes_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Bit:
+                        case SqlDbType2.Bit:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Boolean));
                             SetBoolean_Unchecked(sink, setters, i, record.GetBoolean(i));
                             break;
-                        case SqlDbType.Char:
+                        case SqlDbType2.Char:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetChars_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.DateTime:
+                        case SqlDbType2.DateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], record.GetDateTime(i));
                             break;
-                        case SqlDbType.Decimal:
+                        case SqlDbType2.Decimal:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlDecimal));
                             SetSqlDecimal_Unchecked(sink, setters, i, record.GetSqlDecimal(i));
                             break;
-                        case SqlDbType.Float:
+                        case SqlDbType2.Float:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Double));
                             SetDouble_Unchecked(sink, setters, i, record.GetDouble(i));
                             break;
-                        case SqlDbType.Image:
+                        case SqlDbType2.Image:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetBytes_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Int:
+                        case SqlDbType2.Int:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int32));
                             SetInt32_Unchecked(sink, setters, i, record.GetInt32(i));
                             break;
-                        case SqlDbType.Money:
+                        case SqlDbType2.Money:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Unchecked(sink, setters, i, metaData[i], record.GetSqlMoney(i));
                             break;
-                        case SqlDbType.NChar:
-                        case SqlDbType.NText:
-                        case SqlDbType.NVarChar:
+                        case SqlDbType2.NChar:
+                        case SqlDbType2.NText:
+                        case SqlDbType2.NVarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetChars_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Real:
+                        case SqlDbType2.Real:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Single));
                             SetSingle_Unchecked(sink, setters, i, record.GetFloat(i));
                             break;
-                        case SqlDbType.UniqueIdentifier:
+                        case SqlDbType2.UniqueIdentifier:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Guid));
                             SetGuid_Unchecked(sink, setters, i, record.GetGuid(i));
                             break;
-                        case SqlDbType.SmallDateTime:
+                        case SqlDbType2.SmallDateTime:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], record.GetDateTime(i));
                             break;
-                        case SqlDbType.SmallInt:
+                        case SqlDbType2.SmallInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Int16));
                             SetInt16_Unchecked(sink, setters, i, record.GetInt16(i));
                             break;
-                        case SqlDbType.SmallMoney:
+                        case SqlDbType2.SmallMoney:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlMoney));
                             SetSqlMoney_Checked(sink, setters, i, metaData[i], record.GetSqlMoney(i));
                             break;
-                        case SqlDbType.Text:
+                        case SqlDbType2.Text:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlChars));
                             SetChars_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Timestamp:
+                        case SqlDbType2.Timestamp:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetBytes_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.TinyInt:
+                        case SqlDbType2.TinyInt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.Byte));
                             SetByte_Unchecked(sink, setters, i, record.GetByte(i));
                             break;
-                        case SqlDbType.VarBinary:
+                        case SqlDbType2.VarBinary:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetBytes_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.VarChar:
+                        case SqlDbType2.VarChar:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.String));
                             SetChars_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Xml:
+                        case SqlDbType2.Xml:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlXml));
                             SetSqlXml_Unchecked(sink, setters, i, record.GetSqlXml(i));    // perf improvement?
                             break;
-                        case SqlDbType.Variant:
+                        case SqlDbType2.Variant:
                             object o = record.GetSqlValue(i);
                             ExtendedClrTypeCode typeCode = MetaDataUtilsSmi.DetermineExtendedTypeCode(o);
                             SetCompatibleValueV200(sink, setters, i, metaData[i], o, typeCode, 0, null /* no peekahead */);
                             break;
-                        case SqlDbType.Udt:
+                        case SqlDbType2.Udt:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.SqlBytes));
                             SetBytes_FromRecord(sink, setters, i, metaData[i], record, 0);
                             break;
-                        case SqlDbType.Date:
-                        case SqlDbType.DateTime2:
+                        case SqlDbType2.Date:
+                        case SqlDbType2.DateTime2:
                             Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTime));
                             SetDateTime_Checked(sink, setters, i, metaData[i], record.GetDateTime(i));
                             break;
-                        case SqlDbType.Time:
+                        case SqlDbType2.Time:
                             {
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.TimeSpan));
                                 TimeSpan ts;
@@ -2226,7 +2226,7 @@ namespace Microsoft.Data.SqlClient.Server
                                 SetTimeSpan_Checked(sink, setters, i, metaData[i], ts);
                             }
                             break;
-                        case SqlDbType.DateTimeOffset:
+                        case SqlDbType2.DateTimeOffset:
                             {
                                 Debug.Assert(CanAccessSetterDirectly(metaData[i], ExtendedClrTypeCode.DateTimeOffset));
                                 DateTimeOffset dto;
@@ -2243,7 +2243,7 @@ namespace Microsoft.Data.SqlClient.Server
                             break;
 
                         default:
-                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType.ToString());
+                            Debug.Fail("unsupported DbType:" + metaData[i].SqlDbType2.ToString());
                             throw ADP.NotSupported();
                     }
                 }
@@ -2275,26 +2275,26 @@ namespace Microsoft.Data.SqlClient.Server
 
         private static decimal GetDecimal_PossiblyMoney(SmiEventSink_Default sink, ITypedGettersV3 getters, int ordinal, SmiMetaData metaData)
         {
-            if (metaData.SqlDbType == SqlDbType.Decimal)
+            if (metaData.SqlDbType == SqlDbType2.Decimal)
             {
                 return GetSqlDecimal_Unchecked(sink, getters, ordinal).Value;
             }
             else
             {
-                Debug.Assert(metaData.SqlDbType == SqlDbType.Money || metaData.SqlDbType == SqlDbType.SmallMoney, "Unexpected sqldbtype=" + metaData.SqlDbType);
+                Debug.Assert(metaData.SqlDbType == SqlDbType2.Money || metaData.SqlDbType == SqlDbType2.SmallMoney, "Unexpected sqldbtype=" + metaData.SqlDbType);
                 return GetSqlMoney_Unchecked(sink, getters, ordinal).Value;
             }
         }
 
         private static void SetDecimal_PossiblyMoney(SmiEventSink_Default sink, ITypedSettersV3 setters, int ordinal, SmiMetaData metaData, decimal value)
         {
-            if (metaData.SqlDbType == SqlDbType.Decimal || metaData.SqlDbType == SqlDbType.Variant)
+            if (metaData.SqlDbType == SqlDbType2.Decimal || metaData.SqlDbType == SqlDbType2.Variant)
             {
                 SetDecimal_Unchecked(sink, setters, ordinal, value);
             }
             else
             {
-                Debug.Assert(metaData.SqlDbType == SqlDbType.Money || metaData.SqlDbType == SqlDbType.SmallMoney, "Unexpected sqldbtype=" + metaData.SqlDbType);
+                Debug.Assert(metaData.SqlDbType == SqlDbType2.Money || metaData.SqlDbType == SqlDbType2.SmallMoney, "Unexpected sqldbtype=" + metaData.SqlDbType);
                 SetSqlMoney_Checked(sink, setters, ordinal, metaData, new SqlMoney(value));
             }
         }
@@ -2304,7 +2304,7 @@ namespace Microsoft.Data.SqlClient.Server
         private static readonly DateTime s_smallDateTimeMin = new DateTime(1899, 12, 31, 23, 59, 29, 999);
         private static void VerifyDateTimeRange(SqlDbType dbType, DateTime value)
         {
-            if (dbType == SqlDbType.SmallDateTime && (s_smallDateTimeMax < value || s_smallDateTimeMin > value))
+            if (dbType == SqlDbType2.SmallDateTime && (s_smallDateTimeMax < value || s_smallDateTimeMin > value))
             {
                 throw ADP.InvalidMetaDataValue();
             }
@@ -2314,7 +2314,7 @@ namespace Microsoft.Data.SqlClient.Server
         private static readonly TimeSpan s_timeSpanMax = new TimeSpan(TimeSpan.TicksPerDay - 1);
         private static void VerifyTimeRange(SqlDbType dbType, TimeSpan value)
         {
-            if (dbType == SqlDbType.Time && (s_timeSpanMin > value || value > s_timeSpanMax))
+            if (dbType == SqlDbType2.Time && (s_timeSpanMin > value || value > s_timeSpanMax))
             {
                 throw ADP.InvalidMetaDataValue();
             }
@@ -2323,7 +2323,7 @@ namespace Microsoft.Data.SqlClient.Server
         private static void SetDateTime_Checked(SmiEventSink_Default sink, ITypedSettersV3 setters, int ordinal, SmiMetaData metaData, DateTime value)
         {
             VerifyDateTimeRange(metaData.SqlDbType, value);
-            SetDateTime_Unchecked(sink, setters, ordinal, (metaData.SqlDbType == SqlDbType.Date) ? value.Date : value);
+            SetDateTime_Unchecked(sink, setters, ordinal, (metaData.SqlDbType == SqlDbType2.Date) ? value.Date : value);
         }
 
         private static void SetTimeSpan_Checked(SmiEventSink_Default sink, SmiTypedGetterSetter setters, int ordinal, SmiMetaData metaData, TimeSpan value)
@@ -2355,7 +2355,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private static void SetSqlMoney_Checked(SmiEventSink_Default sink, ITypedSettersV3 setters, int ordinal, SmiMetaData metaData, SqlMoney value)
         {
-            if (!value.IsNull && metaData.SqlDbType == SqlDbType.SmallMoney)
+            if (!value.IsNull && metaData.SqlDbType == SqlDbType2.SmallMoney)
             {
                 decimal decimalValue = value.Value;
                 if (decimalValue < TdsEnums.SQL_SMALL_MONEY_MIN  || decimalValue > TdsEnums.SQL_SMALL_MONEY_MAX)
@@ -2699,9 +2699,9 @@ namespace Microsoft.Data.SqlClient.Server
         {
             // Make sure no-one adds new ExtendedType, nor SqlDbType without updating this file!
             Debug.Assert(ExtendedClrTypeCode.First == 0 && (int)ExtendedClrTypeCode.Last == s_canAccessGetterDirectly.GetLength(0) - 1, "ExtendedClrTypeCodes does not match with __canAccessGetterDirectly");
-            Debug.Assert(SqlDbType.BigInt == 0 && (int)SqlDbType.DateTimeOffset == s_canAccessGetterDirectly.GetLength(1) - 1, "SqlDbType does not match with __canAccessGetterDirectly");
+            Debug.Assert(SqlDbType2.BigInt == 0 && (int)SqlDbType2.DateTimeOffset == s_canAccessGetterDirectly.GetLength(1) - 1, "SqlDbType does not match with __canAccessGetterDirectly");
             Debug.Assert(ExtendedClrTypeCode.First <= setterTypeCode && ExtendedClrTypeCode.Last >= setterTypeCode);
-            Debug.Assert(SqlDbType.BigInt <= metaData.SqlDbType && SqlDbType.DateTimeOffset >= metaData.SqlDbType);
+            Debug.Assert(SqlDbType2.BigInt <= metaData.SqlDbType && SqlDbType2.DateTimeOffset >= metaData.SqlDbType);
 
             bool returnValue = s_canAccessGetterDirectly[(int)setterTypeCode, (int)metaData.SqlDbType];
 
@@ -2725,9 +2725,9 @@ namespace Microsoft.Data.SqlClient.Server
         {
             // Make sure no-one adds new ExtendedType, nor SqlDbType without updating this file!
             Debug.Assert(ExtendedClrTypeCode.First == 0 && (int)ExtendedClrTypeCode.Last == s_canAccessSetterDirectly.GetLength(0) - 1, "ExtendedClrTypeCodes does not match with __canAccessSetterDirectly");
-            Debug.Assert(SqlDbType.BigInt == 0 && (int)SqlDbType.DateTimeOffset == s_canAccessSetterDirectly.GetLength(1) - 1, "SqlDbType does not match with __canAccessSetterDirectly");
+            Debug.Assert(SqlDbType2.BigInt == 0 && (int)SqlDbType2.DateTimeOffset == s_canAccessSetterDirectly.GetLength(1) - 1, "SqlDbType does not match with __canAccessSetterDirectly");
             Debug.Assert(ExtendedClrTypeCode.First <= setterTypeCode && ExtendedClrTypeCode.Last >= setterTypeCode);
-            Debug.Assert(SqlDbType.BigInt <= metaData.SqlDbType && SqlDbType.DateTimeOffset >= metaData.SqlDbType);
+            Debug.Assert(SqlDbType2.BigInt <= metaData.SqlDbType && SqlDbType2.DateTimeOffset >= metaData.SqlDbType);
 
             bool returnValue = s_canAccessSetterDirectly[(int)setterTypeCode, (int)metaData.SqlDbType];
 
@@ -2822,7 +2822,7 @@ namespace Microsoft.Data.SqlClient.Server
 
             // special case for variants, since their maxLength is actually a bit bigger than
             // the actual data length allowed.
-            if (dbType == SqlDbType.Variant)
+            if (dbType == SqlDbType2.Variant)
             {
                 length = Math.Min(length, TdsEnums.TYPE_SIZE_LIMIT);
             }
@@ -2835,7 +2835,7 @@ namespace Microsoft.Data.SqlClient.Server
                 length = (int)Math.Min((long)length, actualLength - fieldOffset);
                 Debug.Assert(length >= 0, "result < 0, actualLength/fieldOffset problem?");
             }
-            else if (dbType != SqlDbType.Udt && maxLength >= 0)
+            else if (dbType != SqlDbType2.Udt && maxLength >= 0)
             {
                 length = (int)Math.Min((long)length, maxLength - fieldOffset);
                 Debug.Assert(length >= 0, "Result < 0, maxlen/fieldoffset problem?");
@@ -3356,7 +3356,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private static void SetDateTime2_Unchecked(SmiEventSink_Default sink, ITypedSettersV3 setters, int ordinal, SmiMetaData metaData, DateTime value)
         {
-            Debug.Assert(metaData.SqlDbType == SqlDbType.Variant, "Invalid type. This should be called only when the type is variant.");
+            Debug.Assert(metaData.SqlDbType == SqlDbType2.Variant, "Invalid type. This should be called only when the type is variant.");
             setters.SetVariantMetaData(sink, ordinal, SmiMetaData.DefaultDateTime2);
             setters.SetDateTime(sink, ordinal, value);
             sink.ProcessMessagesAndThrow();
@@ -3364,7 +3364,7 @@ namespace Microsoft.Data.SqlClient.Server
 
         private static void SetDate_Unchecked(SmiEventSink_Default sink, ITypedSettersV3 setters, int ordinal, SmiMetaData metaData, DateTime value)
         {
-            Debug.Assert(metaData.SqlDbType == SqlDbType.Variant, "Invalid type. This should be called only when the type is variant.");
+            Debug.Assert(metaData.SqlDbType == SqlDbType2.Variant, "Invalid type. This should be called only when the type is variant.");
             setters.SetVariantMetaData(sink, ordinal, SmiMetaData.DefaultDate);
             setters.SetDateTime(sink, ordinal, value);
             sink.ProcessMessagesAndThrow();
@@ -3652,7 +3652,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
             else
             {
-                if (metaData.SqlDbType == SqlDbType.Variant)
+                if (metaData.SqlDbType == SqlDbType2.Variant)
                 {
                     setters.SetVariantMetaData(sink, ordinal, SmiMetaData.DefaultMoney);
                     sink.ProcessMessagesAndThrow();
@@ -3689,11 +3689,11 @@ namespace Microsoft.Data.SqlClient.Server
             }
             else
             {
-                if (metaData.SqlDbType == SqlDbType.Variant)
+                if (metaData.SqlDbType == SqlDbType2.Variant)
                 {
                     // Set up a NVarChar metadata with correct LCID/Collation
                     metaData = new SmiMetaData(
-                        SqlDbType.NVarChar,
+                        SqlDbType2.NVarChar,
                         SmiMetaData.MaxUnicodeCharacters,
                         precision: 0,
                         scale: 0,

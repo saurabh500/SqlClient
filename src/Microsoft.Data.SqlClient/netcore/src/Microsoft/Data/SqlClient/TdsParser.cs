@@ -4109,7 +4109,7 @@ namespace Microsoft.Data.SqlClient
                 rec.metaType = MetaType.GetMaxMetaTypeFromMetaType(rec.metaType);
             }
 
-            if (rec.type == SqlDbType.Decimal)
+            if (rec.type == SqlDbType2.Decimal)
             {
                 if (!stateObj.TryReadByte(out rec.precision))
                 {
@@ -4137,7 +4137,7 @@ namespace Microsoft.Data.SqlClient
                 }
             }
 
-            if (rec.type == SqlDbType.Xml)
+            if (rec.type == SqlDbType2.Xml)
             {
                 // Read schema info
                 byte schemapresent;
@@ -4935,7 +4935,7 @@ namespace Microsoft.Data.SqlClient
                 }
             }
 
-            if (col.type == SqlDbType.Decimal)
+            if (col.type == SqlDbType2.Decimal)
             {
                 if (!stateObj.TryReadByte(out col.precision))
                 {
@@ -4960,14 +4960,14 @@ namespace Microsoft.Data.SqlClient
                 // TODO: variable-length calculation needs to be encapsulated better
                 switch (col.metaType.SqlDbType)
                 {
-                    case SqlDbType.Time:
+                    case SqlDbType2.Time:
                         col.length = MetaType.GetTimeSizeFromScale(col.scale);
                         break;
-                    case SqlDbType.DateTime2:
+                    case SqlDbType2.DateTime2:
                         // Date in number of days (3 bytes) + time
                         col.length = 3 + MetaType.GetTimeSizeFromScale(col.scale);
                         break;
-                    case SqlDbType.DateTimeOffset:
+                    case SqlDbType2.DateTimeOffset:
                         // Date in days (3 bytes) + offset in minutes (2 bytes) + time
                         col.length = 5 + MetaType.GetTimeSizeFromScale(col.scale);
                         break;
@@ -5482,7 +5482,7 @@ namespace Microsoft.Data.SqlClient
         {
             SqlDbType type = md.type;
 
-            if (type == SqlDbType.VarBinary && // if its a varbinary
+            if (type == SqlDbType2.VarBinary && // if its a varbinary
                 md.isEncrypted &&// and encrypted
                 ShouldHonorTceForRead(columnEncryptionSetting, connection))
             {
@@ -5491,94 +5491,94 @@ namespace Microsoft.Data.SqlClient
 
             switch (type)
             {
-                case SqlDbType.Real:
+                case SqlDbType2.Real:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Single);
                     break;
 
-                case SqlDbType.Float:
+                case SqlDbType2.Float:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Double);
                     break;
 
-                case SqlDbType.Udt:
-                case SqlDbType.Binary:
-                case SqlDbType.VarBinary:
-                case SqlDbType.Image:
+                case SqlDbType2.Udt:
+                case SqlDbType2.Binary:
+                case SqlDbType2.VarBinary:
+                case SqlDbType2.Image:
                     nullVal.SqlBinary = SqlBinary.Null;
                     break;
 
-                case SqlDbType.UniqueIdentifier:
+                case SqlDbType2.UniqueIdentifier:
                     nullVal.SqlGuid = SqlGuid.Null;
                     break;
 
-                case SqlDbType.Bit:
+                case SqlDbType2.Bit:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Boolean);
                     break;
 
-                case SqlDbType.TinyInt:
+                case SqlDbType2.TinyInt:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Byte);
                     break;
 
-                case SqlDbType.SmallInt:
+                case SqlDbType2.SmallInt:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Int16);
                     break;
 
-                case SqlDbType.Int:
+                case SqlDbType2.Int:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Int32);
                     break;
 
-                case SqlDbType.BigInt:
+                case SqlDbType2.BigInt:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Int64);
                     break;
 
-                case SqlDbType.Char:
-                case SqlDbType.VarChar:
-                case SqlDbType.NChar:
-                case SqlDbType.NVarChar:
-                case SqlDbType.Text:
-                case SqlDbType.NText:
+                case SqlDbType2.Char:
+                case SqlDbType2.VarChar:
+                case SqlDbType2.NChar:
+                case SqlDbType2.NVarChar:
+                case SqlDbType2.Text:
+                case SqlDbType2.NText:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.String);
                     break;
 
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Decimal);
                     break;
 
-                case SqlDbType.DateTime:
-                case SqlDbType.SmallDateTime:
+                case SqlDbType2.DateTime:
+                case SqlDbType2.SmallDateTime:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTime);
                     break;
 
-                case SqlDbType.Money:
-                case SqlDbType.SmallMoney:
+                case SqlDbType2.Money:
+                case SqlDbType2.SmallMoney:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Money);
                     break;
 
-                case SqlDbType.Variant:
+                case SqlDbType2.Variant:
                     // DBNull.Value will have to work here
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Empty);
                     break;
 
-                case SqlDbType.Xml:
+                case SqlDbType2.Xml:
                     nullVal.SqlCachedBuffer = SqlCachedBuffer.Null;
                     break;
 
-                case SqlDbType.Date:
+                case SqlDbType2.Date:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Date);
                     break;
 
-                case SqlDbType.Time:
+                case SqlDbType2.Time:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.Time);
                     break;
 
-                case SqlDbType.DateTime2:
+                case SqlDbType2.DateTime2:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTime2);
                     break;
 
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.DateTimeOffset:
                     nullVal.SetToNullOfType(SqlBuffer.StorageType.DateTimeOffset);
                     break;
 
-                case SqlDbType.Timestamp:
+                case SqlDbType2.Timestamp:
                     if (!LocalAppContextSwitches.LegacyRowVersionNullBehavior)
                     {
                         nullVal.SetToNullOfType(SqlBuffer.StorageType.SqlBinary);
@@ -9261,7 +9261,7 @@ namespace Microsoft.Data.SqlClient
 
             // scale and precision are only relevant for numeric and decimal types
             // adjust the actual value scale and precision to match the user specified
-            if (mt.SqlDbType == SqlDbType.Decimal)
+            if (mt.SqlDbType == SqlDbType2.Decimal)
             {
                 precision = param.GetActualPrecision();
                 scale = param.GetActualScale();
@@ -9450,11 +9450,11 @@ namespace Microsoft.Data.SqlClient
                 // receive a output value, but not for variable types.  So, always send 8 for timestamp because
                 // while the user sees it as a fixed type, we are actually representing it as a bigbinary which
                 // is variable.
-                if (mt.SqlDbType == SqlDbType.Timestamp)
+                if (mt.SqlDbType == SqlDbType2.Timestamp)
                 {
                     WriteParameterVarLen(mt, TdsEnums.TEXT_TIME_STAMP_LEN, false, stateObj);
                 }
-                else if (mt.SqlDbType == SqlDbType.Udt)
+                else if (mt.SqlDbType == SqlDbType2.Udt)
                 {
                     Debug.Assert(_is2005, "Invalid DataType UDT for non-2005 or later server!");
 
@@ -9543,10 +9543,10 @@ namespace Microsoft.Data.SqlClient
                 else if (mt.IsPlp)
                 {
                     // TODO: Saurabh 
-                    if (mt.SqlDbType != SqlDbType.Xml && mt.SqlDbType != (SqlDbType)35)
+                    if (mt.SqlDbType != SqlDbType2.Xml && mt.SqlDbType != SqlDbType2.Json)
                         WriteShort(TdsEnums.SQL_USHORTVARMAXLEN, stateObj);
                 }
-                else if ((!mt.IsVarTime) && (mt.SqlDbType != SqlDbType.Date))
+                else if ((!mt.IsVarTime) && (mt.SqlDbType != SqlDbType2.Date))
                 {   // Time, Date, DateTime2, DateTimeoffset do not have the size written out
                     maxsize = (size > actualSize) ? size : actualSize;
                     if (maxsize == 0 && _is2005)
@@ -9563,7 +9563,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             // scale and precision are only relevant for numeric and decimal types
-            if (mt.SqlDbType == SqlDbType.Decimal)
+            if (mt.SqlDbType == SqlDbType2.Decimal)
             {
                 if (0 == precision)
                 {
@@ -9583,9 +9583,9 @@ namespace Microsoft.Data.SqlClient
 
             // write out collation or xml metadata
 
-            if ((mt.SqlDbType == SqlDbType.Xml || mt.SqlDbType == (SqlDbType)35))
+            if ((mt.SqlDbType == SqlDbType2.Xml || mt.SqlDbType == SqlDbType2.Json))
             {
-                if (mt.SqlDbType == SqlDbType.Xml)
+                if (mt.SqlDbType == SqlDbType2.Xml)
                 { 
                     if (!string.IsNullOrEmpty(param.XmlSchemaCollectionDatabase) ||
                     !string.IsNullOrEmpty(param.XmlSchemaCollectionOwningSchema) ||
@@ -9823,7 +9823,7 @@ namespace Microsoft.Data.SqlClient
             if (sendDefault)
             {
                 // Value for TVP default is empty list, not NULL
-                if (SqlDbType.Structured == metaData.SqlDbType && metaData.IsMultiValued)
+                if (SqlDbType2.Structured == metaData.SqlDbType && metaData.IsMultiValued)
                 {
                     value = Array.Empty<SqlDataRecord>();
                     typeCode = ExtendedClrTypeCode.IEnumerableOfSqlDataRecord;
@@ -9902,63 +9902,63 @@ namespace Microsoft.Data.SqlClient
         {
             switch (metaData.SqlDbType)
             {
-                case SqlDbType.BigInt:
+                case SqlDbType2.BigInt:
                     stateObj.WriteByte(TdsEnums.SQLINTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Binary:
+                case SqlDbType2.Binary:
                     stateObj.WriteByte(TdsEnums.SQLBIGBINARY);
                     WriteUnsignedShort(checked((ushort)metaData.MaxLength), stateObj);
                     break;
-                case SqlDbType.Bit:
+                case SqlDbType2.Bit:
                     stateObj.WriteByte(TdsEnums.SQLBITN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Char:
+                case SqlDbType2.Char:
                     stateObj.WriteByte(TdsEnums.SQLBIGCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength)), stateObj);
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.DateTime:
+                case SqlDbType2.DateTime:
                     stateObj.WriteByte(TdsEnums.SQLDATETIMN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     stateObj.WriteByte(TdsEnums.SQLNUMERICN);
                     stateObj.WriteByte(checked((byte)MetaType.MetaDecimal.FixedLength));   // SmiMetaData's length and actual wire format's length are different
                     stateObj.WriteByte(0 == metaData.Precision ? (byte)1 : metaData.Precision);
                     stateObj.WriteByte(metaData.Scale);
                     break;
-                case SqlDbType.Float:
+                case SqlDbType2.Float:
                     stateObj.WriteByte(TdsEnums.SQLFLTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Image:
+                case SqlDbType2.Image:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARBINARY);
                     WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
                     break;
-                case SqlDbType.Int:
+                case SqlDbType2.Int:
                     stateObj.WriteByte(TdsEnums.SQLINTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Money:
+                case SqlDbType2.Money:
                     stateObj.WriteByte(TdsEnums.SQLMONEYN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.NChar:
+                case SqlDbType2.NChar:
                     stateObj.WriteByte(TdsEnums.SQLNCHAR);
                     WriteUnsignedShort(checked((ushort)(metaData.MaxLength * 2)), stateObj);
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.NText:
+                case SqlDbType2.NText:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.NVarChar:
+                case SqlDbType2.NVarChar:
                     stateObj.WriteByte(TdsEnums.SQLNVARCHAR);
                     if (SmiMetaData.UnlimitedMaxLengthIndicator == metaData.MaxLength)
                     {
@@ -9971,55 +9971,55 @@ namespace Microsoft.Data.SqlClient
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.Real:
+                case SqlDbType2.Real:
                     stateObj.WriteByte(TdsEnums.SQLFLTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.UniqueIdentifier:
+                case SqlDbType2.UniqueIdentifier:
                     stateObj.WriteByte(TdsEnums.SQLUNIQUEID);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.SmallDateTime:
+                case SqlDbType2.SmallDateTime:
                     stateObj.WriteByte(TdsEnums.SQLDATETIMN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.SmallInt:
+                case SqlDbType2.SmallInt:
                     stateObj.WriteByte(TdsEnums.SQLINTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.SmallMoney:
+                case SqlDbType2.SmallMoney:
                     stateObj.WriteByte(TdsEnums.SQLMONEYN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.Text:
+                case SqlDbType2.Text:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)SmiMetaData.UnlimitedMaxLengthIndicator), stateObj);
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.Timestamp:
+                case SqlDbType2.Timestamp:
                     stateObj.WriteByte(TdsEnums.SQLBIGBINARY);
                     WriteShort(checked((int)metaData.MaxLength), stateObj);
                     break;
-                case SqlDbType.TinyInt:
+                case SqlDbType2.TinyInt:
                     stateObj.WriteByte(TdsEnums.SQLINTN);
                     stateObj.WriteByte(checked((byte)metaData.MaxLength));
                     break;
-                case SqlDbType.VarBinary:
+                case SqlDbType2.VarBinary:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARBINARY);
                     WriteUnsignedShort(unchecked((ushort)metaData.MaxLength), stateObj);
                     break;
-                case SqlDbType.VarChar:
+                case SqlDbType2.VarChar:
                     stateObj.WriteByte(TdsEnums.SQLBIGVARCHAR);
                     WriteUnsignedShort(unchecked((ushort)metaData.MaxLength), stateObj);
                     WriteUnsignedInt(_defaultCollation._info, stateObj);
                     stateObj.WriteByte(_defaultCollation._sortId);
                     break;
-                case SqlDbType.Variant:
+                case SqlDbType2.Variant:
                     stateObj.WriteByte(TdsEnums.SQLVARIANT);
                     WriteInt(checked((int)metaData.MaxLength), stateObj);
                     break;
-                case SqlDbType.Xml:
+                case SqlDbType2.Xml:
                     stateObj.WriteByte(TdsEnums.SQLXMLTYPE);
                     // Is there a schema
                     if (string.IsNullOrEmpty(metaData.TypeSpecificNamePart1) && string.IsNullOrEmpty(metaData.TypeSpecificNamePart2) &&
@@ -10035,15 +10035,15 @@ namespace Microsoft.Data.SqlClient
                         WriteIdentifierWithShortLength(metaData.TypeSpecificNamePart3, stateObj);
                     }
                     break;
-                case (SqlDbType)35:
+                case SqlDbType2.Json:
                     throw new NotImplementedException("Json type not supported in SMI");
-                case SqlDbType.Udt:
+                case SqlDbType2.Udt:
                     stateObj.WriteByte(TdsEnums.SQLUDT);
                     WriteIdentifier(metaData.TypeSpecificNamePart1, stateObj);
                     WriteIdentifier(metaData.TypeSpecificNamePart2, stateObj);
                     WriteIdentifier(metaData.TypeSpecificNamePart3, stateObj);
                     break;
-                case SqlDbType.Structured:
+                case SqlDbType2.Structured:
                     if (metaData.IsMultiValued)
                     {
                         WriteTvpTypeInfo(metaData, stateObj);
@@ -10053,18 +10053,18 @@ namespace Microsoft.Data.SqlClient
                         Debug.Fail("SUDTs not yet supported.");
                     }
                     break;
-                case SqlDbType.Date:
+                case SqlDbType2.Date:
                     stateObj.WriteByte(TdsEnums.SQLDATE);
                     break;
-                case SqlDbType.Time:
+                case SqlDbType2.Time:
                     stateObj.WriteByte(TdsEnums.SQLTIME);
                     stateObj.WriteByte(metaData.Scale);
                     break;
-                case SqlDbType.DateTime2:
+                case SqlDbType2.DateTime2:
                     stateObj.WriteByte(TdsEnums.SQLDATETIME2);
                     stateObj.WriteByte(metaData.Scale);
                     break;
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.DateTimeOffset:
                     stateObj.WriteByte(TdsEnums.SQLDATETIMEOFFSET);
                     stateObj.WriteByte(metaData.Scale);
                     break;
@@ -10076,7 +10076,7 @@ namespace Microsoft.Data.SqlClient
 
         private void WriteTvpTypeInfo(SmiExtendedMetaData metaData, TdsParserStateObject stateObj)
         {
-            Debug.Assert(SqlDbType.Structured == metaData.SqlDbType && metaData.IsMultiValued,
+            Debug.Assert(SqlDbType2.Structured == metaData.SqlDbType && metaData.IsMultiValued,
                         "Invalid metadata for TVPs. Type=" + metaData.SqlDbType);
             // Type token
             stateObj.WriteByte((byte)TdsEnums.SQLTABLE);
@@ -10115,7 +10115,7 @@ namespace Microsoft.Data.SqlClient
         private void WriteTvpColumnMetaData(SmiExtendedMetaData md, bool isDefault, TdsParserStateObject stateObj)
         {
             // User Type
-            if (SqlDbType.Timestamp == md.SqlDbType)
+            if (SqlDbType2.Timestamp == md.SqlDbType)
             {
                 WriteUnsignedInt(TdsEnums.SQLTIMESTAMP, stateObj);
             }
@@ -10311,24 +10311,24 @@ namespace Microsoft.Data.SqlClient
             // Write the UserType (4 byte value)
             WriteInt(0x0, stateObj); // TODO: fix this- timestamp columns have 0x50 value here
 
-            Debug.Assert(SqlDbType.Xml != mdPriv.type);
-            Debug.Assert(SqlDbType.Udt != mdPriv.type);
+            Debug.Assert(SqlDbType2.Xml != mdPriv.type);
+            Debug.Assert(SqlDbType2.Udt != mdPriv.type);
 
             stateObj.WriteByte(mdPriv.tdsType);
 
             switch (mdPriv.type)
             {
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     WriteTokenLength(mdPriv.tdsType, mdPriv.length, stateObj);
                     stateObj.WriteByte(mdPriv.precision);
                     stateObj.WriteByte(mdPriv.scale);
                     break;
-                case SqlDbType.Date:
+                case SqlDbType2.Date:
                     // Nothing more to write!
                     break;
-                case SqlDbType.Time:
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.Time:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     stateObj.WriteByte(mdPriv.scale);
                     break;
                 default:
@@ -10421,25 +10421,25 @@ namespace Microsoft.Data.SqlClient
 
                     switch (md.type)
                     {
-                        case SqlDbType.Decimal:
+                        case SqlDbType2.Decimal:
                             stateObj.WriteByte(md.tdsType);
                             WriteTokenLength(md.tdsType, md.length, stateObj);
                             stateObj.WriteByte(md.precision);
                             stateObj.WriteByte(md.scale);
                             break;
-                        case SqlDbType.Xml:
+                        case SqlDbType2.Xml:
                             stateObj.WriteByteArray(s_xmlMetadataSubstituteSequence, s_xmlMetadataSubstituteSequence.Length, 0);
                             break;
-                        case SqlDbType.Udt:
+                        case SqlDbType2.Udt:
                             stateObj.WriteByte(TdsEnums.SQLBIGVARBINARY);
                             WriteTokenLength(TdsEnums.SQLBIGVARBINARY, md.length, stateObj);
                             break;
-                        case SqlDbType.Date:
+                        case SqlDbType2.Date:
                             stateObj.WriteByte(md.tdsType);
                             break;
-                        case SqlDbType.Time:
-                        case SqlDbType.DateTime2:
-                        case SqlDbType.DateTimeOffset:
+                        case SqlDbType2.Time:
+                        case SqlDbType2.DateTime2:
+                        case SqlDbType2.DateTimeOffset:
                             stateObj.WriteByte(md.tdsType);
                             stateObj.WriteByte(md.scale);
                             break;
@@ -10706,9 +10706,9 @@ namespace Microsoft.Data.SqlClient
                 else
                 {
                     Debug.Assert(metatype.IsLong &&
-                        ((metatype.SqlDbType == SqlDbType.VarBinary && value is StreamDataFeed) ||
-                         ((metatype.SqlDbType == SqlDbType.VarChar || metatype.SqlDbType == SqlDbType.NVarChar) && value is TextDataFeed) ||
-                         (metatype.SqlDbType == SqlDbType.Xml && value is XmlDataFeed)),
+                        ((metatype.SqlDbType == SqlDbType2.VarBinary && value is StreamDataFeed) ||
+                         ((metatype.SqlDbType == SqlDbType2.VarChar || metatype.SqlDbType == SqlDbType2.NVarChar) && value is TextDataFeed) ||
+                         (metatype.SqlDbType == SqlDbType2.Xml && value is XmlDataFeed)),
                    "Stream data feed should only be assigned to VarBinary(max), Text data feed should only be assigned to [N]VarChar(max), Xml data feed should only be assigned to XML(max)");
                 }
 
@@ -10719,18 +10719,18 @@ namespace Microsoft.Data.SqlClient
                 {
                     switch (metatype.SqlDbType)
                     {
-                        case SqlDbType.Text:
-                        case SqlDbType.NText:
-                        case SqlDbType.Image:
+                        case SqlDbType2.Text:
+                        case SqlDbType2.NText:
+                        case SqlDbType2.Image:
                             stateObj.WriteByteArray(s_longDataHeader, s_longDataHeader.Length, 0);
                             WriteTokenLength(metadata.tdsType, ccbStringBytes == 0 ? ccb : ccbStringBytes, stateObj);
                             break;
 
-                        case SqlDbType.VarChar:
-                        case SqlDbType.NVarChar:
-                        case SqlDbType.VarBinary:
-                        case SqlDbType.Xml:
-                        case SqlDbType.Udt:
+                        case SqlDbType2.VarChar:
+                        case SqlDbType2.NVarChar:
+                        case SqlDbType2.VarBinary:
+                        case SqlDbType2.Xml:
+                        case SqlDbType2.Udt:
                             // plp data
                             WriteUnsignedLong(TdsEnums.SQL_PLP_UNKNOWNLEN, stateObj);
                             break;
@@ -10745,7 +10745,7 @@ namespace Microsoft.Data.SqlClient
                 {
                     internalWriteTask = WriteSqlValue(value, metatype, ccb, ccbStringBytes, 0, stateObj);
                 }
-                else if (metatype.SqlDbType != SqlDbType.Udt || metatype.IsLong)
+                else if (metatype.SqlDbType != SqlDbType2.Udt || metatype.IsLong)
                 {
                     internalWriteTask = WriteValue(value, metatype, metadata.scale, ccb, ccbStringBytes, 0, stateObj, metadata.length, isDataFeed);
                     if ((internalWriteTask == null) && (_asyncWrite))

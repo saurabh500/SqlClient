@@ -127,11 +127,11 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 cmd.CommandText = procName;
                 cmd.CommandType = CommandType.StoredProcedure;
                 SqlParameter p = cmd.Parameters.AddWithValue("@param", paramValue);
-                cmd.Parameters[0].SqlDbType = SqlDbType.Variant;
+                cmd.Parameters[0].SqlDbType = SqlDbType2.Variant;
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     dr.Read();
-                    VerifyReaderTypeAndValue("Test Simple Parameter [Variant Type]", "SqlDbType.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
+                    VerifyReaderTypeAndValue("Test Simple Parameter [Variant Type]", "SqlDbType2.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
                 }
             }
             catch (Exception e)
@@ -171,7 +171,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 using SqlCommand cmd = conn.CreateCommand();
                 cmd.CommandText = "select f1 from @tvpParam";
                 SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", record);
-                p.SqlDbType = SqlDbType.Structured;
+                p.SqlDbType = SqlDbType2.Structured;
                 p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
@@ -210,7 +210,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
 
                 // Send TVP using SqlMetaData.
                 SqlMetaData[] metadata = new SqlMetaData[1];
-                metadata[0] = new SqlMetaData("f1", SqlDbType.Variant);
+                metadata[0] = new SqlMetaData("f1", SqlDbType2.Variant);
                 SqlDataRecord[] record = new SqlDataRecord[1];
                 record[0] = new SqlDataRecord(metadata);
                 record[0].SetValue(0, paramValue);
@@ -218,12 +218,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 using SqlCommand cmd = conn.CreateCommand();
                 cmd.CommandText = "select f1, sql_variant_property(f1,'BaseType') as BaseType from @tvpParam";
                 SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", record);
-                p.SqlDbType = SqlDbType.Structured;
+                p.SqlDbType = SqlDbType2.Structured;
                 p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     dr.Read();
-                    VerifyReaderTypeAndValue("Test SqlDataRecord Parameter To TVP [Variant Type]", "SqlDbType.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
+                    VerifyReaderTypeAndValue("Test SqlDataRecord Parameter To TVP [Variant Type]", "SqlDbType2.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
                 }
             }
             catch (Exception e)
@@ -264,7 +264,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         using SqlCommand cmd = conn.CreateCommand();
                         cmd.CommandText = "select f1 from @tvpParam";
                         SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", drInput);
-                        p.SqlDbType = SqlDbType.Structured;
+                        p.SqlDbType = SqlDbType2.Structured;
                         p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                         using (SqlDataReader dr = cmd.ExecuteReader())
                         {
@@ -310,18 +310,18 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     using (SqlCommand cmdInput = connInput.CreateCommand())
                     {
                         cmdInput.CommandText = "select @p1 as f1";
-                        cmdInput.Parameters.Add("@p1", SqlDbType.Variant);
+                        cmdInput.Parameters.Add("@p1", SqlDbType2.Variant);
                         cmdInput.Parameters["@p1"].Value = paramValue;
                         using SqlDataReader drInput = cmdInput.ExecuteReader(CommandBehavior.CloseConnection);
                         using SqlCommand cmd = conn.CreateCommand();
                         cmd.CommandText = "select f1, sql_variant_property(f1,'BaseType') as BaseType from @tvpParam";
                         SqlParameter p = cmd.Parameters.AddWithValue("@tvpParam", drInput);
-                        p.SqlDbType = SqlDbType.Structured;
+                        p.SqlDbType = SqlDbType2.Structured;
                         p.TypeName = string.Format("dbo.{0}", tvpTypeName);
                         using (SqlDataReader dr = cmd.ExecuteReader())
                         {
                             dr.Read();
-                            VerifyReaderTypeAndValue("Test SqlDataReader Parameter To TVP [Variant Type]", "SqlDbType.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
+                            VerifyReaderTypeAndValue("Test SqlDataReader Parameter To TVP [Variant Type]", "SqlDbType2.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
                         }
                     }
                 }
@@ -393,7 +393,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         CommandType = CommandType.StoredProcedure
                     };
                     SqlParameter p = cmd2.Parameters.AddWithValue("@P", r);
-                    p.SqlDbType = SqlDbType.Structured;
+                    p.SqlDbType = SqlDbType2.Structured;
                     p.TypeName = tvpTypeName;
                     cmd2.ExecuteNonQuery();
 
@@ -473,7 +473,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     {
                         cmd2.CommandType = CommandType.StoredProcedure;
                         SqlParameter p = cmd2.Parameters.AddWithValue("@P", r);
-                        p.SqlDbType = SqlDbType.Structured;
+                        p.SqlDbType = SqlDbType2.Structured;
                         p.TypeName = tvpTypeName;
                         cmd2.ExecuteNonQuery();
 
@@ -483,7 +483,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         using (SqlDataReader dr = cmd2.ExecuteReader())
                         {
                             dr.Read();
-                            VerifyReaderTypeAndValue("Test SqlDataReader TVP [Variant Type]", "SqlDbType.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
+                            VerifyReaderTypeAndValue("Test SqlDataReader TVP [Variant Type]", "SqlDbType2.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
                         }
                     }
                 }
@@ -601,7 +601,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     dr.Read();
-                    VerifyReaderTypeAndValue("Test Simple Data Reader [Variant Type]", "SqlDbType.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
+                    VerifyReaderTypeAndValue("Test Simple Data Reader [Variant Type]", "SqlDbType2.Variant", dr, expectedTypeName, expectedBaseTypeName, paramValue);
                 }
             }
             catch (Exception e)
@@ -748,7 +748,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                             using (SqlDataReader drVerify = cmd.ExecuteReader())
                             {
                                 drVerify.Read();
-                                VerifyReaderTypeAndValue("SqlBulkCopy From SqlDataReader [Variant Type]", "SqlDbType.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
+                                VerifyReaderTypeAndValue("SqlBulkCopy From SqlDataReader [Variant Type]", "SqlDbType2.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
                             }
                         }
                     }
@@ -864,7 +864,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 using (SqlDataReader drVerify = cmd.ExecuteReader())
                 {
                     drVerify.Read();
-                    VerifyReaderTypeAndValue("SqlBulkCopy From Data Table [Variant Type]", "SqlDbType.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
+                    VerifyReaderTypeAndValue("SqlBulkCopy From Data Table [Variant Type]", "SqlDbType2.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
                 }
             }
             catch (Exception e)
@@ -964,7 +964,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 using (SqlDataReader drVerify = cmd.ExecuteReader())
                 {
                     drVerify.Read();
-                    VerifyReaderTypeAndValue("SqlBulkCopy From Data Row [Variant Type]", "SqlDbType.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
+                    VerifyReaderTypeAndValue("SqlBulkCopy From Data Row [Variant Type]", "SqlDbType2.Variant", drVerify, expectedTypeName, expectedBaseTypeName, paramValue);
                 }
             }
             catch (Exception e)
@@ -988,13 +988,13 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         {
             return expectedBaseTypeName.ToLowerInvariant() switch
             {
-                "time" => SqlDbType.Time,
-                "date" => SqlDbType.Date,
-                "smalldatetime" => SqlDbType.SmallDateTime,
-                "datetime" => SqlDbType.DateTime,
-                "datetime2" => SqlDbType.DateTime2,
-                "datetimeoffset" => SqlDbType.DateTimeOffset,
-                _ => SqlDbType.Variant,
+                "time" => SqlDbType2.Time,
+                "date" => SqlDbType2.Date,
+                "smalldatetime" => SqlDbType2.SmallDateTime,
+                "datetime" => SqlDbType2.DateTime,
+                "datetime2" => SqlDbType2.DateTime2,
+                "datetimeoffset" => SqlDbType2.DateTimeOffset,
+                _ => SqlDbType2.Variant,
             };
         }
 

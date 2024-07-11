@@ -308,7 +308,7 @@ namespace Microsoft.Data.SqlClient
             {
                 transactionLevelCommand.Transaction = Parent;
 
-                SqlParameter parameter = new SqlParameter("@out", SqlDbType.Int);
+                SqlParameter parameter = new SqlParameter("@out", SqlDbType2.Int);
                 parameter.Direction = ParameterDirection.Output;
                 transactionLevelCommand.Parameters.Add(parameter);
                 transactionLevelCommand.RunExecuteReader(CommandBehavior.Default, RunBehavior.UntilDone, returnStream: false, nameof(GetServerTransactionLevel));

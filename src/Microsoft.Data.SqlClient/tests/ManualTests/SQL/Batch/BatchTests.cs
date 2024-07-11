@@ -352,10 +352,10 @@ BEGIN
 END";
             string drop = "DROP PROCEDURE TestInAndOutParams";
 
-            SqlParameter input = CreateParameter("@Input", SqlDbType.Int, 2);
-            SqlParameter inputOutput = CreateParameter("@InOut", SqlDbType.Int, 4, ParameterDirection.InputOutput);
-            SqlParameter output = CreateParameter("@Output", SqlDbType.Int, DBNull.Value, ParameterDirection.Output);
-            SqlParameter returned = CreateParameter("@RETURN_VALUE", SqlDbType.Int, DBNull.Value, ParameterDirection.ReturnValue);
+            SqlParameter input = CreateParameter("@Input", SqlDbType2.Int, 2);
+            SqlParameter inputOutput = CreateParameter("@InOut", SqlDbType2.Int, 4, ParameterDirection.InputOutput);
+            SqlParameter output = CreateParameter("@Output", SqlDbType2.Int, DBNull.Value, ParameterDirection.Output);
+            SqlParameter returned = CreateParameter("@RETURN_VALUE", SqlDbType2.Int, DBNull.Value, ParameterDirection.ReturnValue);
             try
             {
                 TryExecuteNonQueryCommand(drop);

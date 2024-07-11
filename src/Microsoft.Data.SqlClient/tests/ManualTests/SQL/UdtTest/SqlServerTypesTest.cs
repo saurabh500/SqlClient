@@ -317,7 +317,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 {
                     command.CommandText = "SELECT @geometry.STAsText()";
                     var parameter = command.Parameters.AddWithValue("@geometry", geometrySqlBytes);
-                    parameter.SqlDbType = SqlDbType.Udt;
+                    parameter.SqlDbType = SqlDbType2.Udt;
                     parameter.UdtTypeName = "geometry";
                     actualtPointValue = System.Convert.ToString(command.ExecuteScalar());
                 }
@@ -352,7 +352,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 {
                     command.CommandText = "SELECT @geometry.STAsText()";
                     var parameter = command.Parameters.AddWithValue("@geometry", geometryBytes);
-                    parameter.SqlDbType = SqlDbType.Udt;
+                    parameter.SqlDbType = SqlDbType2.Udt;
                     parameter.UdtTypeName = "geometry";
                     actualtPointValue = System.Convert.ToString(command.ExecuteScalar());
                 }

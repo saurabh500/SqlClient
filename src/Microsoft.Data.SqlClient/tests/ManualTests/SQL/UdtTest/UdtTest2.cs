@@ -34,7 +34,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 cmd.CommandText = "vicinity"; // select proc
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType.Udt);
+                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType2.Udt);
                 p.UdtTypeName = "UdtTestDb.dbo.Point";
                 Point pt = new Point()
                 {
@@ -61,7 +61,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 conn.Open();
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType.VarBinary, 8);
+                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType2.VarBinary, 8);
                 p.Direction = ParameterDirection.Input;
 
                 byte[] value = new byte[8];
@@ -102,8 +102,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     cmd.CommandText = spInsertCustomer;
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    SqlParameter pName = cmd.Parameters.Add("@fname", SqlDbType.NVarChar, 20);
-                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType.Udt);
+                    SqlParameter pName = cmd.Parameters.Add("@fname", SqlDbType2.NVarChar, 20);
+                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType2.Udt);
 
                     Address addr = Address.Parse("customer whose name is address");
                     p.UdtTypeName = "UdtTestDb.dbo.Address";
@@ -130,7 +130,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 conn.Open();
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType.Udt);
+                SqlParameter p = cmd.Parameters.Add("@boundary", SqlDbType2.Udt);
                 p.UdtTypeName = "UdtTestDb.dbo.Point";
                 p.Value = 32;
 
@@ -166,8 +166,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     Address addr = Address.Parse("123 baker st || Redmond");
-                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType.NVarChar, 20);
-                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType.Udt);
+                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType2.NVarChar, 20);
+                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType2.Udt);
 
                     p.UdtTypeName = "UdtTestDb.dbo.Address";
                     p.Value = Address.Null;
@@ -206,8 +206,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     cmd.CommandText = spInsertCustomer;
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType.NVarChar, 20);
-                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType.Udt);
+                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType2.NVarChar, 20);
+                    SqlParameter p = cmd.Parameters.Add("@addr", SqlDbType2.Udt);
 
                     p.UdtTypeName = "UdtTestDb.dbo.Address";
                     p.Value = null;
@@ -256,8 +256,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     cmd.CommandText = spInsertCity;
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType.NVarChar, 20);
-                    SqlParameter p = cmd.Parameters.Add("@location", SqlDbType.Udt);
+                    SqlParameter pName = cmd.Parameters.Add("@name", SqlDbType2.NVarChar, 20);
+                    SqlParameter p = cmd.Parameters.Add("@location", SqlDbType2.Udt);
 
                     Point pt = new Point(100, 100);
                     p.UdtTypeName = "Point";
@@ -625,7 +625,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         SqlParameter p = cmd.Parameters[1];
 
                         Assert.Equal(customerParameterName, p.ParameterName);
-                        Assert.Equal(SqlDbType.Structured, p.SqlDbType);
+                        Assert.Equal(SqlDbType2.Structured, p.SqlDbType);
                         Assert.Equal(customerAddressTypeIncorrectName, p.TypeName); // the 3 part name is incorrect but needs to be maintained for compatibility
                         p.Value = table;
 
@@ -677,7 +677,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         SqlParameter p = cmd.Parameters[1];
 
                         Assert.Equal(customerParameterName, p.ParameterName);
-                        Assert.Equal(SqlDbType.Structured, p.SqlDbType);
+                        Assert.Equal(SqlDbType2.Structured, p.SqlDbType);
                         Assert.Equal(customerAddressTypeIncorrectName, p.TypeName); // the 3 part name is incorrect but needs to be maintained for compatibility
                         p.Value = table;
 

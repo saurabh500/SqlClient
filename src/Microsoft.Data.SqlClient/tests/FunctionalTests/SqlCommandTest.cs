@@ -228,7 +228,7 @@ namespace Microsoft.Data.SqlClient.Tests
             // see https://github.com/dotnet/SqlClient/issues/17
             Assert.True(cmd.NotificationAutoEnlist);
 #endif
-            cmd.Parameters.Add("@TestPar1", SqlDbType.Int);
+            cmd.Parameters.Add("@TestPar1", SqlDbType2.Int);
             cmd.Parameters["@TestPar1"].Value = DBNull.Value;
             cmd.Parameters.AddWithValue("@BirthDate", DateTime.Now);
             cmd.UpdatedRowSource = UpdateRowSource.OutputParameters;
@@ -418,7 +418,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             // Text, with parameters
             cmd = new SqlCommand("select count(*) from whatever");
-            cmd.Parameters.Add("@TestPar1", SqlDbType.Int);
+            cmd.Parameters.Add("@TestPar1", SqlDbType2.Int);
 
             InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => cmd.Prepare());
             Assert.Null(ex.InnerException);
@@ -441,7 +441,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             // Text, with parameters
             cmd = new SqlCommand("select count(*) from whatever", cn);
-            cmd.Parameters.Add("@TestPar1", SqlDbType.Int);
+            cmd.Parameters.Add("@TestPar1", SqlDbType2.Int);
 
             InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => cmd.Prepare());
             // Prepare requires an open and available
@@ -453,7 +453,7 @@ namespace Microsoft.Data.SqlClient.Tests
 
             // Text, parameters cleared
             cmd = new SqlCommand("select count(*) from whatever", cn);
-            cmd.Parameters.Add("@TestPar1", SqlDbType.Int);
+            cmd.Parameters.Add("@TestPar1", SqlDbType2.Int);
             cmd.Parameters.Clear();
             cmd.Prepare();
 
@@ -465,7 +465,7 @@ namespace Microsoft.Data.SqlClient.Tests
             // StoredProcedure, with parameters
             cmd = new SqlCommand("FindCustomer", cn);
             cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@TestPar1", SqlDbType.Int);
+            cmd.Parameters.Add("@TestPar1", SqlDbType2.Int);
             cmd.Prepare();
 
             // ensure connection was not implictly opened

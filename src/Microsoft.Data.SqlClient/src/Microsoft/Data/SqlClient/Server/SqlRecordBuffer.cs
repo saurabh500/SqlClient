@@ -419,11 +419,11 @@ namespace Microsoft.Data.SqlClient.Server
             {
                 Debug.Assert(!_isNull, "Null data type");
                 Debug.Assert(_metadata == null
-                    || _metadata.SqlDbType == SqlDbType.Money
-                    || _metadata.SqlDbType == SqlDbType.NVarChar
-                    || _metadata.SqlDbType == SqlDbType.DateTime
-                    || _metadata.SqlDbType == SqlDbType.Date
-                    || _metadata.SqlDbType == SqlDbType.DateTime2,
+                    || _metadata.SqlDbType == SqlDbType2.Money
+                    || _metadata.SqlDbType == SqlDbType2.NVarChar
+                    || _metadata.SqlDbType == SqlDbType2.DateTime
+                    || _metadata.SqlDbType == SqlDbType2.Date
+                    || _metadata.SqlDbType == SqlDbType2.DateTime2,
                     "Invalid metadata");
 
                 switch (_type)
@@ -455,7 +455,7 @@ namespace Microsoft.Data.SqlClient.Server
                     case StorageType.String:
                         return _metadata ?? SmiMetaData.DefaultNVarChar;
                     case StorageType.SqlDecimal:
-                        return new SmiMetaData(SqlDbType.Decimal, 17, ((SqlDecimal)_object).Precision, ((SqlDecimal)_object).Scale, 0, SqlCompareOptions.None, null);
+                        return new SmiMetaData(SqlDbType2.Decimal, 17, ((SqlDecimal)_object).Precision, ((SqlDecimal)_object).Scale, 0, SqlCompareOptions.None, null);
                     case StorageType.TimeSpan:
                         return SmiMetaData.DefaultTime;
                 }
@@ -463,7 +463,7 @@ namespace Microsoft.Data.SqlClient.Server
             }
             set
             {
-                Debug.Assert(value != null && (value.SqlDbType == SqlDbType.Money || value.SqlDbType == SqlDbType.NVarChar),
+                Debug.Assert(value != null && (value.SqlDbType == SqlDbType2.Money || value.SqlDbType == SqlDbType2.NVarChar),
                     "Invalid metadata");
 
                 _metadata = value;

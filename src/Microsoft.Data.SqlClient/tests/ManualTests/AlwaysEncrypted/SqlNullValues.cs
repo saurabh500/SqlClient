@@ -34,7 +34,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
                     using (SqlCommand cmd = new SqlCommand(string.Format("INSERT INTO [{0}] (c1) VALUES (@c1)", tableName), sqlConnection, null, SqlCommandColumnEncryptionSetting.Enabled))
                     {
-                        SqlParameter param = cmd.Parameters.Add("@c1", SqlDbType.Int);
+                        SqlParameter param = cmd.Parameters.Add("@c1", SqlDbType2.Int);
                         param.Value = DBNull.Value;
                         cmd.ExecuteNonQuery();
 
@@ -99,7 +99,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     sqlConn, null, commandSetting))
                 {
                     cmd2.CommandType = CommandType.StoredProcedure;
-                    param = cmd2.Parameters.Add("@foo", SqlDbType.Int);
+                    param = cmd2.Parameters.Add("@foo", SqlDbType2.Int);
                     param.Direction = ParameterDirection.ReturnValue;
                     param.Value = new System.Data.SqlTypes.SqlInt32(1);
                     cmd2.ExecuteNonQuery();

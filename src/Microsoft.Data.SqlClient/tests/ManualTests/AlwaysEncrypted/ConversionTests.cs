@@ -118,7 +118,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     object value;
 
                     // Use the retrieved values for DateTime2 and DateTimeOffset due to fractional insertion adjustment
-                    if (smallColumnInfo.ColumnType is SqlDbType.DateTime2 || smallColumnInfo.ColumnType is SqlDbType.DateTimeOffset)
+                    if (smallColumnInfo.ColumnType is SqlDbType2.DateTime2 || smallColumnInfo.ColumnType is SqlDbType2.DateTimeOffset)
                     {
                         value = valuesToSelect[i];
                     }
@@ -204,10 +204,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     object value;
 
                     // Use the retrieved values for DateTime2 and DateTimeOffset due to fractional insertion adjustment
-                    if (smallColumnInfo.ColumnType is SqlDbType.DateTime2 ||
-                        smallColumnInfo.ColumnType is SqlDbType.DateTimeOffset ||
-                        smallColumnInfo.ColumnType is SqlDbType.Char ||
-                        smallColumnInfo.ColumnType is SqlDbType.NChar)
+                    if (smallColumnInfo.ColumnType is SqlDbType2.DateTime2 ||
+                        smallColumnInfo.ColumnType is SqlDbType2.DateTimeOffset ||
+                        smallColumnInfo.ColumnType is SqlDbType2.Char ||
+                        smallColumnInfo.ColumnType is SqlDbType2.NChar)
                     {
                         value = valuesToSelect[i];
                     }
@@ -337,17 +337,17 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
             switch (type)
             {
-                case SqlDbType.Bit:
+                case SqlDbType2.Bit:
                     // Sql actually allows to insert out of bound values for bit and it converts them to a bit value.
                     list.Add(new ValueErrorTuple(2, false));
                     list.Add(new ValueErrorTuple(-1, false));
                     break;
-                case SqlDbType.BigInt:
+                case SqlDbType2.BigInt:
                     list.Add(new ValueErrorTuple("9223372036854775808", true));
                     list.Add(new ValueErrorTuple("-9223372036854775809", true));
                     break;
-                case SqlDbType.Binary:
-                case SqlDbType.VarBinary:
+                case SqlDbType2.Binary:
+                case SqlDbType2.VarBinary:
                     {
                         byte[] upperValueArray = new byte[length + 1];
                         Random random = new Random();
@@ -355,10 +355,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         list.Add(new ValueErrorTuple(upperValueArray, false));
                         break;
                     }
-                case SqlDbType.Char:
-                case SqlDbType.NChar:
-                case SqlDbType.VarChar:
-                case SqlDbType.NVarChar:
+                case SqlDbType2.Char:
+                case SqlDbType2.NChar:
+                case SqlDbType2.VarChar:
+                case SqlDbType2.NVarChar:
                     {
                         StringBuilder sb = new StringBuilder();
                         for (int i = 0; i < length + 1; i++)
@@ -368,29 +368,29 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         list.Add(new ValueErrorTuple(sb.ToString(), false));
                         break;
                     }
-                case SqlDbType.DateTime:
+                case SqlDbType2.DateTime:
                     // This value is out of range and should fail.
                     list.Add(new ValueErrorTuple(new DateTime(1752, 12, 31, 23, 59, 59, 997), true));
 
                     // This value has greater scale and it should get truncated, but not fail.
                     list.Add(new ValueErrorTuple(new DateTime(2014, 1, 1, 23, 59, 59, 998), false));
                     break;
-                case SqlDbType.Int:
+                case SqlDbType2.Int:
                     list.Add(new ValueErrorTuple((Int64)Int32.MaxValue + 1, true));
                     list.Add(new ValueErrorTuple((Int64)Int32.MinValue - 1, true));
                     break;
-                case SqlDbType.Money:
+                case SqlDbType2.Money:
                     list.Add(new ValueErrorTuple(SqlMoney.MaxValue.Value + (decimal)0.0001, true));
                     list.Add(new ValueErrorTuple(SqlMoney.MinValue.Value - (decimal)0.0001, true));
 
                     // This value has greater scale and it should get truncated, but not fail.
                     list.Add(new ValueErrorTuple(1.00001, false));
                     break;
-                case SqlDbType.UniqueIdentifier:
+                case SqlDbType2.UniqueIdentifier:
                     list.Add(new ValueErrorTuple(new Guid().ToString() + "1", true));
                     list.Add(new ValueErrorTuple(new Guid().ToString().Substring(0, new Guid().ToString().Length - 1), true));
                     break;
-                case SqlDbType.SmallDateTime:
+                case SqlDbType2.SmallDateTime:
                     list.Add(new ValueErrorTuple(new DateTime(2079, 6, 7, 0, 0, 0), true));
 
                     // This value is out of range and should fail.
@@ -402,29 +402,29 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     // This value has greater scale and it should get truncated, but not fail.
                     list.Add(new ValueErrorTuple(new DateTime(2014, 1, 1, 23, 59, 59, 1), false));
                     break;
-                case SqlDbType.SmallInt:
+                case SqlDbType2.SmallInt:
                     list.Add(new ValueErrorTuple((Int32)Int16.MaxValue + 1, true));
                     list.Add(new ValueErrorTuple((Int32)Int16.MinValue - 1, true));
                     break;
-                case SqlDbType.SmallMoney:
+                case SqlDbType2.SmallMoney:
                     list.Add(new ValueErrorTuple((decimal)214748.3648, true));
                     list.Add(new ValueErrorTuple((decimal)-214748.3649, true));
 
                     // This value has greater scale and it should get truncated, but not fail.
                     list.Add(new ValueErrorTuple((decimal)1.00001, false));
                     break;
-                case SqlDbType.TinyInt:
+                case SqlDbType2.TinyInt:
                     list.Add(new ValueErrorTuple((Int16)byte.MaxValue + 1, true));
                     list.Add(new ValueErrorTuple(-1, true));
                     break;
-                case SqlDbType.Date:
+                case SqlDbType2.Date:
                     // These values are out of range and should fail.
                     list.Add(new ValueErrorTuple("10000/1/1", true));
                     list.Add(new ValueErrorTuple("0/12/31", true));
                     break;
-                case SqlDbType.Time:
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.Time:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     // All values with higher precision will get truncated but not fail.
                     String timeStringUpper = "23:59:59.";
                     String timeStringLower = "00:00:00.";
@@ -438,7 +438,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     timeStringUpper = timeStringUpper + "1";
                     timeStringLower = timeStringLower + "1";
 
-                    if (type == SqlDbType.Time)
+                    if (type == SqlDbType2.Time)
                     {
                         TimeSpan temp = new TimeSpan();
                         TimeSpan.TryParse(timeStringUpper, out temp);
@@ -446,7 +446,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         TimeSpan.TryParse(timeStringLower, out temp);
                         list.Add(new ValueErrorTuple(temp, false));
                     }
-                    else if (type == SqlDbType.DateTime2)
+                    else if (type == SqlDbType2.DateTime2)
                     {
                         // These values are out of range and should fail.
                         list.Add(new ValueErrorTuple("10000/1/1 00:00:00", true));
@@ -460,7 +460,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         DateTime.TryParse(timeStringLower, out temp);
                         list.Add(new ValueErrorTuple(temp, false));
                     }
-                    else if (type == SqlDbType.DateTimeOffset)
+                    else if (type == SqlDbType2.DateTimeOffset)
                     {
                         // These values are out of range and should fail.
                         list.Add(new ValueErrorTuple("10000/1/1 00:00:00 -14:00", true));
@@ -479,7 +479,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                         list.Add(new ValueErrorTuple("2014/1/1 10:00 -14:01", true));
                     }
                     break;
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     decimal highPart = 0;
                     decimal lowPart = 1;
 
@@ -507,7 +507,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     // If scale is 0 then this actually fails because of how .NET internally calculates the state.
                     list.Add(new ValueErrorTuple(highPart + lowPart / 10, scale == 0 ? true : false));
                     break;
-                case SqlDbType.Float:
+                case SqlDbType2.Float:
                     list.Add(new ValueErrorTuple("1.79770e+308", true));
                     list.Add(new ValueErrorTuple("-1.79770e+308", true));
                     list.Add(new ValueErrorTuple(Double.PositiveInfinity, true));
@@ -515,7 +515,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     list.Add(new ValueErrorTuple(Double.NaN, true));
                     list.Add(new ValueErrorTuple(Double.Epsilon, false));
                     break;
-                case SqlDbType.Real:
+                case SqlDbType2.Real:
                     list.Add(new ValueErrorTuple((double)3.40283e+038, true));
                     list.Add(new ValueErrorTuple((double)-3.40283e+038, true));
                     list.Add(new ValueErrorTuple(Single.PositiveInfinity, true));
@@ -587,9 +587,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
             if (TypeHasSize(largeColumnMeta.ColumnType))
             {
                 // 20% of the time use (max) as the length.                
-                largeColumnMeta.UseMax = (largeColumnMeta.ColumnType is SqlDbType.VarChar ||
-                    largeColumnMeta.ColumnType is SqlDbType.NVarChar ||
-                    largeColumnMeta.ColumnType is SqlDbType.VarBinary) &&
+                largeColumnMeta.UseMax = (largeColumnMeta.ColumnType is SqlDbType2.VarChar ||
+                    largeColumnMeta.ColumnType is SqlDbType2.NVarChar ||
+                    largeColumnMeta.ColumnType is SqlDbType2.VarBinary) &&
                     random.Next(0, 100) < 20;
 
                 int unicodeMaxLength = 3500;
@@ -601,7 +601,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
                     if (smallColumnMeta != null)
                     {
-                        if (largeColumnMeta.ColumnType is SqlDbType.NChar || largeColumnMeta.ColumnType is SqlDbType.NVarChar)
+                        if (largeColumnMeta.ColumnType is SqlDbType2.NChar || largeColumnMeta.ColumnType is SqlDbType2.NVarChar)
                         {
                             smallColumnMeta.ColumnSize = random.Next(1, unicodeMaxLength);
                         }
@@ -613,7 +613,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 }
                 else
                 {
-                    if (largeColumnMeta.ColumnType is SqlDbType.NChar || largeColumnMeta.ColumnType is SqlDbType.NVarChar)
+                    if (largeColumnMeta.ColumnType is SqlDbType2.NChar || largeColumnMeta.ColumnType is SqlDbType2.NVarChar)
                     {
                         largeColumnMeta.ColumnSize = random.Next(2, unicodeMaxLength);
                     }
@@ -634,7 +634,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                 int scale = random.Next(1, 8);
                 int minScale = 1;
 
-                if (largeColumnMeta.ColumnType is SqlDbType.Decimal)
+                if (largeColumnMeta.ColumnType is SqlDbType2.Decimal)
                 {
                     precision = random.Next(1, 28);
                     scale = random.Next(0, precision + 1);
@@ -673,12 +673,12 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         /// <returns></returns>
         private bool TypeHasSize(SqlDbType type)
         {
-            return type is SqlDbType.Binary ||
-                type is SqlDbType.VarBinary ||
-                type is SqlDbType.Char ||
-                type is SqlDbType.VarChar ||
-                type is SqlDbType.NChar ||
-                type is SqlDbType.NVarChar;
+            return type is SqlDbType2.Binary ||
+                type is SqlDbType2.VarBinary ||
+                type is SqlDbType2.Char ||
+                type is SqlDbType2.VarChar ||
+                type is SqlDbType2.NChar ||
+                type is SqlDbType2.NVarChar;
         }
 
         /// <summary>
@@ -688,10 +688,10 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         /// <returns></returns>
         private bool TypeHasScale(SqlDbType type)
         {
-            return type is SqlDbType.Time ||
-                type is SqlDbType.DateTime2 ||
-                type is SqlDbType.DateTimeOffset ||
-                type is SqlDbType.Decimal;
+            return type is SqlDbType2.Time ||
+                type is SqlDbType2.DateTime2 ||
+                type is SqlDbType2.DateTimeOffset ||
+                type is SqlDbType2.Decimal;
         }
 
         /// <summary>
@@ -701,7 +701,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         /// <returns></returns>
         private bool TypeHasPrecision(SqlDbType type)
         {
-            return type is SqlDbType.Decimal;
+            return type is SqlDbType2.Decimal;
         }
 
         /// <summary>
@@ -962,19 +962,19 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
             switch (columnInfo.ColumnType)
             {
-                case SqlDbType.BigInt:
+                case SqlDbType2.BigInt:
                     returnValue = isNegative ? Convert.ToInt64(rand.NextDouble() * Int64.MinValue) : Convert.ToInt64(rand.NextDouble() * Int64.MaxValue);
                     break;
 
-                case SqlDbType.Bit:
+                case SqlDbType2.Bit:
                     returnValue = Convert.ToBoolean(rand.Next(0, 2));
                     break;
 
-                case SqlDbType.Int:
+                case SqlDbType2.Int:
                     returnValue = rand.Next();
                     break;
 
-                case SqlDbType.Date:
+                case SqlDbType2.Date:
                     year = rand.Next(1, 9999);
                     month = rand.Next(1, 13);
                     day = rand.Next(1, 29);
@@ -982,7 +982,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     returnValue = new System.DateTime(year, month, day);
                     break;
 
-                case SqlDbType.DateTime:
+                case SqlDbType2.DateTime:
                     year = rand.Next(1753, 9999);
                     month = rand.Next(1, 13);
                     day = rand.Next(1, 28);
@@ -994,15 +994,15 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     returnValue = new DateTime(year, month, day, hour, minute, second, millisecond);
                     break;
 
-                case SqlDbType.Money:
+                case SqlDbType2.Money:
                     returnValue = isNegative ? Convert.ToDecimal((SqlMoney)rand.NextDouble() * SqlMoney.MinValue) : Convert.ToDecimal((SqlMoney)rand.NextDouble() * SqlMoney.MaxValue);
                     break;
 
-                case SqlDbType.Real:
+                case SqlDbType2.Real:
                     returnValue = isNegative ? Convert.ToSingle(rand.NextDouble() * Single.MinValue) : Convert.ToSingle(rand.NextDouble() * Single.MaxValue);
                     break;
 
-                case SqlDbType.SmallDateTime:
+                case SqlDbType2.SmallDateTime:
                     year = rand.Next(1900, 2079);
                     month = rand.Next(1, 13);
                     day = rand.Next(1, 28);
@@ -1013,32 +1013,32 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     returnValue = new DateTime(year, month, day, hour, minute, second);
                     break;
 
-                case SqlDbType.SmallInt:
+                case SqlDbType2.SmallInt:
                     returnValue = isNegative ? Convert.ToInt16(rand.NextDouble() * Int16.MinValue) : Convert.ToInt16(rand.NextDouble() * Int16.MaxValue);
                     break;
 
-                case SqlDbType.SmallMoney:
+                case SqlDbType2.SmallMoney:
                     returnValue = isNegative ? Convert.ToDecimal((decimal)rand.NextDouble() * SmallMoneyMinValue) : Convert.ToDecimal((decimal)rand.NextDouble() * SmallMoneyMaxValue);
                     break;
 
-                case SqlDbType.TinyInt:
+                case SqlDbType2.TinyInt:
                     returnValue = Convert.ToByte(rand.Next(Byte.MinValue, Byte.MaxValue + 1));
                     break;
 
-                case SqlDbType.Binary:
+                case SqlDbType2.Binary:
                     returnValue = DatabaseHelper.GenerateRandomBytes(columnInfo.ColumnSize);
                     break;
 
-                case SqlDbType.Char:
+                case SqlDbType2.Char:
                     returnValue = Encoding.UTF8.GetString(DatabaseHelper.GenerateRandomBytes(columnInfo.ColumnSize)).TrimEnd();
                     break;
 
-                case SqlDbType.NChar:
+                case SqlDbType2.NChar:
                     returnValue = Encoding.Unicode.GetString(DatabaseHelper.GenerateRandomBytes(2 * columnInfo.ColumnSize)).TrimEnd();
                     break;
 
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     year = rand.Next(1, 9999);
                     month = rand.Next(1, 13);
                     day = rand.Next(1, 28);
@@ -1057,7 +1057,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
                     millisecond = (0 == strBuilder.Length) ? 0 : rand.Next(0, Int32.Parse(strBuilder.ToString()));
 
-                    if (SqlDbType.DateTime2 == columnInfo.ColumnType)
+                    if (SqlDbType2.DateTime2 == columnInfo.ColumnType)
                     {
                         returnValue = new DateTime(year, month, day, hour, minute, second, millisecond);
                     }
@@ -1067,7 +1067,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     }
                     break;
 
-                case SqlDbType.Time:
+                case SqlDbType2.Time:
                     ticks = Convert.ToInt64(rand.NextDouble() * (TimeSpan.TicksPerDay - 1));
                     strBuilder.Clear();
 
@@ -1092,15 +1092,15 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     returnValue = TimeSpan.Parse(tempTime.ToString(strBuilder.ToString()));
                     break;
 
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     returnValue = isNegative ? Convert.ToDecimal((decimal)rand.NextDouble() * Decimal.MinValue) : Convert.ToDecimal((decimal)rand.NextDouble() * Decimal.MaxValue);
                     break;
 
-                case SqlDbType.Float:
+                case SqlDbType2.Float:
                     returnValue = isNegative ? rand.NextDouble() * Double.MinValue : rand.NextDouble() * Double.MaxValue;
                     break;
 
-                case SqlDbType.VarChar:
+                case SqlDbType2.VarChar:
                     if (columnInfo.UseMax)
                     {
                         returnValue = Encoding.UTF8.GetString(DatabaseHelper.GenerateRandomBytes(MaxLength)).TrimEnd();
@@ -1111,7 +1111,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     }
                     break;
 
-                case SqlDbType.VarBinary:
+                case SqlDbType2.VarBinary:
                     if (columnInfo.UseMax)
                     {
                         returnValue = DatabaseHelper.GenerateRandomBytes(MaxLength);
@@ -1122,7 +1122,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     }
                     break;
 
-                case SqlDbType.NVarChar:
+                case SqlDbType2.NVarChar:
                     if (columnInfo.UseMax)
                     {
                         returnValue = Encoding.Unicode.GetString(DatabaseHelper.GenerateRandomBytes(2 * MaxLength)).TrimEnd();
@@ -1155,33 +1155,33 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
 
             switch (columnMeta.ColumnType)
             {
-                case SqlDbType.BigInt:
-                case SqlDbType.Bit:
-                case SqlDbType.Int:
-                case SqlDbType.Date:
-                case SqlDbType.DateTime:
-                case SqlDbType.Money:
-                case SqlDbType.Real:
-                case SqlDbType.Float:
-                case SqlDbType.SmallDateTime:
-                case SqlDbType.SmallInt:
-                case SqlDbType.SmallMoney:
-                case SqlDbType.TinyInt:
-                case SqlDbType.UniqueIdentifier:
+                case SqlDbType2.BigInt:
+                case SqlDbType2.Bit:
+                case SqlDbType2.Int:
+                case SqlDbType2.Date:
+                case SqlDbType2.DateTime:
+                case SqlDbType2.Money:
+                case SqlDbType2.Real:
+                case SqlDbType2.Float:
+                case SqlDbType2.SmallDateTime:
+                case SqlDbType2.SmallInt:
+                case SqlDbType2.SmallMoney:
+                case SqlDbType2.TinyInt:
+                case SqlDbType2.UniqueIdentifier:
                     columnInfo = columnType;
                     break;
 
-                case SqlDbType.Binary:
+                case SqlDbType2.Binary:
                     columnInfo = $@"{columnMeta.ColumnType}({columnMeta.ColumnSize})";
                     break;
 
-                case SqlDbType.Char:
-                case SqlDbType.NChar:
+                case SqlDbType2.Char:
+                case SqlDbType2.NChar:
                     columnInfo = $@"{columnMeta.ColumnType}({columnMeta.ColumnSize}) COLLATE Latin1_General_BIN2";
                     break;
 
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
+                case SqlDbType2.DateTime2:
+                case SqlDbType2.DateTimeOffset:
                     if (columnMeta.Scale >= 0 && columnMeta.Scale <= 7)
                     {
                         columnInfo = $@"{columnType}({columnMeta.Scale})";
@@ -1192,14 +1192,14 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     }
                     break;
 
-                case SqlDbType.Time:
+                case SqlDbType2.Time:
                     if (columnMeta.Scale >= 0 && columnMeta.Scale <= 7)
                     {
                         columnInfo = $@"{columnType}({columnMeta.Scale})";
                     }
                     break;
 
-                case SqlDbType.Decimal:
+                case SqlDbType2.Decimal:
                     builder.Clear();
                     builder.Append(columnType);
 
@@ -1220,7 +1220,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     columnInfo = builder.ToString();
                     break;
 
-                case SqlDbType.VarBinary:
+                case SqlDbType2.VarBinary:
                     if (columnMeta.UseMax)
                     {
                         columnInfo = $@"{columnType}(max)";
@@ -1231,8 +1231,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
                     }
                     break;
 
-                case SqlDbType.VarChar:
-                case SqlDbType.NVarChar:
+                case SqlDbType2.VarChar:
+                case SqlDbType2.NVarChar:
                     if (columnMeta.UseMax)
                     {
                         columnInfo = $@"{columnType}(max) COLLATE Latin1_General_BIN2";
@@ -1341,34 +1341,34 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         {
             foreach (string connStrAE in DataTestUtility.AEConnStrings)
             {
-                yield return new object[] { connStrAE, SqlDbType.SmallMoney, SqlDbType.Money };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.TinyInt };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.SmallInt };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.SmallInt };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.SmallInt, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.SmallInt, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.Int, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.Binary, SqlDbType.Binary };
-                yield return new object[] { connStrAE, SqlDbType.Binary, SqlDbType.VarBinary };
-                yield return new object[] { connStrAE, SqlDbType.VarBinary, SqlDbType.Binary };
-                yield return new object[] { connStrAE, SqlDbType.VarBinary, SqlDbType.VarBinary };
-                yield return new object[] { connStrAE, SqlDbType.Char, SqlDbType.Char };
-                yield return new object[] { connStrAE, SqlDbType.Char, SqlDbType.VarChar }; // padding whitespace issue, trimEnd for now
-                yield return new object[] { connStrAE, SqlDbType.VarChar, SqlDbType.Char };
-                yield return new object[] { connStrAE, SqlDbType.VarChar, SqlDbType.VarChar };
-                yield return new object[] { connStrAE, SqlDbType.NChar, SqlDbType.NChar };
-                yield return new object[] { connStrAE, SqlDbType.NChar, SqlDbType.NVarChar };
-                yield return new object[] { connStrAE, SqlDbType.NVarChar, SqlDbType.NChar };
-                yield return new object[] { connStrAE, SqlDbType.NVarChar, SqlDbType.NVarChar };
-                yield return new object[] { connStrAE, SqlDbType.Time, SqlDbType.Time };
-                yield return new object[] { connStrAE, SqlDbType.DateTime2, SqlDbType.DateTime2 };
-                yield return new object[] { connStrAE, SqlDbType.DateTimeOffset, SqlDbType.DateTimeOffset };
-                yield return new object[] { connStrAE, SqlDbType.Float, SqlDbType.Float };
-                yield return new object[] { connStrAE, SqlDbType.Real, SqlDbType.Real };
+                yield return new object[] { connStrAE, SqlDbType2.SmallMoney, SqlDbType2.Money };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.TinyInt };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.SmallInt };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.SmallInt };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.SmallInt, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.SmallInt, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.Int, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.Binary, SqlDbType2.Binary };
+                yield return new object[] { connStrAE, SqlDbType2.Binary, SqlDbType2.VarBinary };
+                yield return new object[] { connStrAE, SqlDbType2.VarBinary, SqlDbType2.Binary };
+                yield return new object[] { connStrAE, SqlDbType2.VarBinary, SqlDbType2.VarBinary };
+                yield return new object[] { connStrAE, SqlDbType2.Char, SqlDbType2.Char };
+                yield return new object[] { connStrAE, SqlDbType2.Char, SqlDbType2.VarChar }; // padding whitespace issue, trimEnd for now
+                yield return new object[] { connStrAE, SqlDbType2.VarChar, SqlDbType2.Char };
+                yield return new object[] { connStrAE, SqlDbType2.VarChar, SqlDbType2.VarChar };
+                yield return new object[] { connStrAE, SqlDbType2.NChar, SqlDbType2.NChar };
+                yield return new object[] { connStrAE, SqlDbType2.NChar, SqlDbType2.NVarChar };
+                yield return new object[] { connStrAE, SqlDbType2.NVarChar, SqlDbType2.NChar };
+                yield return new object[] { connStrAE, SqlDbType2.NVarChar, SqlDbType2.NVarChar };
+                yield return new object[] { connStrAE, SqlDbType2.Time, SqlDbType2.Time };
+                yield return new object[] { connStrAE, SqlDbType2.DateTime2, SqlDbType2.DateTime2 };
+                yield return new object[] { connStrAE, SqlDbType2.DateTimeOffset, SqlDbType2.DateTimeOffset };
+                yield return new object[] { connStrAE, SqlDbType2.Float, SqlDbType2.Float };
+                yield return new object[] { connStrAE, SqlDbType2.Real, SqlDbType2.Real };
             }
         }
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -1380,34 +1380,34 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         {
             foreach (string connStrAE in DataTestUtility.AEConnStrings)
             {
-                yield return new object[] { connStrAE, SqlDbType.SmallMoney, SqlDbType.Money };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.TinyInt };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.SmallInt };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.Bit, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.SmallInt };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.SmallInt, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.SmallInt, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.Int, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.Binary, SqlDbType.Binary };
-                yield return new object[] { connStrAE, SqlDbType.Binary, SqlDbType.VarBinary };
-                yield return new object[] { connStrAE, SqlDbType.VarBinary, SqlDbType.Binary };
-                yield return new object[] { connStrAE, SqlDbType.VarBinary, SqlDbType.VarBinary };
-                yield return new object[] { connStrAE, SqlDbType.Char, SqlDbType.Char }; // padding whitespace issue
-                yield return new object[] { connStrAE, SqlDbType.Char, SqlDbType.VarChar }; // padding whitespace issue
-                yield return new object[] { connStrAE, SqlDbType.VarChar, SqlDbType.Char };
-                yield return new object[] { connStrAE, SqlDbType.VarChar, SqlDbType.VarChar };
-                yield return new object[] { connStrAE, SqlDbType.NChar, SqlDbType.NChar };
-                yield return new object[] { connStrAE, SqlDbType.NChar, SqlDbType.NVarChar };
-                yield return new object[] { connStrAE, SqlDbType.NVarChar, SqlDbType.NChar };
-                yield return new object[] { connStrAE, SqlDbType.NVarChar, SqlDbType.NVarChar };
-                yield return new object[] { connStrAE, SqlDbType.Time, SqlDbType.Time };
-                yield return new object[] { connStrAE, SqlDbType.DateTime2, SqlDbType.DateTime2 };
-                yield return new object[] { connStrAE, SqlDbType.DateTimeOffset, SqlDbType.DateTimeOffset };
-                yield return new object[] { connStrAE, SqlDbType.Float, SqlDbType.Float };
-                yield return new object[] { connStrAE, SqlDbType.Real, SqlDbType.Real };
+                yield return new object[] { connStrAE, SqlDbType2.SmallMoney, SqlDbType2.Money };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.TinyInt };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.SmallInt };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.Bit, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.SmallInt };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.SmallInt, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.SmallInt, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.Int, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.Binary, SqlDbType2.Binary };
+                yield return new object[] { connStrAE, SqlDbType2.Binary, SqlDbType2.VarBinary };
+                yield return new object[] { connStrAE, SqlDbType2.VarBinary, SqlDbType2.Binary };
+                yield return new object[] { connStrAE, SqlDbType2.VarBinary, SqlDbType2.VarBinary };
+                yield return new object[] { connStrAE, SqlDbType2.Char, SqlDbType2.Char }; // padding whitespace issue
+                yield return new object[] { connStrAE, SqlDbType2.Char, SqlDbType2.VarChar }; // padding whitespace issue
+                yield return new object[] { connStrAE, SqlDbType2.VarChar, SqlDbType2.Char };
+                yield return new object[] { connStrAE, SqlDbType2.VarChar, SqlDbType2.VarChar };
+                yield return new object[] { connStrAE, SqlDbType2.NChar, SqlDbType2.NChar };
+                yield return new object[] { connStrAE, SqlDbType2.NChar, SqlDbType2.NVarChar };
+                yield return new object[] { connStrAE, SqlDbType2.NVarChar, SqlDbType2.NChar };
+                yield return new object[] { connStrAE, SqlDbType2.NVarChar, SqlDbType2.NVarChar };
+                yield return new object[] { connStrAE, SqlDbType2.Time, SqlDbType2.Time };
+                yield return new object[] { connStrAE, SqlDbType2.DateTime2, SqlDbType2.DateTime2 };
+                yield return new object[] { connStrAE, SqlDbType2.DateTimeOffset, SqlDbType2.DateTimeOffset };
+                yield return new object[] { connStrAE, SqlDbType2.Float, SqlDbType2.Float };
+                yield return new object[] { connStrAE, SqlDbType2.Real, SqlDbType2.Real };
             }
         }
 
@@ -1421,29 +1421,29 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests.AlwaysEncrypted
         {
             foreach (string connStrAE in DataTestUtility.AEConnStrings)
             {
-                yield return new object[] { connStrAE, SqlDbType.BigInt };
-                yield return new object[] { connStrAE, SqlDbType.Binary };
-                yield return new object[] { connStrAE, SqlDbType.Bit };
-                yield return new object[] { connStrAE, SqlDbType.Char };
-                yield return new object[] { connStrAE, SqlDbType.Date };
-                yield return new object[] { connStrAE, SqlDbType.DateTime };
-                yield return new object[] { connStrAE, SqlDbType.DateTime2 };
-                yield return new object[] { connStrAE, SqlDbType.DateTimeOffset };
-                yield return new object[] { connStrAE, SqlDbType.Decimal };
-                yield return new object[] { connStrAE, SqlDbType.Float };
-                yield return new object[] { connStrAE, SqlDbType.Int };
-                yield return new object[] { connStrAE, SqlDbType.Money };
-                yield return new object[] { connStrAE, SqlDbType.NChar };
-                yield return new object[] { connStrAE, SqlDbType.NVarChar };
-                yield return new object[] { connStrAE, SqlDbType.Real };
-                yield return new object[] { connStrAE, SqlDbType.SmallDateTime };
-                yield return new object[] { connStrAE, SqlDbType.SmallInt };
-                yield return new object[] { connStrAE, SqlDbType.SmallMoney };
-                yield return new object[] { connStrAE, SqlDbType.Time };
-                yield return new object[] { connStrAE, SqlDbType.TinyInt };
-                yield return new object[] { connStrAE, SqlDbType.UniqueIdentifier };
-                yield return new object[] { connStrAE, SqlDbType.VarBinary };
-                yield return new object[] { connStrAE, SqlDbType.VarChar };
+                yield return new object[] { connStrAE, SqlDbType2.BigInt };
+                yield return new object[] { connStrAE, SqlDbType2.Binary };
+                yield return new object[] { connStrAE, SqlDbType2.Bit };
+                yield return new object[] { connStrAE, SqlDbType2.Char };
+                yield return new object[] { connStrAE, SqlDbType2.Date };
+                yield return new object[] { connStrAE, SqlDbType2.DateTime };
+                yield return new object[] { connStrAE, SqlDbType2.DateTime2 };
+                yield return new object[] { connStrAE, SqlDbType2.DateTimeOffset };
+                yield return new object[] { connStrAE, SqlDbType2.Decimal };
+                yield return new object[] { connStrAE, SqlDbType2.Float };
+                yield return new object[] { connStrAE, SqlDbType2.Int };
+                yield return new object[] { connStrAE, SqlDbType2.Money };
+                yield return new object[] { connStrAE, SqlDbType2.NChar };
+                yield return new object[] { connStrAE, SqlDbType2.NVarChar };
+                yield return new object[] { connStrAE, SqlDbType2.Real };
+                yield return new object[] { connStrAE, SqlDbType2.SmallDateTime };
+                yield return new object[] { connStrAE, SqlDbType2.SmallInt };
+                yield return new object[] { connStrAE, SqlDbType2.SmallMoney };
+                yield return new object[] { connStrAE, SqlDbType2.Time };
+                yield return new object[] { connStrAE, SqlDbType2.TinyInt };
+                yield return new object[] { connStrAE, SqlDbType2.UniqueIdentifier };
+                yield return new object[] { connStrAE, SqlDbType2.VarBinary };
+                yield return new object[] { connStrAE, SqlDbType2.VarChar };
             }
         }
 

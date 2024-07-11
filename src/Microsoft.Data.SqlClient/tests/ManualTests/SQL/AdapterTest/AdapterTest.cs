@@ -269,9 +269,9 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         CommandText = "INSERT INTO " + tableName + "(c0_bigint, c1_variant) " +
                         "VALUES (@bigint, @variant)"
                     };
-                    SqlParameter p = sqlAdapter.InsertCommand.Parameters.Add(new SqlParameter("@bigint", SqlDbType.BigInt));
+                    SqlParameter p = sqlAdapter.InsertCommand.Parameters.Add(new SqlParameter("@bigint", SqlDbType2.BigInt));
                     p.SourceColumn = "c0_bigint";
-                    p = sqlAdapter.InsertCommand.Parameters.Add(new SqlParameter("@variant", SqlDbType.Variant));
+                    p = sqlAdapter.InsertCommand.Parameters.Add(new SqlParameter("@variant", SqlDbType2.Variant));
                     p.SourceColumn = "c1_variant";
                     sqlAdapter.InsertCommand.Connection = cmd.Connection;
 
@@ -398,83 +398,83 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 {
                     conn.Open();
 
-                    SqlParameter param = cmd.Parameters.Add(new SqlParameter("@Cnumeric", SqlDbType.Decimal));
+                    SqlParameter param = cmd.Parameters.Add(new SqlParameter("@Cnumeric", SqlDbType2.Decimal));
                     param.Precision = 10;
                     param.Scale = 2;
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[0].Value = _c_numeric_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cunique", SqlDbType.UniqueIdentifier));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cunique", SqlDbType2.UniqueIdentifier));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[1].Value = _c_guid_val;
 
-                    cmd.Parameters.Add(new SqlParameter("@Cnvarchar", SqlDbType.NVarChar, 10));
+                    cmd.Parameters.Add(new SqlParameter("@Cnvarchar", SqlDbType2.NVarChar, 10));
                     cmd.Parameters[2].Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[2].Value = _c_nvarchar_val;
 
-                    cmd.Parameters.Add(new SqlParameter("@Cnchar", SqlDbType.NChar, 10));
+                    cmd.Parameters.Add(new SqlParameter("@Cnchar", SqlDbType2.NChar, 10));
                     cmd.Parameters[3].Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[3].Value = _c_nchar_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cbit", SqlDbType.Bit));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cbit", SqlDbType2.Bit));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[4].Value = _c_bit_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Ctinyint", SqlDbType.TinyInt));
+                    param = cmd.Parameters.Add(new SqlParameter("@Ctinyint", SqlDbType2.TinyInt));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[5].Value = _c_tinyint_val;
 
-                    cmd.Parameters.Add(new SqlParameter("@Cvarbinary", SqlDbType.VarBinary, 16));
+                    cmd.Parameters.Add(new SqlParameter("@Cvarbinary", SqlDbType2.VarBinary, 16));
                     cmd.Parameters[6].Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[6].Value = _c_varbinary_val;
 
-                    cmd.Parameters.Add(new SqlParameter("@Cbinary", SqlDbType.Binary, 16));
+                    cmd.Parameters.Add(new SqlParameter("@Cbinary", SqlDbType2.Binary, 16));
                     cmd.Parameters[7].Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[7].Value = _c_binary_val;
 
-                    cmd.Parameters.Add(new SqlParameter("@Cchar", SqlDbType.Char, 10));
+                    cmd.Parameters.Add(new SqlParameter("@Cchar", SqlDbType2.Char, 10));
                     cmd.Parameters[8].Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[8].Value = _c_char_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cmoney", SqlDbType.Money));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cmoney", SqlDbType2.Money));
                     param.Direction = ParameterDirection.InputOutput;
                     param.Scale = 4;
                     cmd.Parameters[9].Value = _c_money_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Csmallmoney", SqlDbType.SmallMoney));
+                    param = cmd.Parameters.Add(new SqlParameter("@Csmallmoney", SqlDbType2.SmallMoney));
                     param.Direction = ParameterDirection.InputOutput;
                     param.Scale = 4;
                     cmd.Parameters[10].Value = _c_smallmoney_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cint", SqlDbType.Int));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cint", SqlDbType2.Int));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[11].Value = _c_int_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Csmallint", SqlDbType.SmallInt));
+                    param = cmd.Parameters.Add(new SqlParameter("@Csmallint", SqlDbType2.SmallInt));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[12].Value = _c_smallint_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cfloat", SqlDbType.Float));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cfloat", SqlDbType2.Float));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[13].Value = _c_float_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Creal", SqlDbType.Real));
+                    param = cmd.Parameters.Add(new SqlParameter("@Creal", SqlDbType2.Real));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[14].Value = _c_real_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cdatetime", SqlDbType.DateTime));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cdatetime", SqlDbType2.DateTime));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[15].Value = _c_datetime_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Csmalldatetime", SqlDbType.SmallDateTime));
+                    param = cmd.Parameters.Add(new SqlParameter("@Csmalldatetime", SqlDbType2.SmallDateTime));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[16].Value = _c_smalldatetime_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@Cvarchar", SqlDbType.VarChar, 10));
+                    param = cmd.Parameters.Add(new SqlParameter("@Cvarchar", SqlDbType2.VarChar, 10));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[17].Value = _c_varchar_val;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@return", SqlDbType.Int));
+                    param = cmd.Parameters.Add(new SqlParameter("@return", SqlDbType2.Int));
                     param.Direction = ParameterDirection.ReturnValue;
                     cmd.Parameters[18].Value = 17; // will be overwritten
 
@@ -509,27 +509,27 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         param = cmd.Parameters[i];
                         switch (param.SqlDbType)
                         {
-                            case SqlDbType.Binary:
+                            case SqlDbType2.Binary:
                                 Assert.True(ByteArraysEqual(_c_binary_val, (byte[])param.Value), "FAILED: " + procName + ", Binary parameter");
                                 break;
-                            case SqlDbType.VarBinary:
+                            case SqlDbType2.VarBinary:
                                 Assert.True(ByteArraysEqual(_c_varbinary_val, (byte[])param.Value), "FAILED: " + procName + ", VarBinary parameter");
                                 break;
-                            case SqlDbType.UniqueIdentifier:
+                            case SqlDbType2.UniqueIdentifier:
                                 DataTestUtility.AssertEqualsWithDescription(_c_guid_val, (Guid)param.Value, "FAILED: " + procName + ", UniqueIdentifier parameter");
                                 break;
-                            case SqlDbType.DateTime:
+                            case SqlDbType2.DateTime:
                                 Assert.True(0 == DateTime.Compare((DateTime)param.Value, _c_datetime_val), "FAILED: " + procName + ", DateTime parameter");
                                 break;
-                            case SqlDbType.SmallDateTime:
+                            case SqlDbType2.SmallDateTime:
                                 Assert.True(0 == DateTime.Compare((DateTime)param.Value, _c_smalldatetime_val), "FAILED: " + procName + ", SmallDateTime parameter");
                                 break;
-                            case SqlDbType.Money:
+                            case SqlDbType2.Money:
                                 Assert.True(
                                     0 == decimal.Compare((decimal)param.Value, _c_money_val),
                                     string.Format("FAILED: " + procName + ", Money parameter. Expected: {0}. Actual: {1}.", _c_money_val, (decimal)param.Value));
                                 break;
-                            case SqlDbType.SmallMoney:
+                            case SqlDbType2.SmallMoney:
                                 Assert.True(
                                     0 == decimal.Compare((decimal)param.Value, _c_smallmoney_val),
                                     string.Format("FAILED: " + procName + ", SmallMoney parameter. Expected: {0}. Actual: {1}.", _c_smallmoney_val, (decimal)param.Value));
@@ -578,17 +578,17 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     conn.Open();
 
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@in", SqlDbType.Int));
+                    cmd.Parameters.Add(new SqlParameter("@in", SqlDbType2.Int));
                     cmd.Parameters[0].Value = 2;
 
-                    SqlParameter param = cmd.Parameters.Add(new SqlParameter("@inout", SqlDbType.Int));
+                    SqlParameter param = cmd.Parameters.Add(new SqlParameter("@inout", SqlDbType2.Int));
                     param.Direction = ParameterDirection.InputOutput;
                     cmd.Parameters[1].Value = 1998;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@out", SqlDbType.NVarChar, 8));
+                    param = cmd.Parameters.Add(new SqlParameter("@out", SqlDbType2.NVarChar, 8));
                     param.Direction = ParameterDirection.Output;
 
-                    param = cmd.Parameters.Add(new SqlParameter("@ret", SqlDbType.Int));
+                    param = cmd.Parameters.Add(new SqlParameter("@ret", SqlDbType2.Int));
                     param.Direction = ParameterDirection.ReturnValue;
 
                     DataSet dataSet = new DataSet();
@@ -867,13 +867,13 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                         CommandText = spName,
                         CommandType = CommandType.StoredProcedure
                     };
-                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType.NVarChar, 50, "FirstName"));
-                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType.NVarChar, 50, "LastName"));
-                    SqlParameter param = adapter.InsertCommand.Parameters.Add(new SqlParameter("@id", SqlDbType.Int));
+                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType2.NVarChar, 50, "FirstName"));
+                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType2.NVarChar, 50, "LastName"));
+                    SqlParameter param = adapter.InsertCommand.Parameters.Add(new SqlParameter("@id", SqlDbType2.Int));
                     param.SourceColumn = "id";
                     param.Direction = ParameterDirection.Output;
 
-                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@badapple", SqlDbType.NVarChar, 50, "LastName"));
+                    adapter.InsertCommand.Parameters.Add(new SqlParameter("@badapple", SqlDbType2.NVarChar, 50, "LastName"));
                     adapter.RowUpdating += new SqlRowUpdatingEventHandler(RowUpdating_UpdateRefreshTest);
                     adapter.RowUpdated += new SqlRowUpdatedEventHandler(RowUpdated_UpdateRefreshTest);
 
@@ -958,8 +958,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     conn.Open();
 
                     cmdInsert.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p1 = cmdInsert.Parameters.Add(new SqlParameter("@val_cvarbin", SqlDbType.VarBinary, 7000));
-                    SqlParameter p2 = cmdInsert.Parameters.Add(new SqlParameter("@val_cimage", SqlDbType.Image, 8000));
+                    SqlParameter p1 = cmdInsert.Parameters.Add(new SqlParameter("@val_cvarbin", SqlDbType2.VarBinary, 7000));
+                    SqlParameter p2 = cmdInsert.Parameters.Add(new SqlParameter("@val_cimage", SqlDbType2.Image, 8000));
 
                     tableClean.ExecuteNonQuery();
                     p1.Value = Convert.DBNull;
@@ -1015,8 +1015,8 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                     conn.Open();
 
                     cmdInsert.CommandType = CommandType.StoredProcedure;
-                    SqlParameter p1 = cmdInsert.Parameters.Add(new SqlParameter("@val_cvarbin", SqlDbType.VarBinary, 7000));
-                    SqlParameter p2 = cmdInsert.Parameters.Add(new SqlParameter("@val_cimage", SqlDbType.Image, 7000));
+                    SqlParameter p1 = cmdInsert.Parameters.Add(new SqlParameter("@val_cvarbin", SqlDbType2.VarBinary, 7000));
+                    SqlParameter p2 = cmdInsert.Parameters.Add(new SqlParameter("@val_cimage", SqlDbType2.Image, 7000));
 
                     tableClean.ExecuteNonQuery();
 
@@ -1443,7 +1443,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 byte precision = p.Precision;
                 byte scale = p.Scale;
-                builder.Append("\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.SqlDbType.ToString("G") + " FOR " + p.SourceVersion.ToString("G") + " \"" + p.SourceColumn + "\" ");
+                builder.Append("\"" + p.ParameterName + "\" AS " + p.DbType.ToString("G") + " OF " + p.SqlDbType2.ToString("G") + " FOR " + p.SourceVersion.ToString("G") + " \"" + p.SourceColumn + "\" ");
                 builder.Append(p.Size.ToString() + ", " + precision.ToString() + ", " + scale.ToString() + ", " + p.Direction.ToString("G") + ", " + DBConvertToString(p.Value) + "; ");
             }
             actualResults = builder.ToString();
@@ -1545,15 +1545,15 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 CommandText = "INSERT INTO " + table + "(EmployeeID, LastName, FirstName, Title, Address, City, Region, PostalCode, Country) " +
                 "VALUES (@EmployeeID, @LastName, @FirstName, @Title, @Address, @City, @Region, @PostalCode, @Country)"
             };
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType.Int, 0, "EmployeeID"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType.NVarChar, 20, "LastName"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType.NVarChar, 10, "FirstName"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Title", SqlDbType.NVarChar, 30, "Title"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Address", SqlDbType.NVarChar, 60, "Address"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@City", SqlDbType.NVarChar, 15, "City"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Region", SqlDbType.NVarChar, 15, "Region"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@PostalCode", SqlDbType.NVarChar, 10, "PostalCode"));
-            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Country", SqlDbType.NVarChar, 15, "Country"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType2.Int, 0, "EmployeeID"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType2.NVarChar, 20, "LastName"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType2.NVarChar, 10, "FirstName"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Title", SqlDbType2.NVarChar, 30, "Title"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Address", SqlDbType2.NVarChar, 60, "Address"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@City", SqlDbType2.NVarChar, 15, "City"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Region", SqlDbType2.NVarChar, 15, "Region"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@PostalCode", SqlDbType2.NVarChar, 10, "PostalCode"));
+            adapter.InsertCommand.Parameters.Add(new SqlParameter("@Country", SqlDbType2.NVarChar, 15, "Country"));
 
             adapter.InsertCommand.Connection = conn;
 
@@ -1564,17 +1564,17 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 "EmployeeID = @EmployeeID, LastName = @LastName, FirstName = @FirstName, Title = @Title, Address = @Address, City = @City, Region = @Region, " +
                 "PostalCode = @PostalCode, Country = @Country WHERE (EmployeeID = @OldEmployeeID)"
             };
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType.Int, 0, "EmployeeID"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType.NVarChar, 20, "LastName"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType.NVarChar, 10, "FirstName"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Title", SqlDbType.NVarChar, 30, "Title"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Address", SqlDbType.NVarChar, 60, "Address"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@City", SqlDbType.NVarChar, 15, "City"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Region", SqlDbType.NVarChar, 15, "Region"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@PostalCode", SqlDbType.NVarChar, 10, "PostalCode"));
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Country", SqlDbType.NVarChar, 15, "Country"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType2.Int, 0, "EmployeeID"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@LastName", SqlDbType2.NVarChar, 20, "LastName"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@FirstName", SqlDbType2.NVarChar, 10, "FirstName"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Title", SqlDbType2.NVarChar, 30, "Title"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Address", SqlDbType2.NVarChar, 60, "Address"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@City", SqlDbType2.NVarChar, 15, "City"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Region", SqlDbType2.NVarChar, 15, "Region"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@PostalCode", SqlDbType2.NVarChar, 10, "PostalCode"));
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@Country", SqlDbType2.NVarChar, 15, "Country"));
 
-            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@OldEmployeeID", SqlDbType.Int, 0, "EmployeeID")).SourceVersion = DataRowVersion.Original;
+            adapter.UpdateCommand.Parameters.Add(new SqlParameter("@OldEmployeeID", SqlDbType2.Int, 0, "EmployeeID")).SourceVersion = DataRowVersion.Original;
             adapter.UpdateCommand.Connection = conn;
 
             //
@@ -1584,7 +1584,7 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             {
                 CommandText = "DELETE FROM " + table + " WHERE (EmployeeID = @EmployeeID)"
             };
-            adapter.DeleteCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType.Int, 0, "EmployeeID"));
+            adapter.DeleteCommand.Parameters.Add(new SqlParameter("@EmployeeID", SqlDbType2.Int, 0, "EmployeeID"));
             adapter.DeleteCommand.Connection = conn;
         }
 

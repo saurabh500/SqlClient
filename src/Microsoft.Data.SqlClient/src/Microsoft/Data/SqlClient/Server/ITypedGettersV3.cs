@@ -15,7 +15,7 @@ namespace Microsoft.Data.SqlClient.Server
         bool IsDBNull(SmiEventSink sink, int ordinal);
 
         // Check what type current sql_variant value is
-        //      valid for SqlDbType.Variant
+        //      valid for SqlDbType2.Variant
         SmiMetaData GetVariantType(SmiEventSink sink, int ordinal);
 
         //
@@ -24,10 +24,10 @@ namespace Microsoft.Data.SqlClient.Server
         //           and GetVariantType returned the type
         //
 
-        //  valid for SqlDbType.Bit
+        //  valid for SqlDbType2.Bit
         bool GetBoolean(SmiEventSink sink, int ordinal);
 
-        //  valid for SqlDbType.TinyInt
+        //  valid for SqlDbType2.TinyInt
         byte GetByte(SmiEventSink sink, int ordinal);
 
         // valid for SqlDbTypes: Binary, VarBinary, Image, Udt, Xml, Char, VarChar, Text, NChar, NVarChar, NText
@@ -40,22 +40,22 @@ namespace Microsoft.Data.SqlClient.Server
         int GetChars(SmiEventSink sink, int ordinal, long fieldOffset, char[] buffer, int bufferOffset, int length);
         string GetString(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.SmallInt
+        // valid for SqlDbType2.SmallInt
         short GetInt16(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.Int
+        // valid for SqlDbType2.Int
         int GetInt32(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.BigInt, SqlDbType.Money, SqlDbType.SmallMoney
+        // valid for SqlDbType2.BigInt, SqlDbType2.Money, SqlDbType2.SmallMoney
         long GetInt64(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.Real
+        // valid for SqlDbType2.Real
         float GetSingle(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.Float
+        // valid for SqlDbType2.Float
         double GetDouble(SmiEventSink sink, int ordinal);
 
-        // valid for SqlDbType.Numeric (uses SqlDecimal since Decimal cannot hold full range)
+        // valid for SqlDbType2.Numeric (uses SqlDecimal since Decimal cannot hold full range)
         SqlDecimal GetSqlDecimal(SmiEventSink sink, int ordinal);
 
         // valid for DateTime & SmallDateTime

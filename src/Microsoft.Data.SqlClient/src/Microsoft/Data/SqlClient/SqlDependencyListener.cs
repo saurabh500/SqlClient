@@ -140,8 +140,8 @@ internal class SqlDependencyProcessDispatcher : MarshalByRefObject
                     throw SQL.SqlDependencyDatabaseBrokerDisabled();
                 }
 
-                _conversationGuidParam = new SqlParameter("@p1", SqlDbType.UniqueIdentifier);
-                _timeoutParam = new SqlParameter("@p2", SqlDbType.Int)
+                _conversationGuidParam = new SqlParameter("@p1", SqlDbType2.UniqueIdentifier);
+                _timeoutParam = new SqlParameter("@p2", SqlDbType2.Int)
                 {
                     Value = 0 // Timeout set to 0 for initial sync query.
                 };
