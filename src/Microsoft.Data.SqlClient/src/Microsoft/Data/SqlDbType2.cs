@@ -113,7 +113,8 @@ namespace Microsoft.Data
         Text = SqlDbType.Text,
 
         /// <summary>
-        /// <see cref="System.Array"/> of type <see cref="byte"/>. Automatically generated binary numbers, which are guaranteed to be unique within a database. <see langword="timestamp"/> is used typically as a mechanism for version-stamping table rows. The storage size is 8 bytes.
+        /// <see cref="System.Array"/> of type <see cref="byte"/>. Automatically generated binary numbers, which are guaranteed to be unique within a database. 
+        /// <see langword="timestamp"/> is used typically as a mechanism for version-stamping table rows. The storage size is 8 bytes.
         /// </summary>
         Timestamp = SqlDbType.Timestamp,
 

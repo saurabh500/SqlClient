@@ -279,8 +279,8 @@
     <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlClient\SqlJson.cs">
       <Link>Microsoft\Data\SqlClient\SqlJson.cs</Link>
     </Compile>
-    <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlClient\SqlDbType2.cs">
-      <Link>Microsoft\Data\SqlClient\SqlDbType2.cs</Link>
+    <Compile Include="$(CommonSourceRoot)\Microsoft\Data\SqlDbType2.cs">
+      <Link>Microsoft\Data\SqlDbType2.cs</Link>
     </Compile>
     <Compile Include="$(CommonSourceRoot)Microsoft\Data\SqlClient\RowsCopiedEventHandler.cs">
       <Link>Microsoft\Data\SqlClient\RowsCopiedEventHandler.cs</Link>
