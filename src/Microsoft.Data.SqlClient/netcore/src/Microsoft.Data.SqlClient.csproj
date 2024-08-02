@@ -923,6 +923,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Microsoft\Data\SqlClientX\IO\ITdsTraversable.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsBufferManager.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsReader.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsWriter.cs" />
@@ -951,6 +952,7 @@
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\ReturningHandlerChain.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\ReturningHandlerChainExceptionBehavior.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\ConnectionHandlerOrchestrator.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\IO\WritePrimitiveType.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\SqlUtilsX.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\ITdsReadStream.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\ITdsStream.cs" />

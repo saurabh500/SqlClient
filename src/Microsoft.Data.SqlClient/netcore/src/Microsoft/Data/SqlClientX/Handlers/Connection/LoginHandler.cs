@@ -4,6 +4,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -196,6 +197,241 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
                 feLength++;
             }
             return feLength;
+        }
+
+
+        private IEnumerable<TdsUnit> WriteLoginData1(LoginHandlerContext context,
+                                     SessionData recoverySessionData,
+                                     byte[] encryptedPassword,
+                                     byte[] encryptedChangePassword,
+                                     int encryptedPasswordLengthInBytes,
+                                     int encryptedChangePasswordLengthInBytes,
+                                     string userName,
+                                     int length,
+                                     int featureExOffset,
+                                     string clientInterfaceName,
+                                     byte[] outSSPIBuff,
+                                     uint outSSPILength,
+                                     bool isAsync,
+                                     CancellationToken ct)
+        {
+            // TODO: Tackle small writes in a more effective way. 
+            // Complete the discussion on https://github.com/dotnet/SqlClient/discussions/2689 and then refactor/change this code
+            // to get to the optimization.
+
+            TdsEnums.FeatureExtension requestedFeatures = context.Features.RequestedFeatures;
+            TdsStream stream = context.TdsStream;
+            SqlConnectionEncryptOption encrypt = context.ConnectionOptions.Encrypt;
+            FederatedAuthenticationFeatureExtensionData fedAuthFeatureExtensionData = context.Features.FedAuthFeatureExtensionData;
+            TdsWriter writer = stream.TdsWriter;
+            yield return TdsUnit.FromtInt(length);
+
+            //await writer.WriteIntAsync(length, isAsync, ct).ConfigureAwait(false);
+
+            if (recoverySessionData == null)
+            {
+                int protocolVersion = encrypt == SqlConnectionEncryptOption.Strict
+                    ? (TdsEnums.TDS8_MAJOR << 24) | (TdsEnums.TDS8_INCREMENT << 16) | TdsEnums.TDS8_MINOR
+                    : (TdsEnums.SQL2012_MAJOR << 24) | (TdsEnums.SQL2012_INCREMENT << 16) | TdsEnums.SQL2012_MINOR;
+                yield return TdsUnit.FromtInt(protocolVersion);
+                //await writer.WriteIntAsync(protocolVersion, isAsync, ct).ConfigureAwait(false);
+            }
+            else
+            {
+                yield return TdsUnit.FromUint(recoverySessionData._tdsVersion);
+                //await writer.WriteUnsignedIntAsync(recoverySessionData._tdsVersion, isAsync, ct).ConfigureAwait(false);
+            }
+
+            yield return TdsUnit.FromtInt(context.PacketSize);
+            yield return TdsUnit.FromtInt(TdsEnums.CLIENT_PROG_VER);
+            yield return TdsUnit.FromtInt(TdsParserStaticMethods.GetCurrentProcessIdForTdsLoginOnly());
+            yield return TdsUnit.FromtInt(0);
+
+            // Log7Flags (DWORD)
+
+            int log7Flags = CreateLogin7Flags(context);
+            yield return TdsUnit.FromtInt(log7Flags);
+            yield return TdsUnit.FromtInt(0);
+            yield return TdsUnit.FromtInt(0);
+
+            // Start writing offset and length of variable length portions
+            int offset = TdsEnums.SQL2005_LOG_REC_FIXED_LEN;
+
+            // write offset/length pairs
+
+            // note that you must always set ibHostName since it indicates the beginning of the variable length section of the login record
+            yield return TdsUnit.FromIntAsShort(offset);
+
+
+            //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // host name offset
+            yield return TdsUnit.FromIntAsShort(context.HostName.Length);
+            //await writer.WriteShortAsync(context.HostName.Length, isAsync, ct).ConfigureAwait(false);
+            offset += context.HostName.Length * 2;
+
+            // Only send user/password over if not fSSPI...  If both user/password and SSPI are in login
+            // rec, only SSPI is used.  Confirmed same behavior as in luxor.
+            if (!context.UseSspi && !(context.Features.FederatedAuthenticationInfoRequested || context.Features.FederatedAuthenticationRequested))
+            {
+                yield return TdsUnit.FromIntAsShort(offset);
+                yield return TdsUnit.FromIntAsShort(userName.Length);
+
+                //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false);  // userName offset
+                //await writer.WriteShortAsync(userName.Length, isAsync, ct).ConfigureAwait(false);
+                offset += userName.Length * 2;
+
+                // the encrypted password is a byte array - so length computations different than strings
+                //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // password offset
+                //await writer.WriteShortAsync(encryptedPasswordLengthInBytes / 2, isAsync, ct).ConfigureAwait(false);
+
+                yield return TdsUnit.FromIntAsShort(offset);
+                yield return TdsUnit.FromIntAsShort(encryptedPasswordLengthInBytes / 2);
+
+
+                offset += encryptedPasswordLengthInBytes;
+            }
+            else
+            {
+                // case where user/password data is not used, send over zeros
+                
+                yield return TdsUnit.FromIntAsShort(0);
+                yield return TdsUnit.FromIntAsShort(0);
+                yield return TdsUnit.FromIntAsShort(0);
+                yield return TdsUnit.FromIntAsShort(0);
+
+                //await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false);  // userName offset
+                //await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false);
+                //await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false);  // password offset
+                //await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false);
+            }
+            yield return TdsUnit.FromIntAsShort(offset);
+            yield return TdsUnit.FromIntAsShort(context.ApplicationName.Length);
+
+            //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // app name offset
+            //    await writer.WriteShortAsync(context.ApplicationName.Length, isAsync, ct).ConfigureAwait(false);
+            offset += context.ApplicationName.Length * 2;
+            yield return TdsUnit.FromIntAsShort(offset);
+            yield return TdsUnit.FromIntAsShort(context.ServerName.Length);
+
+            //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // server name offset
+            //    await writer.WriteShortAsync(context.ServerName.Length, isAsync, ct).ConfigureAwait(false);
+            offset += context.ServerName.Length * 2;
+
+            yield return TdsUnit.FromIntAsShort(offset);
+
+            //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false);
+            if (context.UseFeatureExt)
+            {
+                yield return TdsUnit.FromIntAsShort(4);
+
+            //await writer.WriteShortAsync(4, isAsync, ct).ConfigureAwait(false); // length of ibFeatgureExtLong (which is a DWORD)
+                offset += 4;
+            }
+            else
+            {
+                yield return TdsUnit.FromIntAsShort(0);
+
+            //await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false); // unused (was remote password ?)
+            }
+            yield return TdsUnit.FromIntAsShort(offset);
+            yield return TdsUnit.FromIntAsShort(clientInterfaceName.Length);
+
+            //await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // client interface name offset
+            //    await writer.WriteShortAsync(clientInterfaceName.Length, isAsync, ct).ConfigureAwait(false);
+            offset += clientInterfaceName.Length * 2;
+
+                await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // language name offset
+                await writer.WriteShortAsync(context.Language.Length, isAsync, ct).ConfigureAwait(false);
+                offset += context.Language.Length * 2;
+
+                await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // database name offset
+                await writer.WriteShortAsync(context.Database.Length, isAsync, ct).ConfigureAwait(false);
+                offset += context.Database.Length * 2;
+
+                if (null == s_nicAddress)
+                    s_nicAddress = TdsParserStaticMethods.GetNetworkPhysicalAddressForTdsLoginOnly();
+
+                await stream.TdsWriter.WriteBytesAsync(s_nicAddress.AsMemory(), isAsync, ct).ConfigureAwait(false);
+
+                await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // ibSSPI offset
+                if (context.UseSspi)
+                {
+                    await writer.WriteShortAsync((int)outSSPILength, isAsync, ct).ConfigureAwait(false);
+                    offset += (int)outSSPILength;
+                }
+                else
+                {
+                    await writer.WriteShortAsync(0, isAsync, ct).ConfigureAwait(false);
+                }
+
+                await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // DB filename offset
+                await writer.WriteShortAsync(context.AttachedDbFileName.Length, isAsync, ct).ConfigureAwait(false);
+                offset += context.AttachedDbFileName.Length * 2;
+
+                await writer.WriteShortAsync(offset, isAsync, ct).ConfigureAwait(false); // reset password offset
+                await writer.WriteShortAsync(encryptedChangePasswordLengthInBytes / 2, isAsync, ct).ConfigureAwait(false);
+
+                await writer.WriteIntAsync(0, isAsync, ct).ConfigureAwait(false);        // reserved for chSSPI
+
+                // write variable length portion
+                await stream.WriteStringAsync(context.HostName, isAsync, ct).ConfigureAwait(false);
+
+                // if we are using SSPI, do not send over username/password, since we will use SSPI instead
+                // same behavior as Luxor
+                if (!context.UseSspi && !(context.Features.FederatedAuthenticationInfoRequested || context.Features.FederatedAuthenticationRequested))
+                {
+                    await stream.WriteStringAsync(userName, isAsync, ct).ConfigureAwait(false);
+
+                    if (context.Credential != null)
+                    {
+                        // TODO: Implement secure string save.
+                        throw new NotImplementedException();
+                        // _physicalStateObj.WriteSecureString(rec.credential.Password);
+                    }
+                    else
+                    {
+                        await stream.TdsWriter.WriteBytesAsync(encryptedPassword.AsMemory(0, encryptedPasswordLengthInBytes), isAsync, ct).ConfigureAwait(false);
+                    }
+                }
+
+                await stream.WriteStringAsync(context.ApplicationName, isAsync, ct).ConfigureAwait(false);
+
+                await stream.WriteStringAsync(context.ServerName, isAsync, ct).ConfigureAwait(false);
+
+                // write ibFeatureExtLong
+                if (context.UseFeatureExt)
+                {
+                    await writer.WriteIntAsync(featureExOffset, isAsync, ct).ConfigureAwait(false);
+                }
+
+                await stream.WriteStringAsync(clientInterfaceName, isAsync, ct).ConfigureAwait(false);
+                await stream.WriteStringAsync(context.Language, isAsync, ct).ConfigureAwait(false);
+                await stream.WriteStringAsync(context.Database, isAsync, ct).ConfigureAwait(false);
+
+                // send over SSPI data if we are using SSPI
+                if (context.UseSspi)
+                {
+                    await stream.TdsWriter.WriteBytesAsync(outSSPIBuff.AsMemory(0, (int)outSSPILength), isAsync, ct).ConfigureAwait(false);
+                }
+
+                await stream.WriteStringAsync(context.AttachedDbFileName, isAsync, ct).ConfigureAwait(false);
+                if (!context.UseSspi && !(context.Features.FederatedAuthenticationInfoRequested || context.Features.FederatedAuthenticationRequested))
+                {
+                    if (context.PasswordChangeRequest?.NewSecurePassword != null)
+                    {
+                        // TODO : implement saving secure string.
+                        throw new NotImplementedException();
+                        // _physicalStateObj.WriteSecureString(rec.newSecurePassword);
+                    }
+                    else
+                    {
+                        await stream.TdsWriter.WriteBytesAsync(encryptedChangePassword.AsMemory(0, encryptedChangePasswordLengthInBytes), isAsync, ct).ConfigureAwait(false);
+                    }
+                }
+
+                await SendFeatureExtensionData(context,
+                    isAsync,
+                    ct).ConfigureAwait(false);
+            
         }
 
 
