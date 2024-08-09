@@ -923,6 +923,8 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\ILoginTokenListener.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\LoginParser.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsBufferManager.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsReader.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsWriter.cs" />

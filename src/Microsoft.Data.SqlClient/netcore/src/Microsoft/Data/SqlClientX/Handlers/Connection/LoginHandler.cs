@@ -52,6 +52,21 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
 
             // TODO: Complete the login by reading data. 
             // This requires parsing by reading token stream from TDS.
+
+            await ConsumeLogin(loginHandlerContext, isAsync, ct).ConfigureAwait(false);
+        }
+
+        private async Task ConsumeLogin(LoginHandlerContext loginHandlerContext, bool isAsync, CancellationToken ct)
+        {
+            // Stream re-alignment to turn off encryption.
+            if (loginHandlerContext.ConnectionOptions.Encrypt != SqlConnectionEncryptOption.Mandatory 
+                || loginHandlerContext.ConnectionOptions.Encrypt != SqlConnectionEncryptOption.Strict)
+            {
+                loginHandlerContext.TdsStream.ReplaceUnderlyingStream(loginHandlerContext.ConnectionStream);
+            }
+
+            TdsStream tdsStream = loginHandlerContext.TdsStream;
+            await loginHandlerContext.LoginParser.Parse(tdsStream, null, isAsync, ct).ConfigureAwait(false);
         }
 
         private async ValueTask SendLogin(LoginHandlerContext context, bool isAsync, CancellationToken ct)
@@ -244,10 +259,10 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
                 await writer.WriteIntAsync(0, isAsync, ct).ConfigureAwait(false); // connectionID is unused
 
                 // Log7Flags (DWORD)
-                 
+
                 int log7Flags = CreateLogin7Flags(context);
                 await writer.WriteIntAsync(log7Flags, isAsync, ct).ConfigureAwait(false);
-                
+
                 await writer.WriteIntAsync(0, isAsync, ct).ConfigureAwait(false);  // ClientTimeZone is not used
                 await writer.WriteIntAsync(0, isAsync, ct).ConfigureAwait(false);  // LCID is unused by server
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -163,6 +164,13 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection.Login
         /// New secure password as SecureString.
         /// </summary>
         public SecureString NewSecurePassword => PasswordChangeRequest?.NewSecurePassword;
+
+        /// <summary>
+        /// The transport stream.
+        /// </summary>
+        public Stream ConnectionStream => ConnectionContext.ConnectionStream;
+
+        public LoginParser LoginParser { get; internal set; }
 
         public int CalculateLoginRecordLength()
         {
