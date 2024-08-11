@@ -925,6 +925,10 @@
     </Compile>
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\ILoginTokenListener.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\LoginParser.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\Parser.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\TdsError.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\Login\TdsToken.cs" />
+    <Compile Include="Microsoft\Data\SqlClientX\Handlers\Connection\TdsPacketSegment.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsBufferManager.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsReader.cs" />
     <Compile Include="Microsoft\Data\SqlClientX\IO\TdsWriter.cs" />

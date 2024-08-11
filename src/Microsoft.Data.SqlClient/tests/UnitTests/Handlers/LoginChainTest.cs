@@ -23,7 +23,7 @@ namespace Microsoft.Data.SqlClient.NetCore.UnitTests.Handlers
 
         // TODO: This test needs to be enabled conditionally. This can be used to test the handlers E2E.
         // For now, uncomment the [Fact] attribute to run the test.
-        //[Fact]
+        [Fact]
         public async void TestConnectivity()
         {
             DataSourceParsingHandler dspHandler = new();
@@ -33,10 +33,10 @@ namespace Microsoft.Data.SqlClient.NetCore.UnitTests.Handlers
             SqlConnectionStringBuilder csb = new()
             {
                 DataSource = _dataSource,
-                Encrypt = SqlConnectionEncryptOption.Mandatory,
+                Encrypt = SqlConnectionEncryptOption.Optional,
                 TrustServerCertificate = true,
                 UserID = "sa",
-                Password = Environment.GetEnvironmentVariable("PASSWORD"),
+                Password = "HappyPass1234", //Environment.GetEnvironmentVariable("PASSWORD"),
                 ConnectRetryCount = 0,
             };
 

@@ -345,10 +345,16 @@ namespace Microsoft.Data.SqlClientX.IO
             double doWork() => BinaryPrimitives.ReadDoubleLittleEndian(buffer.Span);
         }
 
-        internal async ValueTask<Tokens> ReadTokenAsync(bool isAsync, CancellationToken ct)
+        internal async ValueTask<TdsToken> ReadTokenAsync(bool isAsync, CancellationToken ct)
         {
             byte byteValue = await ReadByteAsync(isAsync, ct);
-            return (Tokens)byteValue;
+            return (TdsToken)byteValue;
+        }
+
+        internal async ValueTask<TdsFeature> ReadFeatureAsync(bool isAsync, CancellationToken ct)
+        {
+            byte byteValue = await ReadByteAsync(isAsync, ct);
+            return (TdsFeature)byteValue;
         }
 
         #endregion

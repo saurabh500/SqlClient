@@ -6,5 +6,6 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection.Login
 {
     internal interface ILoginTokenListener
     {
+        void AccumulateError(TdsError error);
     }
 }

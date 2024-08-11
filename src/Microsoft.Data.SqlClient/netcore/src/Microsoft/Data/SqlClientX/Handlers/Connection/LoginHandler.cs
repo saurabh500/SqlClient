@@ -29,6 +29,7 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
         private readonly SessionRecoveryFeature _sessionRecoveryFeature;
         private readonly FedAuthFeature _fedAuthFeature;
         private readonly TceFeature _tceFeature;
+        private readonly LoginParser _loginParser;
 
         /// <summary>
         /// Parameterless constructor for the login handler.
@@ -43,6 +44,7 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
             _dataClassificationFeature = new DataClassificationFeature();
             _utf8SupportFeature = new Utf8Feature();
             _sqlDnsCachingFeature = new SqlDnsCachingFeature();
+            _loginParser = new LoginParser();
         }
 
         public override async ValueTask Handle(ConnectionHandlerContext context, bool isAsync, CancellationToken ct)
@@ -66,7 +68,7 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection
             }
 
             TdsStream tdsStream = loginHandlerContext.TdsStream;
-            await loginHandlerContext.LoginParser.Parse(tdsStream, null, isAsync, ct).ConfigureAwait(false);
+            await _loginParser.Parse(tdsStream, null, isAsync, ct).ConfigureAwait(false);
         }
 
         private async ValueTask SendLogin(LoginHandlerContext context, bool isAsync, CancellationToken ct)

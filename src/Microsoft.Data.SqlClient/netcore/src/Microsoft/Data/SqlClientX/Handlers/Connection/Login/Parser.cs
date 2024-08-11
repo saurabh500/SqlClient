@@ -13,7 +13,7 @@ namespace Microsoft.Data.SqlClientX.Handlers.Connection.Login
 {
     internal abstract class Parser
     {
-        internal async ValueTask<int> GetTokenLength(Tokens tdsToken, TdsStream tdsStream, bool isAsync, CancellationToken ct)
+        internal async ValueTask<int> GetTokenLength(TdsToken tdsToken, TdsStream tdsStream, bool isAsync, CancellationToken ct)
         {
             byte token = ((byte)tdsToken);
             int tokenLength;
