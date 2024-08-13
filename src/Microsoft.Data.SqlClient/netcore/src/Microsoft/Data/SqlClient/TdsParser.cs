@@ -11904,14 +11904,16 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-        private async Task WriteTextFeed(TextDataFeed feed, Encoding encoding, bool needBom, TdsParserStateObject stateObj, int size)
+        private async Task WriteTextFeed(TextDataFeed feed, Encoding encoding, bool needBom, TdsParserStateObject stateObj, int size, bool stripPreamble)
         {
             Debug.Assert(encoding == null || !needBom);
             char[] inBuff = ArrayPool<char>.Shared.Rent(constTextBufferSize);
 
             encoding = encoding ?? TextDataFeed.DefaultEncoding;
+            
+            byte[] preambleToStrip = stripPreamble ? encoding.GetPreamble() : null;
 
-            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(this, stateObj, null), encoding), size))
+            using (ConstrainedTextWriter writer = new ConstrainedTextWriter(new StreamWriter(new TdsOutputStream(this, stateObj, preambleToStrip), encoding), size))
             {
                 if (needBom)
                 {
@@ -12137,7 +12139,7 @@ namespace Microsoft.Data.SqlClient
                             }
                             else
                             {
-                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, _defaultEncoding, false, stateObj, paramSize));
+                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, _defaultEncoding, false, stateObj, paramSize, false));
                             }
                         }
                         else
@@ -12175,7 +12177,12 @@ namespace Microsoft.Data.SqlClient
                             }
                             else
                             {
-                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, null, IsBOMNeeded(type, value), stateObj, paramSize));
+                                // While Writing Json stream, we need to make sure that the data is written with UTF8 encoding.
+                                Encoding encoding = type.NullableType == TdsEnums.SQLJSON ? Encoding.UTF8 : null;
+                                
+                                // In case of JSON, the server doesn't expect the preamble.
+                                bool stripPreamble = type.NullableType == TdsEnums.SQLJSON;
+                                return NullIfCompletedWriteTask(WriteTextFeed(tdf, encoding, IsBOMNeeded(type, value), stateObj, paramSize, stripPreamble));
                             }
                         }
                         else
