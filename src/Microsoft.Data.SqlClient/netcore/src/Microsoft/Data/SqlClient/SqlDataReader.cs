@@ -1989,7 +1989,7 @@ namespace Microsoft.Data.SqlClient
                 System.Text.Encoding encoding;
                 if (mt.SqlDbType == SqlDbTypeExtensions.Json)
                 {
-                    encoding = new UTF8Encoding();
+                    encoding = Encoding.UTF8;
                 }
                 else if (mt.IsNCharType)
                 {

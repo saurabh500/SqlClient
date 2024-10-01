@@ -137,6 +137,18 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
             }
         }
 
+        private void StreamJsonFileTovcmServer(SqlConnection connection)
+        {
+            using (SqlCommand cmd = new SqlCommand("INSERT INTO [vcmTab] (data) VALUES (@textdata)", connection))
+            {
+                using (StreamReader jsonFile = File.OpenText(_jsonFile))
+                {
+                    cmd.Parameters.Add("@textdata", SqlDbType.VarChar, -1).Value = jsonFile;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         private async Task StreamJsonFileToServerAsync(SqlConnection connection)
         {
             using (SqlCommand cmd = new SqlCommand("INSERT INTO [jsonTab] (data) VALUES (@jsondata)", connection))
@@ -170,6 +182,19 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
                 CompareJsonFiles();
                 DeleteFile(_jsonFile);
                 DeleteFile(_outputFile);
+            }
+        }
+
+        [ConditionalFact(typeof(DataTestUtility), nameof(DataTestUtility.IsJsonSupported))]
+        public void TestVcmStreaming()
+        {
+            GenerateJsonFile(10000, _jsonFile);
+            using (SqlConnection connection = new SqlConnection(DataTestUtility.TCPConnectionString))
+            {
+                connection.Open();
+                DataTestUtility.CreateTable(connection, "vcmTab", "(data varchar(max) COLLATE Latin1_General_100_CI_AI_SC_UTF8)");
+                StreamJsonFileTovcmServer(connection);
+                
             }
         }
 

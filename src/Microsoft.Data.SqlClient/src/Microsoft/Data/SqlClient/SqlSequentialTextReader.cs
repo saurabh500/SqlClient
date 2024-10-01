@@ -123,6 +123,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             // If we need more data and there is data available, read
+            Console.WriteLine("TextReader.Read() Buffer: "+buffer.Length+" Index: "+(index+charsRead)+" Count/CharsNeeded: "+charsNeeded);
             charsRead += InternalRead(buffer, index + charsRead, charsNeeded);
 
             return charsRead;
@@ -361,7 +362,16 @@ namespace Microsoft.Data.SqlClient
                 {
                     // Copy over the leftover buffer
                     byteBuffer = ArrayPool<byte>.Shared.Rent(byteBufferSize);
-                    Buffer.BlockCopy(_leftOverBytes, 0, byteBuffer, 0, _leftOverByteBufferUsed);
+                    try
+                    {
+                        Console.WriteLine("PrepareByteBuffer() BlockCopy: _leftOverBytes:"+(_leftOverBytes.Length - _leftOverByteBufferUsed) + " byteBufferSize:"+byteBufferSize+ " _leftOverByteBufferUsed:"+ _leftOverByteBufferUsed);
+                        Buffer.BlockCopy(_leftOverBytes, (_leftOverBytes.Length- _leftOverByteBufferUsed), byteBuffer, 0, _leftOverByteBufferUsed);
+
+                    }
+                    catch(Exception)
+                    {
+                        throw;
+                    }
                     byteBufferUsed = _leftOverByteBufferUsed;
                     //return _leftOverBytes and clean _leftOverBytes reference
                     ArrayPool<byte>.Shared.Return(_leftOverBytes);
