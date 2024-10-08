@@ -4,14 +4,14 @@ using System.Diagnostics;
 using System.Text;
 class SqlBulkCopyDemo
 {
-    private static string connectionString = Environment.GetEnvironmentVariable("CONNECTION_STR") ?? "Server=tcp:10.224.90.151;Database=Demo2;Encrypt=False; User ID=sa; PWD=Yukon900!Welcome";
+    private static string connectionString = Environment.GetEnvironmentVariable("CONNECTION_STR") ?? "Server=tcp:10.224.90.151;Database=Demo2;Encrypt=False; User ID=sa;";
 
     static void Main()
     {
-        MainDataReadStream();
+        //MainDataReadStream();
         Debug.WriteLine("-----------------");
         Console.WriteLine("-----------------");
-        //MainBulkCopy();
+        MainBulkCopy();
     }
 
     static void MainDataReadStream()
@@ -30,18 +30,24 @@ class SqlBulkCopyDemo
                     while (reader.Read())
                     {
 
-                        char[] buff = new char[4096];
+                        char[] buff = new char[5000];
                         using (TextReader data = reader.GetTextReader(0))
                         {
-
                             int readCount = 0;
-
                             do
                             {
-                                readCount = data.ReadBlock(buff, 0, 4096);
-                            } while (readCount > 0);
-                            //Console.WriteLine(data.ReadToEnd());
-
+                                // UTF8 char = 6 bytes = 3 chars of c# 
+                                readCount = data.Read(buff, 0, 3);
+                                if (readCount < 4096)
+                                {
+                                    Console.WriteLine("================" + readCount);
+                                }
+                                else
+                                {
+                                    Console.WriteLine(readCount);
+                                }
+                            }
+                            while (readCount > 0);
                         }
                     }
                 }
