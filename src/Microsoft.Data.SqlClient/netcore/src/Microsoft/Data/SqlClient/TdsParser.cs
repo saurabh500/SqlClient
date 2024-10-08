@@ -5038,7 +5038,7 @@ namespace Microsoft.Data.SqlClient
             }
             else
             {
-                result = TryGetTokenLength(tdsType, stateObj, out col._length);
+                result = TryGetTokenLength(tdsType, stateObj, out col.length);
                 if (result != TdsOperationStatus.Done)
                 {
                     return result;

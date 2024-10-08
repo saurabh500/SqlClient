@@ -365,8 +365,8 @@ namespace Microsoft.Data.SqlClient
                     try
                     {
                         Console.WriteLine("PrepareByteBuffer() BlockCopy: _leftOverBytes:"+(_leftOverBytes.Length - _leftOverByteBufferUsed) + " byteBufferSize:"+byteBufferSize+ " _leftOverByteBufferUsed:"+ _leftOverByteBufferUsed);
-                        Buffer.BlockCopy(_leftOverBytes, (_leftOverBytes.Length- _leftOverByteBufferUsed), byteBuffer, 0, _leftOverByteBufferUsed);
-
+                        //Buffer.BlockCopy(_leftOverBytes, (_leftOverBytes.Length- _leftOverByteBufferUsed), byteBuffer, 0, _leftOverByteBufferUsed);
+                        Buffer.BlockCopy(_leftOverBytes, 0, byteBuffer, 0, _leftOverByteBufferUsed);
                     }
                     catch(Exception)
                     {
