@@ -11966,11 +11966,11 @@ namespace Microsoft.Data.SqlClient
 
                     if (_asyncWrite)
                     {
-                        nRead = await feed._source.ReadBlockAsync(inBuff, 0, constTextBufferSize).ConfigureAwait(false);
+                        nRead = await feed._source.ReadAsync(inBuff, 0, constTextBufferSize).ConfigureAwait(false);
                     }
                     else
                     {
-                        nRead = feed._source.ReadBlock(inBuff, 0, constTextBufferSize);
+                        nRead = feed._source.Read(inBuff, 0, constTextBufferSize);
                     }
 
                     if (nRead == 0)
