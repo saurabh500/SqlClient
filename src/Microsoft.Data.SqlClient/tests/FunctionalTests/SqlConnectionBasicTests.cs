@@ -20,6 +20,8 @@ namespace Microsoft.Data.SqlClient.Tests
 {
     public class SqlConnectionBasicTests
     {
+
+
         [Fact]
         public void ConnectionTest()
         {

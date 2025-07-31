@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Xunit;
 
 namespace Microsoft.Data.SqlClient.ManualTesting.Tests
@@ -27,6 +30,261 @@ namespace Microsoft.Data.SqlClient.ManualTesting.Tests
         private static readonly string s_alterDatabaseMultiCmd = $"ALTER DATABASE {s_databaseName} SET MULTI_USER WITH ROLLBACK IMMEDIATE;";
         private static readonly string s_selectTableCmd = $"SELECT COUNT(*) FROM {s_tableName}";
         private static readonly string s_dropDatabaseCmd = $"DROP DATABASE {s_databaseName}";
+
+
+        [Fact]
+        public static void ConnectionTestRoundTrip()
+        {
+            AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
+            {
+                DataSource = "localhost",
+                InitialCatalog = "master",
+                UserID = "sa",
+                Encrypt = SqlConnectionEncryptOption.Strict,
+                Password = "ss1234",
+                Pooling = false
+            };
+            //for (int i = 0 ; i < 10; i++)
+            {
+                SqlConnection connection = new SqlConnection(builder.ConnectionString);
+                
+                connection.Open();
+                string command = "select CAST('11111122222222222222222333333333333333333333333333333312312312312333333333333123' as binary(5500))";
+                using (SqlCommand cmd = new SqlCommand(command, connection))
+                {
+                    
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine(BitConverter.ToString((byte[])reader[0]));
+                        }
+                    }
+                }
+                connection.Close();
+                
+            }
+        }
+
+        [Fact]
+        public static void WriteFile()
+        {
+            byte[] data = new byte[500 * 1024 * 1024]; // 20 MB
+            new Random().NextBytes(data); // Fill with random bytes
+            
+            string filePath = "C:\\temp\\LargeBinaryData.bin";
+            File.WriteAllBytes(filePath, data);
+        }
+
+        [Fact]
+        public static void ConnectionLargeDataInsert()
+        {
+            //string largeFilePath = "C:\\temp\\LargeTextData.txt"; // Ensure this file exists with large text data
+            AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
+            {
+                DataSource = "tcp:localhost",
+                InitialCatalog = "drivers",
+                UserID = "sa",
+                Encrypt = SqlConnectionEncryptOption.Optional,
+                Password = "ss1234",
+                Pooling = false
+            };
+            //for (int i = 0 ; i < 10; i++)
+            using (SqlConnection conn = new SqlConnection(builder.ConnectionString))
+            {
+                conn.Open();
+                byte[] data = new byte[500 * 1024 * 1024]; // 20 MB
+                new Random().NextBytes(data); // Fill with random bytes
+
+
+                string insertSql = "INSERT INTO dbo.LargeBinaryTable (binarydata) VALUES (@data)";
+
+
+                using (SqlCommand cmd = new SqlCommand(insertSql, conn))
+                {
+                    // Open a TextReader for the large text file
+                    //using (TextReader reader = new StreamReader(largeFilePath))
+                    {
+                        //SqlParameter param = new SqlParameter("@data", SqlDbType.NVarChar, -1);
+                        //param.Value = reader;
+                        //param.IsNullable = true;
+
+                        cmd.Parameters.Add("@data", System.Data.SqlDbType.VarBinary, -1).Value = data;
+
+                        // Use Structured Streaming API
+                        //cmd.Parameters.Add(param);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+
+        }
+
+        [Fact]
+        public static void ConnectionProcedure()
+        {
+            AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
+            StringWriter stringWriter = new StringWriter((IFormatProvider)null);
+            Console.WriteLine(stringWriter.Encoding);
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
+            {
+                DataSource = "tcp:172.20.107.10,14333",
+                InitialCatalog = "drivers",
+                UserID = "sa",
+                Encrypt = SqlConnectionEncryptOption.Optional,
+                Password = "ss1234",
+                Pooling = false
+            };
+            //for (int i = 0 ; i < 10; i++)
+            {
+                SqlConnection connection = new SqlConnection(builder.ConnectionString);
+
+                connection.Open();
+                string command = "Geography";
+                using (SqlCommand cmd = new SqlCommand(command, connection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    SqlParameter parameter = new SqlParameter();
+                    parameter.ParameterName = "@OutputPoint";
+                    parameter.SqlDbType = System.Data.SqlDbType.Udt;
+                    parameter.Direction = ParameterDirection.Output;
+                    parameter.UdtTypeName = "geography"; // Ensure this UDT exists in your database
+                    cmd.Parameters.Add(parameter);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            object value = reader.IsDBNull(0) ? "NULL" : reader.GetValue(0);
+                            Console.WriteLine($"Value {value}");
+                            Console.WriteLine(value);
+                        }
+                    }
+                }
+                connection.Close();
+            }
+        }
+        [Fact]
+        public static void AdhocStuff()
+        {
+            long v = 0xabcdef;
+            int length = 8; // Number of bytes to extract
+
+            byte[] manualBytes = new byte[length];
+            for (int index = 0; index < length; index++)
+            { 
+                manualBytes[index] = (byte)((v >> (index * 8)) & 0xff);
+            }
+            var theSpan = new Span<byte>(new byte[8]);
+            BinaryPrimitives.WriteInt64LittleEndian(theSpan, v);
+
+            Assert.Equal(theSpan.Length, manualBytes.Length);
+            for (int i = 0; i < theSpan.Length; i++)
+            {
+                Assert.Equal(theSpan[i], manualBytes[i]);
+            }
+        }
+        [Fact]
+        public static void ConnectionTvpTest()
+        {
+            AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
+            StringWriter stringWriter = new StringWriter((IFormatProvider)null);
+            Console.WriteLine(stringWriter.Encoding);
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
+            {
+                DataSource = "djr4e56djc2uzhpd6wkdpvxupq-lmfnijwabysunflfa65ucbm4gm.database.fabric.microsoft.com",
+                InitialCatalog = "dlevy_SalesLT-daa4a8fa-c8b5-4a7f-b2b8-17b611faba65",
+                //UserID = "sa",
+                Encrypt = SqlConnectionEncryptOption.Strict,
+                Authentication = SqlAuthenticationMethod.ActiveDirectoryDefault,
+                //Password = "ss1234",
+                Pooling = false
+            };
+            //for (int i = 0 ; i < 10; i++)
+            {
+                SqlConnection connection = new SqlConnection(builder.ConnectionString);
+
+                connection.Open();
+                // Create a DataTable matching the TVP structure
+                var tvpTable = new DataTable();
+                tvpTable.Columns.Add("Id", typeof(int));
+                tvpTable.Columns.Add("Name", typeof(string));
+
+                // Populate DataTable with sample data
+                tvpTable.Rows.Add(1, "Alice");
+                tvpTable.Rows.Add(2, "Bob");
+
+                using (var command = new SqlCommand("dbo.ViewTVP", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    var tvpParam = command.Parameters.AddWithValue("@Data", tvpTable);
+                    tvpParam.SqlDbType = SqlDbType.Structured;
+                    tvpParam.TypeName = "dbo.MyTableType";
+
+                    using (var rdr = command.ExecuteReader())
+                    {
+                        while (rdr.Read())
+                        {
+                            // Assuming the TVP returns two columns: Id and Name
+                            int id = rdr.GetInt32(0);
+                            string name = rdr.GetString(1);
+                            Console.WriteLine($"Id: {id}, Name: {name}");
+                        }
+                    }
+                }
+
+
+                Console.WriteLine("TVP data inserted successfully.");
+                connection.Close();
+            }
+        }
+
+        [Fact]
+        public static void ConnectionLargeData()
+        {
+            AppContext.SetSwitch("Switch.Microsoft.Data.SqlClient.UseManagedNetworkingOnWindows", true);
+            StringWriter stringWriter = new StringWriter((IFormatProvider)null);
+            Console.WriteLine(stringWriter.Encoding);
+            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder
+            {
+                DataSource = "tcp:172.20.107.10",
+                InitialCatalog = "drivers",
+                UserID = "sa",
+                Encrypt = SqlConnectionEncryptOption.Optional,
+                Password = "ss1234",
+                Pooling = false
+            };
+            //for (int i = 0 ; i < 10; i++)
+            {
+                SqlConnection connection = new SqlConnection(builder.ConnectionString);
+
+                connection.Open();
+                string command = "SELECT @something as something;";
+                
+
+                SqlParameter param = new SqlParameter();
+                param.ParameterName = "@something";
+                
+                param.SqlDbType = SqlDbType.Date;
+                var dt = DateTime.Now;
+                //dt.Columns.Add("Column1", typeof(string));
+                param.Value = DBNull.Value; // Assigning a sample DataTable value
+
+                //param.Size = 9111;
+                //param.Scale = 3;
+
+                using (SqlCommand cmd = new SqlCommand(command, connection))
+                {
+                    cmd.Parameters.Add(param);
+                    cmd.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+        }
 
         // Synapse: Stored procedure sp_who2 does not exist or is not supported.
         // Synapse: SqlConnection.ServerProcessId is always retrieved as 0.

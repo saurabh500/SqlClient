@@ -11,9 +11,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Common;
 using Microsoft.Data.ProviderBase;
+using System.Linq;
 
 namespace Microsoft.Data.SqlClient
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Text;
+
+
     internal abstract partial class TdsParserStateObject
     {
         private struct RuntimeHelpers
@@ -857,6 +864,8 @@ namespace Microsoft.Data.SqlClient
             Task task = null;
             _parser.CheckResetConnection(this);       // HAS SIDE EFFECTS - re-org at a later time if possible
 
+            Debug.WriteLine("byte[] byteArray = new byte[] { " + string.Join(", ", _outBuff.Take(_outBytesUsed).Select(b => "0x" + b.ToString("X2"))) + " };");
+            Hexer.PrintHexDumpArray(_outBuff.AsSpan()[.._outBytesUsed]);
             task = WriteSni(canAccumulate);
             AssertValidState();
 

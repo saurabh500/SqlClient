@@ -596,7 +596,7 @@ namespace Microsoft.Data.SqlClient
             }
 
             TokenCredentialOptions tokenCredentialOptions = new() { AuthorityHost = new Uri(tokenCredentialKey._authority) };
-
+            
             if (tokenCredentialKey._tokenCredentialType == typeof(ManagedIdentityCredential))
             {
                 return new TokenCredentialData(new ManagedIdentityCredential(tokenCredentialKey._clientId, tokenCredentialOptions), GetHash(secret));

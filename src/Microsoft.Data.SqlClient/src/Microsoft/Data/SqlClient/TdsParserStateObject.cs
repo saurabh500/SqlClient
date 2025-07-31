@@ -6,6 +6,7 @@ using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,7 +20,57 @@ namespace Microsoft.Data.SqlClient
     using PacketHandle = IntPtr;
     using RuntimeHelpers = System.Runtime.CompilerServices.RuntimeHelpers;
 #endif
-    
+
+
+    class Hexer
+    {
+
+        public static void PrintHexDumpArray(Span<byte> bytes)
+        {
+            const int bytesPerLine = 16;
+            for (int i = 0; i < bytes.Length; i += bytesPerLine)
+            {
+                // Print the offset
+                Console.Write($"{i:X4}:   ");
+
+                // Print the hex values
+                for (int j = 0; j < bytesPerLine; j++)
+                {
+                    if (i + j < bytes.Length)
+                    {
+                        Console.Write($"{bytes[i + j]:X2} ");
+                    }
+                    else
+                    {
+                        Console.Write("   ");
+                    }
+
+                    if (j == 7)
+                        Console.Write(" "); // Extra space between groups of 8 bytes
+                }
+
+                Console.Write("  ");
+
+                // Print the ASCII representation
+                for (int j = 0; j < bytesPerLine; j++)
+                {
+                    if (i + j < bytes.Length)
+                    {
+                        byte b = bytes[i + j];
+                        char c = (b >= 32 && b <= 126) ? (char)b : '.';
+                        Console.Write(c);
+                    }
+                }
+
+                Console.WriteLine("");
+            }
+        }
+
+        internal static void PrintHexDump(IEnumerable<byte> enumerable)
+        {
+            PrintHexDumpArray(enumerable.ToArray().AsSpan());
+        }
+    }
     sealed internal class LastIOTimer
     {
         internal long _value;
@@ -1086,7 +1137,8 @@ namespace Microsoft.Data.SqlClient
                 }
                 AssertValidState();
             }
-
+            Console.WriteLine("Input buffer");
+            Hexer.PrintHexDumpArray(_inBuff.AsSpan().Slice(0, _inBytesPacket));
             return TdsOperationStatus.Done;
         }
 
