@@ -3042,6 +3042,11 @@ namespace Microsoft.Data.SqlClient
             _outBuff[6] = packetNumber;               // packet
             _outBuff[7] = 0;                          // window
 
+            // LOG OUTGOING PACKET TO SQL SERVER
+            Console.WriteLine($"[TDS OUT] ObjectID={_objectID}, PacketNum={packetNumber}, MsgType=0x{_outputMessageType:X2}, Status=0x{status:X2}, Length={_outBytesUsed} bytes");
+            Console.WriteLine($"[TDS OUT] Hex Data: {BitConverter.ToString(_outBuff, 0, _outBytesUsed).Replace("-", " ")}");
+            Console.WriteLine();
+
             Task task = null;
             _parser.CheckResetConnection(this);       // HAS SIDE EFFECTS - re-org at a later time if possible
 

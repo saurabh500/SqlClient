@@ -2465,6 +2465,9 @@ namespace Microsoft.Data.SqlClient
                     return result;
                 }
 
+                // LOG TOKEN RECEIVED AND PARSED
+                Console.WriteLine($"[TDS TOKEN] ObjectID={stateObj.ObjectID}, Token=0x{token:X2} ({TdsEnums.GetTokenName(token)})");
+
                 if (!IsValidTdsToken(token))
                 {
 #if DEBUG

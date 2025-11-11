@@ -72,6 +72,18 @@ namespace Microsoft.Data.SqlClient
                         _lastSuccessfulIOTimer._value = DateTime.UtcNow.Ticks;
 
                         SetBuffer(_inBuff, 0, (int)dataSize);
+
+                        // LOG INCOMING PACKET FROM SQL SERVER
+                        if (dataSize >= 8)
+                        {
+                            byte msgType = _inBuff[0];
+                            byte status = _inBuff[1];
+                            int length = (_inBuff[2] << 8) | _inBuff[3];
+                            byte packetNum = _inBuff[6];
+                            Console.WriteLine($"[TDS IN] ObjectID={ObjectID}, PacketNum={packetNum}, MsgType=0x{msgType:X2}, Status=0x{status:X2}, Length={length} bytes, DataSize={dataSize}");
+                            Console.WriteLine($"[TDS IN] Hex Data: {BitConverter.ToString(_inBuff, 0, (int)dataSize).Replace("-", " ")}");
+                            Console.WriteLine();
+                        }
                     }
 
                     bool recurse = false;
@@ -539,6 +551,18 @@ namespace Microsoft.Data.SqlClient
                     _lastSuccessfulIOTimer._value = DateTime.UtcNow.Ticks;
                     _inBytesRead = (int)dataSize;
                     _inBytesUsed = 0;
+
+                    // LOG INCOMING PACKET FROM SQL SERVER (Compat Path)
+                    if (dataSize >= 8)
+                    {
+                        byte msgType = _inBuff[0];
+                        byte status = _inBuff[1];
+                        int length = (_inBuff[2] << 8) | _inBuff[3];
+                        byte packetNum = _inBuff[6];
+                        Console.WriteLine($"[TDS IN COMPAT] ObjectID={ObjectID}, PacketNum={packetNum}, MsgType=0x{msgType:X2}, Status=0x{status:X2}, Length={length} bytes, DataSize={dataSize}");
+                        Console.WriteLine($"[TDS IN COMPAT] Hex Data: {BitConverter.ToString(_inBuff, 0, (int)dataSize).Replace("-", " ")}");
+                        Console.WriteLine();
+                    }
 
                     if (_snapshot != null)
                     {

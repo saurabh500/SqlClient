@@ -1392,8 +1392,9 @@ namespace Microsoft.Data.SqlClient
                 _federatedAuthenticationRequested = true;
             }
 
-            // The GLOBALTRANSACTIONS, DATACLASSIFICATION, TCE, and UTF8 support features are implicitly requested
-            requestedFeatures |= TdsEnums.FeatureExtension.GlobalTransactions | TdsEnums.FeatureExtension.DataClassification | TdsEnums.FeatureExtension.Tce | TdsEnums.FeatureExtension.UTF8Support;
+            // The GLOBALTRANSACTIONS, DATACLASSIFICATION, and UTF8 support features are implicitly requested
+            // TCE (Column Encryption) feature is disabled
+            requestedFeatures |= TdsEnums.FeatureExtension.GlobalTransactions | TdsEnums.FeatureExtension.DataClassification | TdsEnums.FeatureExtension.UTF8Support;
 
             // The AzureSQLSupport feature is implicitly set for ReadOnly login
             if (ConnectionOptions.ApplicationIntent == ApplicationIntent.ReadOnly)

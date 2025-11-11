@@ -1015,6 +1015,48 @@ namespace Microsoft.Data.SqlClient
         internal const string TCE_PARAM_ENCRYPTED_CEK = "encryptedColumnEncryptionKey";
         internal const string TCE_PARAM_CLIENT_KEYSTORE_PROVIDERS = "clientKeyStoreProviders";
         internal const string TCE_PARAM_FORCE_COLUMN_ENCRYPTION = "ForceColumnEncryption(true)";
+
+        // Helper method to get token name for logging
+        internal static string GetTokenName(byte token)
+        {
+            return token switch
+            {
+                SQLCOLFMT => "SQLCOLFMT",
+                SQLPROCID => "SQLPROCID",
+                SQLCOLNAME => "SQLCOLNAME",
+                SQLTABNAME => "SQLTABNAME",
+                SQLCOLINFO => "SQLCOLINFO",
+                SQLALTNAME => "SQLALTNAME",
+                SQLALTFMT => "SQLALTFMT",
+                SQLERROR => "SQLERROR",
+                SQLINFO => "SQLINFO",
+                SQLRETURNVALUE => "SQLRETURNVALUE",
+                SQLRETURNSTATUS => "SQLRETURNSTATUS",
+                SQLRETURNTOK => "SQLRETURNTOK",
+                SQLALTCONTROL => "SQLALTCONTROL",
+                SQLROW => "SQLROW",
+                SQLNBCROW => "SQLNBCROW",
+                SQLALTROW => "SQLALTROW",
+                SQLDONE => "SQLDONE",
+                SQLDONEPROC => "SQLDONEPROC",
+                SQLDONEINPROC => "SQLDONEINPROC",
+                SQLOFFSET => "SQLOFFSET",
+                SQLORDER => "SQLORDER",
+                SQLDEBUG_CMD => "SQLDEBUG_CMD",
+                SQLLOGINACK => "SQLLOGINACK",
+                SQLFEATUREEXTACK => "SQLFEATUREEXTACK",
+                SQLSESSIONSTATE => "SQLSESSIONSTATE",
+                SQLENVCHANGE => "SQLENVCHANGE",
+                SQLROWCRC => "SQLROWCRC",
+                SQLCOLMETADATA => "SQLCOLMETADATA",
+                SQLALTMETADATA => "SQLALTMETADATA",
+                SQLSSPI => "SQLSSPI/SQLSECLEVEL",
+                SQLFEDAUTHINFO => "SQLFEDAUTHINFO",
+                SQLRESCOLSRCS => "SQLRESCOLSRCS",
+                SQLDATACLASSIFICATION => "SQLDATACLASSIFICATION",
+                _ => $"UNKNOWN_0x{token:X2}"
+            };
+        }
     }
 
     internal enum SniContext
