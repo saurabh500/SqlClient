@@ -74,7 +74,7 @@ namespace Microsoft.Data.SqlClient
                         SetBuffer(_inBuff, 0, (int)dataSize);
 
                         // LOG INCOMING PACKET FROM SQL SERVER
-                        if (dataSize >= 8)
+                        if (IsTraceEnabled() && dataSize >= 8)
                         {
                             byte msgType = _inBuff[0];
                             byte status = _inBuff[1];
@@ -553,7 +553,7 @@ namespace Microsoft.Data.SqlClient
                     _inBytesUsed = 0;
 
                     // LOG INCOMING PACKET FROM SQL SERVER (Compat Path)
-                    if (dataSize >= 8)
+                    if (IsTraceEnabled() && dataSize >= 8)
                     {
                         byte msgType = _inBuff[0];
                         byte status = _inBuff[1];

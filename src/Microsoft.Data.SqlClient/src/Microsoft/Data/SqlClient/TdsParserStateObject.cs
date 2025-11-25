@@ -46,6 +46,23 @@ namespace Microsoft.Data.SqlClient
         private static int s_objectTypeCount; // EventSource counter
         internal readonly int _objectID = Interlocked.Increment(ref s_objectTypeCount);
 
+        private static bool? s_isTraceEnabled;
+
+        /// <summary>
+        /// Checks if TDS tracing is enabled via ENABLE_TRACE environment variable
+        /// </summary>
+        internal static bool IsTraceEnabled()
+        {
+            if (!s_isTraceEnabled.HasValue)
+            {
+                string traceValue = Environment.GetEnvironmentVariable("ENABLE_TRACE");
+                s_isTraceEnabled = !string.IsNullOrEmpty(traceValue) && 
+                                  (traceValue.Equals("true", StringComparison.OrdinalIgnoreCase) || 
+                                   traceValue.Equals("1", StringComparison.OrdinalIgnoreCase));
+            }
+            return s_isTraceEnabled.Value;
+        }
+
         [Flags]
         internal enum SnapshottedStateFlags : byte
         {
@@ -3043,9 +3060,12 @@ namespace Microsoft.Data.SqlClient
             _outBuff[7] = 0;                          // window
 
             // LOG OUTGOING PACKET TO SQL SERVER
-            Console.WriteLine($"[TDS OUT] ObjectID={_objectID}, PacketNum={packetNumber}, MsgType=0x{_outputMessageType:X2}, Status=0x{status:X2}, Length={_outBytesUsed} bytes");
-            Console.WriteLine($"[TDS OUT] Hex Data: {BitConverter.ToString(_outBuff, 0, _outBytesUsed).Replace("-", " ")}");
-            Console.WriteLine();
+            if (IsTraceEnabled())
+            {
+                Console.WriteLine($"[TDS OUT] ObjectID={_objectID}, PacketNum={packetNumber}, MsgType=0x{_outputMessageType:X2}, Status=0x{status:X2}, Length={_outBytesUsed} bytes");
+                Console.WriteLine($"[TDS OUT] Hex Data: {BitConverter.ToString(_outBuff, 0, _outBytesUsed).Replace("-", " ")}");
+                Console.WriteLine();
+            }
 
             Task task = null;
             _parser.CheckResetConnection(this);       // HAS SIDE EFFECTS - re-org at a later time if possible

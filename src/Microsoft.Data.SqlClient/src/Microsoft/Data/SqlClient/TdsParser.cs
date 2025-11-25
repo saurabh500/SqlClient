@@ -2466,7 +2466,10 @@ namespace Microsoft.Data.SqlClient
                 }
 
                 // LOG TOKEN RECEIVED AND PARSED
-                Console.WriteLine($"[TDS TOKEN] ObjectID={stateObj.ObjectID}, Token=0x{token:X2} ({TdsEnums.GetTokenName(token)})");
+                if (TdsParserStateObject.IsTraceEnabled())
+                {
+                    Console.WriteLine($"[TDS TOKEN] ObjectID={stateObj.ObjectID}, Token=0x{token:X2} ({TdsEnums.GetTokenName(token)})");
+                }
 
                 if (!IsValidTdsToken(token))
                 {
@@ -11506,11 +11509,20 @@ namespace Microsoft.Data.SqlClient
                 throw ADP.ClosedConnectionError();
             }
 
-            Console.WriteLine($"[BULKCOPY METADATA] Writing metadata for {count} columns");
+            if (TdsParserStateObject.IsTraceEnabled())
+            {
+                Console.WriteLine($"[BULKCOPY METADATA] Writing metadata for {count} columns");
+            }
             stateObj.WriteByte(TdsEnums.SQLCOLMETADATA);
-            Console.WriteLine($"[BULKCOPY METADATA] - Token: SQLCOLMETADATA (0x{TdsEnums.SQLCOLMETADATA:X2})");
+            if (TdsParserStateObject.IsTraceEnabled())
+            {
+                Console.WriteLine($"[BULKCOPY METADATA] - Token: SQLCOLMETADATA (0x{TdsEnums.SQLCOLMETADATA:X2})");
+            }
             WriteShort(count, stateObj);
-            Console.WriteLine($"[BULKCOPY METADATA] - Column Count: {count}");
+            if (TdsParserStateObject.IsTraceEnabled())
+            {
+                Console.WriteLine($"[BULKCOPY METADATA] - Column Count: {count}");
+            }
 
             // Write CEK table - 0 count
             WriteCekTable(metadataCollection, stateObj);
@@ -11521,11 +11533,17 @@ namespace Microsoft.Data.SqlClient
                 {
                     _SqlMetaData md = metadataCollection[i];
 
-                    Console.WriteLine($"[BULKCOPY METADATA] Column {i}: '{md.column}' (Type: {md.type}, TdsType: 0x{md.tdsType:X2})");
+                    if (TdsParserStateObject.IsTraceEnabled())
+                    {
+                        Console.WriteLine($"[BULKCOPY METADATA] Column {i}: '{md.column}' (Type: {md.type}, TdsType: 0x{md.tdsType:X2})");
+                    }
 
                     // read user type - 4 bytes 2005, 2 backwards
                         WriteInt(0x0, stateObj);
-                    Console.WriteLine($"[BULKCOPY METADATA]   - UserType: 0x00000000 (4 bytes)");
+                    if (TdsParserStateObject.IsTraceEnabled())
+                    {
+                        Console.WriteLine($"[BULKCOPY METADATA]   - UserType: 0x00000000 (4 bytes)");
+                    }
 
                     // Write the flags
                     ushort flags;
@@ -11543,7 +11561,10 @@ namespace Microsoft.Data.SqlClient
                     }
 
                     WriteShort(flags, stateObj); // write the flags
-                    Console.WriteLine($"[BULKCOPY METADATA]   - Flags: 0x{flags:X4} (IsNullable={md.IsNullable}, IsIdentity={md.IsIdentity}, Updatability={md.Updatability}, IsEncrypted={md.isEncrypted})");
+                    if (TdsParserStateObject.IsTraceEnabled())
+                    {
+                        Console.WriteLine($"[BULKCOPY METADATA]   - Flags: 0x{flags:X4} (IsNullable={md.IsNullable}, IsIdentity={md.IsIdentity}, Updatability={md.Updatability}, IsEncrypted={md.isEncrypted})");
+                    }
 
                     // todo:
                     // for xml WriteTokenLength results in a no-op
@@ -11554,60 +11575,114 @@ namespace Microsoft.Data.SqlClient
                     {
                         case SqlDbType.Decimal:
                             stateObj.WriteByte(md.tdsType);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            }
                             WriteTokenLength(md.tdsType, md.length, stateObj);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            }
                             stateObj.WriteByte(md.precision);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Precision: {md.precision}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Precision: {md.precision}");
+                            }
                             stateObj.WriteByte(md.scale);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            }
                             break;
                         case SqlDbType.Xml:
                             // TODO: This doesn't look right. Needs fixing.
                             stateObj.WriteByteArray(s_xmlMetadataSubstituteSequence, s_xmlMetadataSubstituteSequence.Length, 0);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - XML metadata sequence ({s_xmlMetadataSubstituteSequence.Length} bytes)");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - XML metadata sequence ({s_xmlMetadataSubstituteSequence.Length} bytes)");
+                            }
                             break;
                         case SqlDbType.Udt:
                             stateObj.WriteByte(TdsEnums.SQLBIGVARBINARY);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: SQLBIGVARBINARY (0x{TdsEnums.SQLBIGVARBINARY:X2})");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: SQLBIGVARBINARY (0x{TdsEnums.SQLBIGVARBINARY:X2})");
+                            }
                             WriteTokenLength(TdsEnums.SQLBIGVARBINARY, md.length, stateObj);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            }
                             break;
                         case SqlDbType.Date:
                             stateObj.WriteByte(md.tdsType);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            }
                             break;
                         case SqlDbType.Time:
                         case SqlDbType.DateTime2:
                         case SqlDbType.DateTimeOffset:
                             stateObj.WriteByte(md.tdsType);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            }
                             stateObj.WriteByte(md.scale);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            }
                             break;
                         case SqlDbTypeExtensions.Json:
                             stateObj.WriteByteArray(s_jsonMetadataSubstituteSequence, s_jsonMetadataSubstituteSequence.Length, 0);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - JSON metadata sequence ({s_jsonMetadataSubstituteSequence.Length} bytes)");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - JSON metadata sequence ({s_jsonMetadataSubstituteSequence.Length} bytes)");
+                            }
                             break;
                         case SqlDbTypeExtensions.Vector:
                             stateObj.WriteByte(md.tdsType);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            }
                             WriteTokenLength(md.tdsType, md.length, stateObj);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            }
                             stateObj.WriteByte(md.scale);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Scale: {md.scale}");
+                            }
                             break;
                         default:
                             stateObj.WriteByte(md.tdsType);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - TdsType: 0x{md.tdsType:X2}");
+                            }
                             WriteTokenLength(md.tdsType, md.length, stateObj);
-                            Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            if (TdsParserStateObject.IsTraceEnabled())
+                            {
+                                Console.WriteLine($"[BULKCOPY METADATA]   - Length: {md.length}");
+                            }
                             if (md.metaType.IsCharType)
                             {
                                 WriteUnsignedInt(md.collation._info, stateObj);
-                                Console.WriteLine($"[BULKCOPY METADATA]   - Collation Info: 0x{md.collation._info:X8}");
+                                if (TdsParserStateObject.IsTraceEnabled())
+                                {
+                                    Console.WriteLine($"[BULKCOPY METADATA]   - Collation Info: 0x{md.collation._info:X8}");
+                                }
                                 stateObj.WriteByte(md.collation._sortId);
-                                Console.WriteLine($"[BULKCOPY METADATA]   - Collation SortId: 0x{md.collation._sortId:X2}");
+                                if (TdsParserStateObject.IsTraceEnabled())
+                                {
+                                    Console.WriteLine($"[BULKCOPY METADATA]   - Collation SortId: 0x{md.collation._sortId:X2}");
+                                }
                             }
                             break;
                     }
@@ -11615,18 +11690,30 @@ namespace Microsoft.Data.SqlClient
                     if (md.metaType.IsLong && !md.metaType.IsPlp)
                     {
                         WriteShort(md.tableName.Length, stateObj);
-                        Console.WriteLine($"[BULKCOPY METADATA]   - TableName Length: {md.tableName.Length} (short)");
+                        if (TdsParserStateObject.IsTraceEnabled())
+                        {
+                            Console.WriteLine($"[BULKCOPY METADATA]   - TableName Length: {md.tableName.Length} (short)");
+                        }
                         WriteString(md.tableName, stateObj);
-                        Console.WriteLine($"[BULKCOPY METADATA]   - TableName: '{md.tableName}'");
+                        if (TdsParserStateObject.IsTraceEnabled())
+                        {
+                            Console.WriteLine($"[BULKCOPY METADATA]   - TableName: '{md.tableName}'");
+                        }
                     }
 
                     WriteCryptoMetadata(md, stateObj);
 
                     stateObj.WriteByte((byte)md.column.Length);
-                    Console.WriteLine($"[BULKCOPY METADATA]   - ColumnName Length: {md.column.Length} (byte)");
+                    if (TdsParserStateObject.IsTraceEnabled())
+                    {
+                        Console.WriteLine($"[BULKCOPY METADATA]   - ColumnName Length: {md.column.Length} (byte)");
+                    }
                     WriteString(md.column, stateObj);
-                    Console.WriteLine($"[BULKCOPY METADATA]   - ColumnName: '{md.column}'");
-                    Console.WriteLine();
+                    if (TdsParserStateObject.IsTraceEnabled())
+                    {
+                        Console.WriteLine($"[BULKCOPY METADATA]   - ColumnName: '{md.column}'");
+                        Console.WriteLine();
+                    }
                 }
             } // end for loop
         }
